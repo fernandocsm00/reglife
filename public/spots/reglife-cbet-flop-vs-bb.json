@@ -1,0 +1,129 @@
+{
+  "name": "C-Bet Flop vs BB — reg.life",
+  "action": "cBet",
+  "mode": "sequential",
+  "tier": 1,
+  "sessionSize": 11,
+  "stackSize": [20],
+  "potSize": 5.5,
+  "currentPotSize": 5.5,
+  "tableSize": 8,
+  "heroPositions": ["UTG1", "BTN"],
+  "villainPositions": ["BB"],
+  "actionButtons": [
+    { "text": "CHECK",    "color": "#0E6326" },
+    { "text": "CBET 1/3", "color": "#B11515" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "UTG1",
+      "board": "Jh-4h-2d",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["QsTs"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "UTG1",
+      "board": "Th-Td-4h",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["AdKs"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "UTG1",
+      "board": "Jh-4h-2d",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["TsTc"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "UTG1",
+      "board": "Ad-5h-6h",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["KsKd"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "Ad-6h-5h",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["Tc8s"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "9h-8h-5d",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["8s8c", "8s8d", "8d8c"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "Th-Td-4h",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["As3d"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "6h-4d-2c",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["Ah8d"], "answer": ["CHECK"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "Kh-Qd-Jh",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["9s9c", "9s9d", "9s9h", "9d9c", "9h9c", "9h9d"], "answer": ["CBET 1/3"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "9h-8h-5d",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["Ad7d"], "answer": ["CHECK"] }
+      ]
+    },
+    {
+      "position": "BTN",
+      "board": "9h-6h-2h",
+      "stackSize": 20,
+      "villainPosition": "BB",
+      "spotConfig": { "villainStackSize": 18, "heroStackSize": 18 },
+      "expectedAnswers": [
+        { "combos": ["As8d"], "answer": ["CBET 1/3"] }
+      ]
+    }
+  ]
+}

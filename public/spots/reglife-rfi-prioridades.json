@@ -1,0 +1,38 @@
+{
+  "name": "RFI Prioridades — reg.life",
+  "action": "RFI",
+  "mode": "sequential",
+  "tier": 1,
+  "sessionSize": 19,
+  "potSize": 2.5,
+  "currentPotSize": 1,
+  "tableSize": 8,
+  "villainPositions": ["BB"],
+  "actionButtons": [
+    { "text": "FOLD",    "color": "#114EAB" },
+    { "text": "LIMP",    "color": "#0E6326" },
+    { "text": "RAISE 2", "color": "#D32121" },
+    { "text": "ALL-IN",  "color": "#6C0A0A" }
+  ],
+  "expectedAnswers": [
+    { "position": "LJ",  "stackSize": 100, "expectedAnswers": [ { "combos": ["Q9s"],  "answer": ["RAISE 2"] } ] },
+    { "position": "LJ",  "stackSize": 15,  "expectedAnswers": [ { "combos": ["98s"],  "answer": ["FOLD"]    } ] },
+    { "position": "UTG", "stackSize": 25,  "expectedAnswers": [ { "combos": ["33"],   "answer": ["FOLD"]    } ] },
+    { "position": "LJ",  "stackSize": 25,  "expectedAnswers": [ { "combos": ["KTo"],  "answer": ["RAISE 2"] } ] },
+    { "position": "UTG", "stackSize": 50,  "expectedAnswers": [ { "combos": ["A9o"],  "answer": ["FOLD"]    } ] },
+    { "position": "HJ",  "stackSize": 25,  "expectedAnswers": [ { "combos": ["K6s"],  "answer": ["RAISE 2"] } ] },
+    { "position": "BTN", "stackSize": 50,  "expectedAnswers": [ { "combos": ["J3s"],  "answer": ["RAISE 2"] } ] },
+    { "position": "BTN", "stackSize": 15,  "expectedAnswers": [ { "combos": ["22"],   "answer": ["ALL-IN"]  } ] },
+    { "position": "HJ",  "stackSize": 100, "expectedAnswers": [ { "combos": ["A7o"],  "answer": ["FOLD"]    } ] },
+    { "position": "CO",  "stackSize": 100, "expectedAnswers": [ { "combos": ["Q4s"],  "answer": ["RAISE 2"] } ] },
+    { "position": "CO",  "stackSize": 15,  "expectedAnswers": [ { "combos": ["QJs"],  "answer": ["ALL-IN"]  } ] },
+    { "position": "UTG", "stackSize": 10,  "expectedAnswers": [ { "combos": ["66"],   "answer": ["ALL-IN"]  } ] },
+    { "position": "UTG", "stackSize": 10,  "expectedAnswers": [ { "combos": ["QJo"],  "answer": ["FOLD"]    } ] },
+    { "position": "CO",  "stackSize": 10,  "expectedAnswers": [ { "combos": ["J9s"],  "answer": ["ALL-IN"]  } ] },
+    { "position": "BTN", "stackSize": 10,  "expectedAnswers": [ { "combos": ["K6o"],  "answer": ["FOLD"]    } ] },
+    { "position": "BTN", "stackSize": 15,  "expectedAnswers": [ { "combos": ["A7o"],  "answer": ["ALL-IN"]  } ] },
+    { "position": "BTN", "stackSize": 15,  "expectedAnswers": [ { "combos": ["JTs"],  "answer": ["ALL-IN"]  } ] },
+    { "position": "BTN", "stackSize": 15,  "expectedAnswers": [ { "combos": ["99"],   "answer": ["RAISE 2"] } ] },
+    { "position": "BTN", "stackSize": 15,  "expectedAnswers": [ { "combos": ["Q6s"],  "answer": ["RAISE 2"] } ] }
+  ]
+}
