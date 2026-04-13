@@ -186,10 +186,25 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
           </div>
         </motion.div>
 
+        {/* Early stop banner */}
+        {plan.stoppedEarly && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.07 }}
+            className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
+          >
+            <strong>Diagnóstico encerrado antecipadamente.</strong>{" "}
+            Identificamos {plan.spotsFailed} spots abaixo de 70% em{" "}
+            {plan.spotsPlayed} spots jogados. Seu plano foca nesses pontos
+            fracos para acelerar sua evolução.
+          </motion.div>
+        )}
+
         {/* Stats */}
-        <div className="mb-10 grid grid-cols-3 gap-4">
+        <div className="mb-10 grid grid-cols-3 gap-4 sm:grid-cols-4">
           <StatCard
-            label="Acerto inicial"
+            label="Acerto geral"
             value={`${plan.accuracyPct}%`}
             accent="amber"
           />
@@ -202,6 +217,13 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             value={`${plan.leaks.length}`}
             accent="red"
           />
+          {plan.spotsPlayed > 0 && (
+            <StatCard
+              label="Spots avaliados"
+              value={`${plan.spotsPlayed - plan.spotsFailed}/${plan.spotsPlayed}`}
+              accent={plan.stoppedEarly ? "red" : undefined}
+            />
+          )}
         </div>
 
         {/* Phases */}

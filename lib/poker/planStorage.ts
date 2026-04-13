@@ -44,6 +44,9 @@ export interface SavedPlan {
   totalCorrect: number;
   totalErrors: number;
   totalDrills: number;
+  stoppedEarly: boolean; // true = 3 spots falharam e o diagnóstico encerrou cedo
+  spotsPlayed: number;   // quantos spots foram jogados
+  spotsFailed: number;   // quantos ficaram abaixo de 70%
   byTrainer: { label: string; correct: number; total: number; pct: number }[];
   leaks: LeakBucket[];
 

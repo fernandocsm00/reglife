@@ -20,6 +20,9 @@ interface BuildPlanInput {
   studyTime: StudyTime;
   monthlyVolume: MonthlyVolume;
   previous: SavedPlan | null;
+  stoppedEarly?: boolean;
+  spotsPlayed?: number;
+  spotsFailed?: number;
 }
 
 export const STUDY_TIME_LABELS: Record<StudyTime, string> = {
@@ -118,6 +121,9 @@ export function buildPlan({
   studyTime,
   monthlyVolume,
   previous,
+  stoppedEarly = false,
+  spotsPlayed = 0,
+  spotsFailed = 0,
 }: BuildPlanInput): SavedPlan {
   const sortedLeaks = summary.leaks;
 
@@ -182,6 +188,9 @@ export function buildPlan({
     totalCorrect: summary.totalCorrect,
     totalErrors: summary.totalErrors,
     totalDrills: summary.totalDrills,
+    stoppedEarly,
+    spotsPlayed,
+    spotsFailed,
     byTrainer: summary.byTrainer,
     leaks: summary.leaks,
     phases,
