@@ -1,0 +1,112 @@
+{
+  "name": "Vs C-Bet Flop do BB — reg.life",
+  "action": "vsCbet",
+  "mode": "sequential",
+  "tier": 1,
+  "sessionSize": 15,
+  "potSize": 5.7,
+  "currentPotSize": 8,
+  "tableSize": 8,
+  "heroPositions": ["BB"],
+  "villainBetSize": 2.3,
+  "heroBetSize": 0,
+  "actionButtons": [
+    { "text": "FOLD",      "color": "#114EAB" },
+    { "text": "CALL",      "color": "#0E6326" },
+    { "text": "RAISE 33%", "color": "#D32121" },
+    { "text": "RAISE 55%", "color": "#B01E1E" },
+    { "text": "ALL-IN",    "color": "#6C0A0A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Th-5h-5d",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Ac9h"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "9h-6d-2h",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["6h4h"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "9h-6d-2h",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["KhQh"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Kh-Jd-4d",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["9sTd"], "answer": ["CALL", "RAISE 33%", "RAISE 55%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Ac-Kc-3d",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["9s3s"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Jd-6d-2c",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Qd9c"], "answer": ["CALL", "RAISE 33%", "RAISE 55%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Kd-Th-7h",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Ac4d"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Kd-Th-7h",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Ah3d"], "answer": ["CALL", "RAISE 33%", "RAISE 55%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "8s-3s-2s",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Ks8c"], "answer": ["RAISE 33%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Qd-Qc-Js",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Qh7d"], "answer": ["RAISE 33%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "BTN",
+      "board": "As-9d-3c",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["KQo"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Kd-Tc-7c",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["4c2c"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "UTG",
+      "board": "6d-4h-3c",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["Ac7c"], "answer": ["CALL", "RAISE 33%"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "UTG",
+      "board": "9h-6d-2c",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["7d2d"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BB", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Kc-6c-3s",
+      "spotConfig": { "heroStackSize": 27, "villainStackSize": 25 },
+      "expectedAnswers": [{ "combos": ["AhTs"], "answer": ["FOLD"] }]
+    }
+  ]
+}

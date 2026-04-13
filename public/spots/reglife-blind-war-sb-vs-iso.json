@@ -1,0 +1,54 @@
+{
+  "name": "Blind War — SB vs ISO — reg.life",
+  "action": "blindWar",
+  "mode": "sequential",
+  "tier": 1,
+  "sessionSize": 6,
+  "potSize": 5.5,
+  "currentPotSize": 5.5,
+  "tableSize": 8,
+  "heroPositions": ["SB"],
+  "villainPositions": ["BB"],
+  "villainBetSize": 3.5,
+  "heroBetSize": 1,
+  "actionButtons": [
+    { "text": "FOLD",       "color": "#114EAB" },
+    { "text": "CALL",       "color": "#0E6326" },
+    { "text": "RAISE 6",    "color": "#D32121" },
+    { "text": "RAISE 8.25", "color": "#B01E1E" },
+    { "text": "RAISE 12.25","color": "#991A1A" },
+    { "text": "ALL-IN",     "color": "#6C0A0A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "SB", "stackSize": 50, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["T6o"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "SB", "stackSize": 30, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["KTs"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "SB", "stackSize": 60, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["Q2s"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "SB", "stackSize": 60, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["K2o"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "SB", "stackSize": 15, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["QJs"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "SB", "stackSize": 30, "villainPosition": "BB",
+      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Limp"},{"position":"BB","action":"Raise 3.5"}]}] },
+      "expectedAnswers": [{ "combos": ["33"], "answer": ["ALL-IN"] }]
+    }
+  ]
+}

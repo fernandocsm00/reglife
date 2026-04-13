@@ -138,13 +138,14 @@ function generatePostFlopSeats(args: BuildArgs): PlayerSeat[] {
 
 export function buildTableSeats(args: BuildArgs): PlayerSeat[] {
   let players: PlayerSeat[] = [];
-  if (args.action === "RFI" || args.action === "blindWar") {
+  if (args.action === "RFI") {
     players = generatePreFlopSeats({ ...args, villainPositions: [], villainBetSize: 0 });
   } else if (
     args.action === "vsOpen" ||
     args.action === "vs3Bet" ||
     args.action === "vsBBISO" ||
-    args.action === "multiway"
+    args.action === "multiway" ||
+    args.action === "blindWar"
   ) {
     players = generatePreFlopSeats(args);
   } else if (
