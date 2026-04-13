@@ -46,7 +46,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const email = useDiagnosticoStore((s) => s.email);
   const phone = useDiagnosticoStore((s) => s.phone);
   const studyTime = useDiagnosticoStore((s) => s.studyTime);
-  const monthlyVolume = useDiagnosticoStore((s) => s.monthlyVolume);
+  const profitGoal = useDiagnosticoStore((s) => s.profitGoal);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
@@ -89,7 +89,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       email,
       phone,
       studyTime,
-      monthlyVolume,
+      profitGoal,
       previous,
       stoppedEarly,
       spotsPlayed: spotSummaries.length,
@@ -98,7 +98,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     savePlan(plan);
     const t = setTimeout(() => router.push("/meu-plano"), 900);
     return () => clearTimeout(t);
-  }, [completed, results, playerName, email, phone, studyTime, monthlyVolume, router,
+  }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
       stoppedEarly, spotSummaries, failedSpotCount]);
 
   const handlePick = (text: string) => {

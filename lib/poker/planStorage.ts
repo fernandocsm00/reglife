@@ -6,7 +6,7 @@ import type { LessonRef } from "./lessonCatalog";
 import type { LeakBucket } from "./leakAnalysis";
 
 export type StudyTime = "ate15" | "ate40" | "mais40";
-export type MonthlyVolume = "ate50" | "50a100" | "100a300" | "mais300";
+export type ProfitGoal = "ate50k" | "50ka150k" | "150ka500k" | "mais500k";
 
 /** @deprecated mantido só pra compatibilidade com planos v1 antigos */
 export type StudyPace = StudyTime;
@@ -33,7 +33,7 @@ export interface SavedPlan {
   email: string;
   phone: string;
   studyTime: StudyTime;
-  monthlyVolume: MonthlyVolume;
+  profitGoal: ProfitGoal;
 
   // Tier assessment
   playerTier: number;

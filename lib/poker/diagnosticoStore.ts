@@ -11,7 +11,7 @@ import {
   type DrillContext,
 } from "./spotEngine";
 import type { CurrentDrill, PokerAction, SpotConfigFile } from "./types";
-import type { MonthlyVolume, StudyTime } from "./planStorage";
+import type { ProfitGoal, StudyTime } from "./planStorage";
 
 export interface ResultEntry {
   spotLabel: string;
@@ -74,7 +74,7 @@ interface DiagnosticoState {
   email: string;
   phone: string;
   studyTime: StudyTime;
-  monthlyVolume: MonthlyVolume;
+  profitGoal: ProfitGoal;
 
   // Spot transition overlay
   showSpotTransition: boolean;
@@ -89,7 +89,7 @@ interface DiagnosticoState {
     email: string;
     phone: string;
     studyTime: StudyTime;
-    monthlyVolume: MonthlyVolume;
+    profitGoal: ProfitGoal;
   }) => void;
 }
 
@@ -123,12 +123,12 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   email: "",
   phone: "",
   studyTime: "ate15",
-  monthlyVolume: "ate50",
+  profitGoal: "ate50k",
   showSpotTransition: false,
   lastSpotSummary: null,
 
-  setOnboarding: ({ playerName, email, phone, studyTime, monthlyVolume }) =>
-    set({ playerName, email, phone, studyTime, monthlyVolume }),
+  setOnboarding: ({ playerName, email, phone, studyTime, profitGoal }) =>
+    set({ playerName, email, phone, studyTime, profitGoal }),
 
   loadConfigs: (raws) => {
     const sessions: SubSession[] = [];

@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Logo } from "@/components/Logo";
-import type { MonthlyVolume, StudyTime } from "@/lib/poker/planStorage";
+import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 
 export interface OnboardingData {
   playerName: string;
   email: string;
   phone: string;
   studyTime: StudyTime;
-  monthlyVolume: MonthlyVolume;
+  profitGoal: ProfitGoal;
 }
 
 interface Props {
@@ -23,11 +23,11 @@ const STUDY_OPTIONS: { id: StudyTime; label: string }[] = [
   { id: "mais40", label: "Mais de 40h semanais" },
 ];
 
-const VOLUME_OPTIONS: { id: MonthlyVolume; label: string }[] = [
-  { id: "ate50", label: "50 jogos ou menos" },
-  { id: "50a100", label: "50 a 100 jogos" },
-  { id: "100a300", label: "100 a 300 jogos" },
-  { id: "mais300", label: "Mais de 300 jogos" },
+const PROFIT_OPTIONS: { id: ProfitGoal; label: string }[] = [
+  { id: "ate50k", label: "Até R$ 50K" },
+  { id: "50ka150k", label: "R$ 50K a R$ 150K" },
+  { id: "150ka500k", label: "R$ 150K a R$ 500K" },
+  { id: "mais500k", label: "Mais de R$ 500K" },
 ];
 
 // Formata o celular enquanto o usuário digita: (99) 99999-9999
@@ -54,7 +54,7 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [studyTime, setStudyTime] = useState<StudyTime>("ate15");
-  const [monthlyVolume, setMonthlyVolume] = useState<MonthlyVolume>("ate50");
+  const [profitGoal, setProfitGoal] = useState<ProfitGoal>("ate50k");
 
   const canSubmit =
     playerName.trim().length >= 2 && isValidEmail(email) && isValidPhone(phone);
@@ -77,7 +77,7 @@ export function OnboardingForm({ onSubmit }: Props) {
         </motion.h1>
         <p className="mt-3 max-w-md text-center text-sm text-neutral-400">
           Vamos personalizar seu plano de 90 dias com base no seu ritmo de
-          estudo e volume de jogos.
+          estudo e onde você quer chegar.
         </p>
 
         <form
@@ -89,7 +89,7 @@ export function OnboardingForm({ onSubmit }: Props) {
               email: email.trim().toLowerCase(),
               phone,
               studyTime,
-              monthlyVolume,
+              profitGoal,
             });
           }}
           className="mt-10 w-full space-y-6"
@@ -142,13 +142,13 @@ export function OnboardingForm({ onSubmit }: Props) {
             </div>
           </Field>
 
-          <Field label="Seu volume de jogos por mês">
+          <Field label="Quanto de profit você quer nos próximos 12 meses?">
             <div className="grid grid-cols-2 gap-2">
-              {VOLUME_OPTIONS.map((opt) => (
+              {PROFIT_OPTIONS.map((opt) => (
                 <OptionButton
                   key={opt.id}
-                  selected={monthlyVolume === opt.id}
-                  onClick={() => setMonthlyVolume(opt.id)}
+                  selected={profitGoal === opt.id}
+                  onClick={() => setProfitGoal(opt.id)}
                   label={opt.label}
                 />
               ))}

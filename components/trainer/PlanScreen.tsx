@@ -12,7 +12,8 @@ import {
   type SavedPlan,
 } from "@/lib/poker/planStorage";
 import {
-  MONTHLY_VOLUME_LABELS,
+  PROFIT_GOAL_LABELS,
+  PROFIT_GOAL_ADVICE,
   STUDY_TIME_LABELS,
 } from "@/lib/poker/planBuilder";
 import { Logo } from "@/components/Logo";
@@ -113,7 +114,7 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
           </p>
           <p className="mt-2 text-xs text-neutral-500">
             Criado em {createdAtLabel} · {STUDY_TIME_LABELS[plan.studyTime]} ·{" "}
-            {MONTHLY_VOLUME_LABELS[plan.monthlyVolume]}
+            Meta: {PROFIT_GOAL_LABELS[plan.profitGoal]}
           </p>
         </motion.div>
 
@@ -182,6 +183,26 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             <div className="text-xs text-neutral-400">
               Classificação baseada no seu nivelamento. Foque nas aulas e
               tarefas do seu tier para subir.
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Profit goal + advice */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.065 }}
+          className="mb-8 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-5"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎯</span>
+            <div>
+              <div className="text-sm font-bold text-emerald-300">
+                Sua meta: {PROFIT_GOAL_LABELS[plan.profitGoal]}
+              </div>
+              <div className="mt-1 text-xs leading-relaxed text-neutral-400">
+                {PROFIT_GOAL_ADVICE[plan.profitGoal]}
+              </div>
             </div>
           </div>
         </motion.div>
