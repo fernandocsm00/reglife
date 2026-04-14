@@ -32,22 +32,22 @@ export const STUDY_TIME_LABELS: Record<StudyTime, string> = {
 };
 
 export const PROFIT_GOAL_LABELS: Record<ProfitGoal, string> = {
-  ate50k: "Até R$ 50K em 12 meses",
-  "50ka150k": "R$ 50K a R$ 150K em 12 meses",
-  "150ka500k": "R$ 150K a R$ 500K em 12 meses",
-  mais500k: "Mais de R$ 500K em 12 meses",
+  usd1k: "U$ 1.000 em 12 meses",
+  usd10k: "U$ 10.000 em 12 meses",
+  usd50k: "U$ 50.000 em 12 meses",
+  usd100k: "U$ 100.000 em 12 meses",
 };
 
 /** Texto motivacional curto para usar no plano */
 export const PROFIT_GOAL_ADVICE: Record<ProfitGoal, string> = {
-  ate50k:
-    "Com essa meta, foque em construir fundamentos sólidos e consistência. Estude os spots básicos até dominar e aumente o volume gradualmente.",
-  "50ka150k":
-    "Para R$ 50-150K/ano você precisa dominar todos os spots de Tier 1 e 2, jogar pelo menos 100-200 torneios/mês e manter uma taxa de ROI saudável. O plano abaixo vai te preparar pra isso.",
-  "150ka500k":
-    "Essa meta exige domínio de Tier 2 completo, volume alto (+300 torneios/mês) e um edge consistente nos field regulares. O plano foca em eliminar seus leaks mais caros pra maximizar seu ROI.",
-  mais500k:
-    "Jogar pra mais de R$ 500K/ano é nível profissional de elite. Você precisa de Tier 3 sólido, volume intenso, e BRM impecável. O plano vai atacar cada fraqueza cirurgicamente.",
+  usd1k:
+    "Com essa meta, foque em construir fundamentos sólidos e consistência. Domine os spots básicos de Tier 1, estude com disciplina e aumente o volume gradualmente. É o primeiro passo pra criar uma base rentável.",
+  usd10k:
+    "Para U$ 10K/ano você precisa dominar todos os spots de Tier 1 e 2, jogar pelo menos 100-200 torneios/mês e manter uma taxa de ROI saudável. O plano abaixo vai te preparar pra isso.",
+  usd50k:
+    "Essa meta exige domínio completo de Tier 2, volume alto (+300 torneios/mês) e um edge consistente nos fields regulares. O plano foca em eliminar seus leaks mais caros pra maximizar seu ROI.",
+  usd100k:
+    "U$ 100K/ano é nível profissional de elite. Você precisa de Tier 3 sólido, volume intenso e BRM impecável. O plano vai atacar cada fraqueza cirurgicamente pra te colocar nesse patamar.",
 };
 
 const STUDY_TASKS: Record<StudyTime, Record<PlanPhase["id"], string[]>> = {

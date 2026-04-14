@@ -6,7 +6,7 @@ import type { LessonRef } from "./lessonCatalog";
 import type { LeakBucket } from "./leakAnalysis";
 
 export type StudyTime = "ate15" | "ate40" | "mais40";
-export type ProfitGoal = "ate50k" | "50ka150k" | "150ka500k" | "mais500k";
+export type ProfitGoal = "usd1k" | "usd10k" | "usd50k" | "usd100k";
 
 /** @deprecated mantido só pra compatibilidade com planos v1 antigos */
 export type StudyPace = StudyTime;

@@ -123,7 +123,7 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   email: "",
   phone: "",
   studyTime: "ate15",
-  profitGoal: "ate50k",
+  profitGoal: "usd1k",
   showSpotTransition: false,
   lastSpotSummary: null,
 

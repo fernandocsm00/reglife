@@ -24,10 +24,10 @@ const STUDY_OPTIONS: { id: StudyTime; label: string }[] = [
 ];
 
 const PROFIT_OPTIONS: { id: ProfitGoal; label: string }[] = [
-  { id: "ate50k", label: "Até R$ 50K" },
-  { id: "50ka150k", label: "R$ 50K a R$ 150K" },
-  { id: "150ka500k", label: "R$ 150K a R$ 500K" },
-  { id: "mais500k", label: "Mais de R$ 500K" },
+  { id: "usd1k", label: "U$ 1.000" },
+  { id: "usd10k", label: "U$ 10.000" },
+  { id: "usd50k", label: "U$ 50.000" },
+  { id: "usd100k", label: "U$ 100.000" },
 ];
 
 // Formata o celular enquanto o usuário digita: (99) 99999-9999
@@ -54,7 +54,7 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [studyTime, setStudyTime] = useState<StudyTime>("ate15");
-  const [profitGoal, setProfitGoal] = useState<ProfitGoal>("ate50k");
+  const [profitGoal, setProfitGoal] = useState<ProfitGoal>("usd1k");
 
   const canSubmit =
     playerName.trim().length >= 2 && isValidEmail(email) && isValidPhone(phone);
