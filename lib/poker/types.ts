@@ -55,6 +55,8 @@ export interface ExpectedAnswer {
   position: string; // hero position (or villain in cBet)
   stackSize: number;
   villainPosition?: string;
+  /** For multiway: multiple villain positions override config.villainPositions */
+  villainPositions?: string[];
   board?: string;
   spotConfig?: ExpectedAnswerSpotConfig;
   expectedAnswers: ExpectedAnswerCombos[];

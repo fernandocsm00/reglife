@@ -167,13 +167,17 @@ export function createDrill(
   const rangeForThisAnswer = ea.expectedAnswers.flatMap((x) => x.combos);
   const cardsOnHand = pickRandomCardCombo(Array.from(new Set(rangeForThisAnswer)), board);
 
-  // 4. Resolve villain seat for the table.
-  //    If the expectedAnswer specifies a villain, use it (important for vsOpen / vsCbet
-  //    where villain varies per scenario). Fall back to config-level list otherwise.
+  // 4. Resolve villain seat(s) for the table.
+  //    Per-scenario villainPositions (array) takes priority (multiway),
+  //    then single villainPosition, then config-level list.
+  const perSceneVillains = ea.villainPositions; // multiway array
   let villainPosition = villainInAnswer;
   if (!villainPosition && config.villainPositions?.length) {
     villainPosition = config.villainPositions[randInt(config.villainPositions.length)];
   }
+  const villainPositionsForTable =
+    perSceneVillains ??
+    (villainPosition ? [villainPosition] : config.villainPositions ?? []);
 
   // 5. Build action buttons (each marked correct or wrong for this combo)
   const key = answerKey(heroPosition, board, stackSize, villainInAnswer, answerId);
@@ -186,13 +190,9 @@ export function createDrill(
   }));
 
   // 6. Build the table seats.
-  //    When villain is per-scenario, pass [villainPosition] so the table builder
-  //    marks only that specific seat as villain.
   const players = buildTableSeats({
     heroPosition,
-    villainPositions: villainPosition
-      ? [villainPosition]
-      : config.villainPositions ?? [],
+    villainPositions: villainPositionsForTable,
     villainBetSize,
     action,
     tableSize: config.tableSize,
@@ -200,7 +200,7 @@ export function createDrill(
     heroBetSize,
     villainStackSize,
     heroStackSize,
-    selectedVillainPosition: villainPosition,
+    selectedVillainPosition: villainPositionsForTable[0] ?? "",
     tableConfiguration,
   });
 
