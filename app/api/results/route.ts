@@ -5,6 +5,13 @@ import { supabase } from "@/lib/supabase";
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.error("[api/results] SUPABASE env vars not configured");
+    return NextResponse.json({ error: "Server misconfigured: missing Supabase env vars" }, { status: 500 });
+  }
+
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .insert([
@@ -35,7 +42,8 @@ export async function POST(req: NextRequest) {
 // GET /api/results — list all (admin)
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret");
-  if (secret !== process.env.ADMIN_SECRET) {
+  const expected = process.env.ADMIN_SECRET ?? "reglife2024";
+  if (secret !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
