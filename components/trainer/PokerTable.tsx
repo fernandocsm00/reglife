@@ -6,6 +6,28 @@ import { PlayerSeatComponent } from "./PlayerSeat";
 import { Logo } from "@/components/Logo";
 import type { CurrentDrill } from "@/lib/poker/types";
 
+// Mirror of the fixed 8-seat coordinates used in PlayerSeat.tsx
+const SEAT_COORDS_8: [number, number][] = [
+  [50, 92], // seat 1 – hero – bottom center
+  [75, 82], // seat 2 – bottom right
+  [92, 48], // seat 3 – right
+  [75, 14], // seat 4 – top right
+  [50,  6], // seat 5 – top center
+  [25, 14], // seat 6 – top left
+  [ 8, 48], // seat 7 – left
+  [25, 82], // seat 8 – bottom left
+];
+
+/** Return the chip-indicator position: 28% of the way from the seat towards the table center. */
+function chipOverlayPos(seatIndex: number, totalSeats: number): [number, number] {
+  if (totalSeats === 8 && seatIndex >= 1 && seatIndex <= 8) {
+    const [sx, sy] = SEAT_COORDS_8[seatIndex - 1];
+    return [sx + (50 - sx) * 0.28, sy + (50 - sy) * 0.28];
+  }
+  // Fallback: no meaningful offset
+  return [50, 50];
+}
+
 interface Props {
   drill: CurrentDrill;
   drillKey: string;
@@ -69,6 +91,26 @@ export function PokerTable({ drill, drillKey }: Props) {
         <Image src="/trainer/chips.svg" alt="chips" width={14} height={14} />
         <span className="text-xs text-neutral-300">{drill.currentPotSize} BB</span>
       </div>
+
+      {/* Chip overlays — rendered between each player and the table center */}
+      {drill.players
+        .filter((p) => p.hasChipsInFront)
+        .map((p) => {
+          const [cx, cy] = chipOverlayPos(p.index, seats);
+          return (
+            <motion.div
+              key={`${drillKey}-chips-${p.position}`}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.18, duration: 0.2 }}
+              className="absolute flex items-center gap-0.5 text-yellow-300 text-xs font-semibold pointer-events-none"
+              style={{ left: `${cx}%`, top: `${cy}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <Image src="/trainer/chips.svg" alt="" width={13} height={13} />
+              <span>{p.amountOfChips}</span>
+            </motion.div>
+          );
+        })}
 
       {/* Seats */}
       {drill.players.map((p) => (

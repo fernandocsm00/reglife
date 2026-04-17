@@ -78,6 +78,13 @@ function generatePreFlopSeats(args: BuildArgs): PlayerSeat[] {
         heroBetSize <= 0) ||
         amountOfChips > 0);
 
+    const rawStack =
+      isHero && heroStackSize >= 0
+        ? heroStackSize
+        : isVillain && villainStackSize >= 0
+        ? villainStackSize
+        : stackSize;
+
     players.push({
       index: seatIndex,
       position,
@@ -86,12 +93,7 @@ function generatePreFlopSeats(args: BuildArgs): PlayerSeat[] {
       amountOfChips,
       isHero,
       isVillain,
-      stackSize:
-        isHero && heroStackSize >= 0
-          ? heroStackSize
-          : isVillain && villainStackSize >= 0
-          ? villainStackSize
-          : stackSize,
+      stackSize: Math.max(0, rawStack - amountOfChips),
       bounty: 0,
     });
 
@@ -114,6 +116,13 @@ function generatePostFlopSeats(args: BuildArgs): PlayerSeat[] {
     const isVillain = selectedVillainPosition === position;
     const amountOfChips = isVillain ? villainBetSize : isHero ? heroBetSize : 0;
 
+    const rawStack =
+      isHero && heroStackSize >= 0
+        ? heroStackSize
+        : isVillain && villainStackSize >= 0
+        ? villainStackSize
+        : stackSize;
+
     players.push({
       index: seatIndex,
       position,
@@ -122,12 +131,7 @@ function generatePostFlopSeats(args: BuildArgs): PlayerSeat[] {
       amountOfChips,
       isHero,
       isVillain,
-      stackSize:
-        isHero && heroStackSize >= 0
-          ? heroStackSize
-          : isVillain && villainStackSize >= 0
-          ? villainStackSize
-          : stackSize,
+      stackSize: Math.max(0, rawStack - amountOfChips),
       bounty: 0,
     });
     isHero = false;

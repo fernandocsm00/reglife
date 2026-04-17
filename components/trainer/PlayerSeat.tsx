@@ -102,7 +102,7 @@ export function PlayerSeatComponent({
         </motion.div>
       )}
 
-      {/* Position label + stack + bet inline (never overlaps cards) */}
+      {/* Position label + remaining stack */}
       <div
         className={clsx(
           "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold",
@@ -113,18 +113,6 @@ export function PlayerSeatComponent({
         <span className="rounded bg-neutral-900 px-1.5 py-0.5 text-neutral-300">
           {player.stackSize}
         </span>
-        {player.hasChipsInFront && (
-          <motion.span
-            key={`${drillKey}-${player.position}-chips`}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.2 }}
-            className="flex items-center gap-0.5 text-yellow-300"
-          >
-            <Image src="/trainer/chips.svg" alt="" width={11} height={11} />
-            <span>{player.amountOfChips}</span>
-          </motion.span>
-        )}
       </div>
 
       {/* Dealer button */}
