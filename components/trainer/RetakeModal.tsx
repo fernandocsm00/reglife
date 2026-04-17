@@ -2,17 +2,14 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { RETAKE_COOLDOWN_DAYS, type SavedPlan } from "@/lib/poker/planStorage";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  plan: SavedPlan;
 }
 
-export function RetakeModal({ open, onClose, plan }: Props) {
+export function RetakeModal({ open, onClose }: Props) {
   const router = useRouter();
-  const willLock = plan.attempts >= 1;
 
   const handleConfirm = () => {
     router.push("/diagnostico?retake=1");
@@ -43,16 +40,8 @@ export function RetakeModal({ open, onClose, plan }: Props) {
               <span className="font-semibold text-amber-300">
                 apagar seu plano atual
               </span>{" "}
-              e gerar um novo. Sua primeira tentativa costuma ser a mais
-              honesta — ela revela seus leaks reais.
+              e gerar um novo.
             </p>
-            {willLock && (
-              <p className="mt-3 text-xs text-neutral-500">
-                Após esse retake, o nivelamento ficará bloqueado por{" "}
-                {RETAKE_COOLDOWN_DAYS} dias. Esse cooldown existe pra você
-                estudar de verdade — não pra tirar uma "nota melhor".
-              </p>
-            )}
             <div className="mt-6 flex flex-wrap justify-end gap-2">
               <button
                 onClick={onClose}

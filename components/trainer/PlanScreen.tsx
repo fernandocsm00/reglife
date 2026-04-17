@@ -4,10 +4,7 @@ import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  cooldownRemainingMs,
   daysSinceCreation,
-  formatCooldown,
-  RETAKE_COOLDOWN_DAYS,
   savePlan,
   type SavedPlan,
 } from "@/lib/poker/planStorage";
@@ -27,8 +24,6 @@ interface Props {
 export function PlanScreen({ plan, onPlanChange }: Props) {
   const [showRetake, setShowRetake] = useState(false);
   const day = daysSinceCreation(plan);
-  const cooldownMs = cooldownRemainingMs(plan);
-  const locked = cooldownMs > 0;
 
   const checkedLessons = useMemo(
     () => new Set(plan.progress.checkedLessonUrls),
@@ -310,50 +305,25 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800 pt-6 print:hidden">
-          <div className="max-w-md text-xs text-neutral-500">
-            {locked ? (
-              <>
-                Próximo nivelamento liberado em{" "}
-                <span className="font-semibold text-amber-300">
-                  {formatCooldown(cooldownMs)}
-                </span>
-                . Use esse tempo pra estudar as aulas do seu plano.
-              </>
-            ) : plan.attempts === 1 ? (
-              <>
-                Você ainda tem 1 retake imediato. Depois disso, cooldown de{" "}
-                {RETAKE_COOLDOWN_DAYS} dias.
-              </>
-            ) : (
-              <>
-                Refazer agora vai disparar um cooldown de {RETAKE_COOLDOWN_DAYS}{" "}
-                dias.
-              </>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-200 transition hover:border-neutral-500"
-            >
-              Imprimir / PDF
-            </button>
-            <button
-              onClick={() => setShowRetake(true)}
-              disabled={locked}
-              className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-300 transition hover:border-amber-400/50 hover:text-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Refazer nivelamento
-            </button>
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800 pt-6 print:hidden">
+          <button
+            onClick={() => window.print()}
+            className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-200 transition hover:border-neutral-500"
+          >
+            Imprimir / PDF
+          </button>
+          <button
+            onClick={() => setShowRetake(true)}
+            className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-300 transition hover:border-amber-400/50 hover:text-amber-300"
+          >
+            Refazer nivelamento
+          </button>
         </div>
       </div>
 
       <RetakeModal
         open={showRetake}
         onClose={() => setShowRetake(false)}
-        plan={plan}
       />
     </div>
   );

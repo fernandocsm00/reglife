@@ -65,7 +65,7 @@ export interface SavedPlan {
 }
 
 const STORAGE_KEY = "reglife.plan.v1";
-export const RETAKE_COOLDOWN_DAYS = 7;
+export const RETAKE_COOLDOWN_DAYS = 0; // unlimited retakes — no cooldown
 
 function isClient(): boolean {
   return typeof window !== "undefined";
@@ -99,8 +99,8 @@ export function cooldownRemainingMs(plan: SavedPlan | null): number {
   return Math.max(0, plan.lockedUntil - Date.now());
 }
 
-export function isLocked(plan: SavedPlan | null): boolean {
-  return cooldownRemainingMs(plan) > 0;
+export function isLocked(_plan: SavedPlan | null): boolean {
+  return false; // unlimited retakes — never locked
 }
 
 export function formatCooldown(ms: number): string {
@@ -120,24 +120,10 @@ export function daysSinceCreation(plan: SavedPlan): number {
   return Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)) + 1);
 }
 
-/**
- * Calcula attempts/lockedUntil para um NOVO plano sendo criado.
- *
- * Regras:
- *   - 1ª tentativa  → attempts = 1, sem lock
- *   - 2ª tentativa  → attempts = 2, lockedUntil = now + 7 dias
- *   - 3ª+           → mesma coisa (não deveria ocorrer porque o lock impede)
- */
+/** Incrementa o contador de tentativas sem nunca impor cooldown. */
 export function nextAttemptMeta(previous: SavedPlan | null): {
   attempts: number;
   lockedUntil?: number;
 } {
-  const attempts = (previous?.attempts ?? 0) + 1;
-  if (attempts >= 2) {
-    return {
-      attempts,
-      lockedUntil: Date.now() + RETAKE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
-    };
-  }
-  return { attempts };
+  return { attempts: (previous?.attempts ?? 0) + 1 };
 }

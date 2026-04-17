@@ -13,7 +13,7 @@ import { Logo } from "@/components/Logo";
 import { sounds } from "@/lib/audio/sounds";
 import { analyzeResults } from "@/lib/poker/leakAnalysis";
 import { buildPlan } from "@/lib/poker/planBuilder";
-import { getStoredPlan, isLocked, savePlan } from "@/lib/poker/planStorage";
+import { getStoredPlan, savePlan } from "@/lib/poker/planStorage";
 
 interface Props {
   initialConfigs: unknown[];
@@ -56,14 +56,6 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
 
   const [muted, setMuted] = useState(false);
   const builtRef = useRef(false);
-
-  // Lock guard
-  useEffect(() => {
-    const previous = getStoredPlan();
-    if (isLocked(previous)) {
-      router.replace("/meu-plano");
-    }
-  }, [router]);
 
   useEffect(() => {
     loadConfigs(initialConfigs);
