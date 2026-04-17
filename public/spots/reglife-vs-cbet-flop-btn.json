@@ -1,0 +1,166 @@
+{
+  "name": "Vs C-Bet Flop do BTN — reg.life",
+  "action": "vsCbet",
+  "mode": "sequential",
+  "tier": 2,
+  "sessionSize": 12,
+  "potSize": 7,
+  "currentPotSize": 9.5,
+  "tableSize": 8,
+  "heroPositions": ["BTN"],
+  "villainBetSize": 2.5,
+  "heroBetSize": 0,
+  "actionButtons": [
+    { "text": "FOLD",      "color": "#114EAB" },
+    { "text": "CALL",      "color": "#0E6326" },
+    { "text": "RAISE 33%", "color": "#D32121" },
+    { "text": "RAISE 55%", "color": "#B01E1E" },
+    { "text": "ALL-IN",    "color": "#6C0A0A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Jd-6d-2c",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Tc8c"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "CO",
+      "board": "Qd-Qc-Js",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["4h4d"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "9h-5h-5d",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["3d3c"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Tc-7d-6s",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["AcTd"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "CO",
+      "board": "Tc-7d-6s",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["KcJc"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Qh-8h-3h",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["9cTc"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Js-8s-8d",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["AdTc"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "CO",
+      "board": "Tc-7d-6s",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["JcTs"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Kd-Th-7h",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["8h8d"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "As-Ad-7s",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Ah7c"], "answer": ["CALL"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
+      "board": "Kc-6c-3s",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["AdTs"], "answer": ["FOLD"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "CO",
+      "board": "Qh-8h-3h",
+      "spotConfig": {
+        "heroStackSize": 28, "villainStackSize": 25.5,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Cbet 2.5"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["KcQd"], "answer": ["CALL"] }]
+    }
+  ]
+}

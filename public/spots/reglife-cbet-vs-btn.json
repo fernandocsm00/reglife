@@ -1,0 +1,156 @@
+{
+  "name": "C-Bet Flop vs BTN — reg.life",
+  "action": "cBet",
+  "mode": "sequential",
+  "tier": 2,
+  "sessionSize": 15,
+  "potSize": 6.7,
+  "currentPotSize": 6.7,
+  "tableSize": 8,
+  "villainPositions": ["BTN"],
+  "villainBetSize": 0,
+  "heroBetSize": 0,
+  "actionButtons": [
+    { "text": "CHECK",    "color": "#0E6326" },
+    { "text": "BET 30%",  "color": "#D32121" },
+    { "text": "BET 66%",  "color": "#B01E1E" },
+    { "text": "BET 100%", "color": "#991A1A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "6d-4h-3c",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["KdQd"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "9h-6d-2h",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["8d8c"], "answer": ["CHECK", "BET 66%"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Ad-Jh-Th",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["AsAc"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Kc-6c-3s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["Ah8h"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "8s-3s-2s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["Jd6d"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "8s-3s-2s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["TsTc"], "answer": ["CHECK", "BET 30%"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "As-Ac-7s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["5h5d"], "answer": ["BET 30%"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "9h-6d-2h",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["As4s"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Tc-7d-6s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["AcKc"], "answer": ["BET 66%"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Tc-7d-6s",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["Qs4s"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Js-8s-8h",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["AhKh"], "answer": ["BET 30%", "BET 66%"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Qd-Qc-Js",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["TsTh"], "answer": ["BET 30%"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Qh-8h-3h",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["Ac9d"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "CO", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Ad-Jh-Th",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["Jd9d"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "UTG", "stackSize": 30, "villainPosition": "BTN",
+      "board": "Ac-Kc-3d",
+      "spotConfig": {
+        "heroStackSize": 27.9, "villainStackSize": 27.9,
+        "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]}]
+      },
+      "expectedAnswers": [{ "combos": ["9s9h"], "answer": ["CHECK"] }]
+    }
+  ]
+}

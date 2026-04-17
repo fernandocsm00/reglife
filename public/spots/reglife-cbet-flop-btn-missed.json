@@ -1,0 +1,94 @@
+{
+  "name": "Bet vs Missed — BTN vs CO — reg.life",
+  "action": "cBet",
+  "mode": "sequential",
+  "tier": 2,
+  "sessionSize": 6,
+  "potSize": 7,
+  "currentPotSize": 7,
+  "tableSize": 8,
+  "heroPositions": ["BTN"],
+  "villainPositions": ["CO"],
+  "villainBetSize": 0,
+  "heroBetSize": 0,
+  "actionButtons": [
+    { "text": "CHECK",    "color": "#0E6326" },
+    { "text": "BET 30%",  "color": "#D32121" },
+    { "text": "BET 60%",  "color": "#B01E1E" },
+    { "text": "BET 100%", "color": "#991A1A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "As-Ks-4h",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Kh8h"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "8d-6h-5h",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["QhJd"], "answer": ["CHECK", "BET 30%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "Kh-4h-3h",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["9h9d"], "answer": ["CHECK", "BET 30%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "As-Ks-4h",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["AcQc"], "answer": ["CHECK", "BET 60%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "Kh-6d-4s",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Ac3c"], "answer": ["BET 30%", "CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 40, "villainPosition": "CO",
+      "board": "Th-8h-7h",
+      "spotConfig": {
+        "heroStackSize": 37, "villainStackSize": 37,
+        "actionHistory": [
+          {"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
+          {"street":"FLOP","actions":[{"position":"CO","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Kh4h"], "answer": ["BET 30%"] }]
+    }
+  ]
+}

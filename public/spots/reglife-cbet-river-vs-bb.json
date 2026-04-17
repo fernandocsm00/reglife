@@ -1,0 +1,167 @@
+{
+  "name": "C-Bet River vs BB — reg.life",
+  "action": "cbetRiver",
+  "mode": "sequential",
+  "tier": 2,
+  "sessionSize": 11,
+  "potSize": 25,
+  "currentPotSize": 25,
+  "tableSize": 8,
+  "heroPositions": ["BTN"],
+  "villainPositions": ["BB"],
+  "villainBetSize": 0,
+  "heroBetSize": 0,
+  "actionButtons": [
+    { "text": "CHECK",    "color": "#0E6326" },
+    { "text": "BET 25%",  "color": "#E53030" },
+    { "text": "BET 40%",  "color": "#D32121" },
+    { "text": "BET 67%",  "color": "#C72222" },
+    { "text": "BET 100%", "color": "#B01E1E" },
+    { "text": "ALL-IN",   "color": "#6C0A0A" }
+  ],
+  "expectedAnswers": [
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Qh-Qd-8h-As-7c",
+      "spotConfig": {
+        "heroStackSize": 21, "villainStackSize": 21, "potSize": 18, "currentPotSize": 18,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 40%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["AdJc"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "6d-4h-3c-Ks-Ts",
+      "spotConfig": {
+        "heroStackSize": 17.5, "villainStackSize": 17.5, "potSize": 25, "currentPotSize": 25,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Kh5h"], "answer": ["ALL-IN"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "6d-4h-3c-9d-Td",
+      "spotConfig": {
+        "heroStackSize": 17.5, "villainStackSize": 17.5, "potSize": 25, "currentPotSize": 25,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Qc8d"], "answer": ["ALL-IN"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Qh-Qd-8h-7h-6s",
+      "spotConfig": {
+        "heroStackSize": 21, "villainStackSize": 21, "potSize": 18, "currentPotSize": 18,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 40%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["9dTs"], "answer": ["ALL-IN"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Ah-9d-3c-Tc-2s",
+      "spotConfig": {
+        "heroStackSize": 80, "villainStackSize": 80, "potSize": 40, "currentPotSize": 40,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Kc7h"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Tc-7d-6s-8s-Ks",
+      "spotConfig": {
+        "heroStackSize": 87.5, "villainStackSize": 87.5, "potSize": 25, "currentPotSize": 25,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 40%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["KdQs"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "6d-4h-3c-9d-Td",
+      "spotConfig": {
+        "heroStackSize": 81, "villainStackSize": 81, "potSize": 38, "currentPotSize": 38,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["8d7c"], "answer": ["BET 100%", "ALL-IN"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Tc-7d-6s-Qd-Js",
+      "spotConfig": {
+        "heroStackSize": 85, "villainStackSize": 85, "potSize": 30, "currentPotSize": 30,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["JhJd"], "answer": ["ALL-IN"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Ah-9d-3c-Tc-2s",
+      "spotConfig": {
+        "heroStackSize": 81, "villainStackSize": 81, "potSize": 38, "currentPotSize": 38,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["Kc8h"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Tc-7d-6s-Qd-Js",
+      "spotConfig": {
+        "heroStackSize": 82.5, "villainStackSize": 82.5, "potSize": 35, "currentPotSize": 35,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["KdKh"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Ah-9d-3c-Tc-2s",
+      "spotConfig": {
+        "heroStackSize": 81, "villainStackSize": 81, "potSize": 38, "currentPotSize": 38,
+        "actionHistory": [
+          {"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},
+          {"street":"TURN","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 67%"},{"position":"BB","action":"Call"}]},
+          {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
+        ]
+      },
+      "expectedAnswers": [{ "combos": ["3s3d"], "answer": ["ALL-IN"] }]
+    }
+  ]
+}
