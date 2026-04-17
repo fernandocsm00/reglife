@@ -74,7 +74,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     if (drill && !hasPicked && !showSpotTransition) sounds.deal();
   }, [drill?.cardsOnHand, drill?.heroPosition, drill?.board, hasPicked, drill, showSpotTransition]);
 
-  // On completion: build plan, persist, redirect
+  // On completion: build plan, persist, post to API, redirect
   useEffect(() => {
     if (!completed) return;
     if (builtRef.current) return;
@@ -96,6 +96,25 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       spotsFailed: failedSpotCount,
     });
     savePlan(plan);
+
+    // Persist to server (fire-and-forget — don't block redirect on failure)
+    fetch("/api/results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerName: playerName || "Jogador",
+        email,
+        phone,
+        studyTime,
+        profitGoal,
+        stoppedEarly,
+        spotsPlayed: spotSummaries.length,
+        spotsFailed: failedSpotCount,
+        spotSummaries,
+        results,
+      }),
+    }).catch(() => { /* silently ignore */ });
+
     const t = setTimeout(() => router.push("/meu-plano"), 900);
     return () => clearTimeout(t);
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
