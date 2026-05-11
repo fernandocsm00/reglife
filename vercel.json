@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/sharkscope-sync",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/generate-quests",
+      "schedule": "0 12 * * 1"
+    },
+    {
+      "path": "/api/cron/xp-drops",
+      "schedule": "0 11 * * 1"
+    },
+    {
+      "path": "/api/cron/monthly-sharkscope",
+      "schedule": "0 6 1 * *"
+    },
+    {
+      "path": "/api/cron/daily-pulse",
+      "schedule": "0 21 * * *"
+    }
+  ]
+}

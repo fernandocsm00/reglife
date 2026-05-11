@@ -7,6 +7,15 @@ export const supabase = createClient(url, key);
 
 // ---- Types ----------------------------------------------------------------
 
+export interface SharkscopeSummary {
+  entries: number | null;
+  profit: number | null;
+  avgRoi: number | null;
+  itm: number | null;
+  pkoRatio: number | null;
+  winrate: string | null;
+}
+
 export interface DiagnosticRow {
   id: string;
   created_at: string;
@@ -20,6 +29,12 @@ export interface DiagnosticRow {
   spots_failed: number;
   spot_summaries: SpotSummaryRow[];
   results: ResultRow[];
+  sharkscope_username: string | null;
+  sharkscope_network: string | null;
+  sharkscope_playergroup_id: string | null;
+  sharkscope_last_sync: string | null;
+  sharkscope_summary: SharkscopeSummary | null;
+  volume_target_weekly: number | null;
 }
 
 export interface SpotSummaryRow {
