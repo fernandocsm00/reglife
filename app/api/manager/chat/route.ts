@@ -20,9 +20,16 @@ import {
 import { buildSystemPrompt, type ManagerTrigger } from "@/lib/manager/persona";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy init: o construtor da OpenAI joga erro se OPENAI_API_KEY não estiver
+// definida, e durante `next build` o módulo é importado pra coletar metadata —
+// sem env var = build quebra. Cria sob demanda, no primeiro request.
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,7 +78,7 @@ export async function POST(req: NextRequest) {
     const systemPrompt = buildSystemPrompt(ctx, trigger as ManagerTrigger);
 
     // 5. Chama OpenAI com streaming
-    const stream = await openai.chat.completions.create({
+    const stream = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
       max_tokens: 1024,
       stream: true,

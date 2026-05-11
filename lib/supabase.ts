@@ -1,9 +1,28 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)!;
-const key = (process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!;
+/**
+ * Cliente Supabase com ANON KEY.
+ * Lazy + Proxy: createClient explode com URL/key undefined, e durante
+ * `next build` o módulo é importado pra coletar metadata. Resolvemos
+ * embrulhando num Proxy que só instancia no primeiro uso real.
+ */
+let _client: SupabaseClient | null = null;
+function realClient(): SupabaseClient {
+  if (!_client) {
+    const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)!;
+    const key = (process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!;
+    _client = createClient(url, key);
+  }
+  return _client;
+}
 
-export const supabase = createClient(url, key);
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop: keyof SupabaseClient) {
+    const c = realClient();
+    const v = c[prop];
+    return typeof v === "function" ? v.bind(c) : v;
+  },
+});
 
 // ---- Types ----------------------------------------------------------------
 

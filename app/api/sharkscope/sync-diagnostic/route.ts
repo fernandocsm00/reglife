@@ -17,10 +17,14 @@ import { getSharkscopeClient } from "@/lib/sharkscope";
 
 // Usa service_role pra UPDATE/INSERT (anon não tem policy de UPDATE em
 // reglife_diagnostic_results, e o endpoint já é gated pelo ADMIN_SECRET).
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy: createClient explode com URL/key vazios → quebraria o `next build`
+// quando o env não tá presente no estágio de coleta de page data.
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -39,6 +43,8 @@ export async function POST(req: NextRequest) {
   if (!diagnosticId) {
     return NextResponse.json({ error: "diagnosticId obrigatório" }, { status: 400 });
   }
+
+  const supabase = getSupabase();
 
   // Carrega a linha pra saber o nick/grupo/network atual
   const { data: row, error: loadErr } = await supabase
