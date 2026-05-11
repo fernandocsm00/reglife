@@ -182,12 +182,37 @@ export function createDrill(
   // 5. Build action buttons (each marked correct or wrong for this combo)
   const key = answerKey(heroPosition, board, stackSize, villainInAnswer, answerId);
   const buttonMap = correctAnswers.get(key);
-  const buttons: ActionButtonState[] = config.actionButtons.map((btn) => ({
+  const allButtons: ActionButtonState[] = config.actionButtons.map((btn) => ({
     text: btn.text,
     color: btn.color,
     isCorrect: buttonMap?.get(btn.text.toUpperCase())?.has(cardsOnHand) ?? false,
     pickedByUser: false,
   }));
+
+  // Simplificação: quando uma ação dimensionada (RAISE/BET/CBET X) é a
+  // resposta correta, mostrar apenas o(s) tamanho(s) correto(s) daquele
+  // prefixo — esconde os outros tamanhos. Aplicado por prefixo, então um
+  // spot pode ter ao mesmo tempo (ex.) RAISE filtrado e BET intacto.
+  const sizedPrefixes = ["RAISE", "BET", "CBET"];
+  const matchedPrefix = (text: string) =>
+    sizedPrefixes.find((p) => {
+      const t = text.toUpperCase();
+      return t === p || t.startsWith(p + " ");
+    });
+  const correctPrefixes = new Set(
+    allButtons
+      .filter((b) => b.isCorrect)
+      .map((b) => matchedPrefix(b.text))
+      .filter((p): p is string => Boolean(p))
+  );
+  const buttons = correctPrefixes.size
+    ? allButtons.filter((b) => {
+        const prefix = matchedPrefix(b.text);
+        if (!prefix) return true; // FOLD, CALL, CHECK, LIMP, ALL-IN — sempre presentes
+        if (!correctPrefixes.has(prefix)) return true; // prefixo sem correto no combo: distratores OK
+        return b.isCorrect; // dentro do prefixo correto, só o tamanho certo
+      })
+    : allButtons;
 
   // 6. Build the table seats.
   const players = buildTableSeats({
