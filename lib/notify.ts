@@ -1,0 +1,280 @@
+/**
+ * lib/notify.ts — Fan-out de notificações do Rex.
+ *
+ * Cria sempre uma notificação in-app (tabela `notifications`). Se a janela
+ * de silêncio do aluno permitir e os canais externos estiverem habilitados,
+ * dispara também via Discord webhook e/ou WhatsApp (Z-API/Evolution).
+ *
+ * Falhas em um canal não bloqueiam os outros — registramos `channels_sent`
+ * com o que efetivamente saiu.
+ */
+
+import { createClient } from "@supabase/supabase-js";
+import { generateRexVoice, type RexTrigger } from "@/lib/rex-voice";
+
+export type NotificationKind =
+  | "post_session"
+  | "streak_risk"
+  | "quest_assigned"
+  | "quest_done"
+  | "quest_expiring"
+  | "drop_active"
+  | "badge_unlocked"
+  | "leak_alert"
+  | "phase_transition";
+
+export type Channel = "in_app" | "discord" | "whatsapp";
+
+export interface SendNotificationArgs {
+  diagnosticId: string;
+  kind: NotificationKind;
+  title: string;
+  body?: string;
+  payload?: Record<string, unknown>;
+  /** Bypassa quiet hours (use só pra coisas urgentes/streak risk). */
+  force?: boolean;
+}
+
+interface DiagPrefs {
+  player_name: string;
+  discord_webhook_url: string | null;
+  whatsapp_phone: string | null;
+  notify_channels: string[] | null;
+  notify_quiet_start: number | null;
+  notify_quiet_end: number | null;
+  timezone: string | null;
+}
+
+function service() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+/**
+ * Anti-spam: retorna true se o aluno já recebeu uma notificação desse kind
+ * nas últimas N horas. Use antes de chamar sendRexNotification em loops
+ * de cron pra evitar Rex falando 2x do mesmo assunto.
+ */
+export async function hasNotificationRecently(
+  diagnosticId: string,
+  kind: NotificationKind,
+  withinHours: number
+): Promise<boolean> {
+  const supabase = service();
+  const cutoff = new Date(Date.now() - withinHours * 3_600_000).toISOString();
+  const { data } = await supabase
+    .from("notifications")
+    .select("id")
+    .eq("diagnostic_id", diagnosticId)
+    .eq("kind", kind)
+    .gte("created_at", cutoff)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
+// ---------------------------------------------------------------------------
+// API pública
+// ---------------------------------------------------------------------------
+
+/**
+ * Variante "narrativa" — gera o body com Rex antes de mandar.
+ * Use sempre que o body merecer narrativa (pós-sessão, fechamento, etc).
+ * Para mensagens curtas/objetivas (drop_active, drop schedule), use
+ * sendNotification direto.
+ */
+export async function sendRexNotification(args: {
+  diagnosticId: string;
+  kind: NotificationKind;
+  trigger: RexTrigger;
+  title: string;
+  /** Fatos numéricos/categóricos que alimentam a narrativa. */
+  facts: Record<string, unknown>;
+  /** Body de fallback se OpenAI falhar — sai como notificação mesmo assim. */
+  fallback: string;
+  payload?: Record<string, unknown>;
+  force?: boolean;
+}): Promise<{ ok: boolean; channelsSent: Channel[]; body: string }> {
+  const body = await generateRexVoice({
+    diagnosticId: args.diagnosticId,
+    trigger: args.trigger,
+    facts: args.facts,
+    fallback: args.fallback,
+  });
+
+  const res = await sendNotification({
+    diagnosticId: args.diagnosticId,
+    kind: args.kind,
+    title: args.title,
+    body,
+    // Guarda a mensagem completa no payload pro chat do Rex consumir depois
+    payload: {
+      ...(args.payload ?? {}),
+      message: body,
+      trigger: args.trigger,
+    },
+    force: args.force,
+  });
+
+  return { ...res, body };
+}
+
+export async function sendNotification(
+  args: SendNotificationArgs
+): Promise<{ ok: boolean; channelsSent: Channel[] }> {
+  const supabase = service();
+
+  const { data: prefs } = await supabase
+    .from("reglife_diagnostic_results")
+    .select(
+      "player_name, discord_webhook_url, whatsapp_phone, notify_channels, notify_quiet_start, notify_quiet_end, timezone"
+    )
+    .eq("id", args.diagnosticId)
+    .single<DiagPrefs>();
+
+  // Sempre registra in-app — base do feed.
+  await supabase.from("notifications").insert({
+    diagnostic_id: args.diagnosticId,
+    kind: args.kind,
+    title: args.title,
+    body: args.body ?? null,
+    payload: args.payload ?? null,
+    channels_sent: ["in_app"],
+  });
+
+  const channelsSent: Channel[] = ["in_app"];
+  const enabled = new Set<Channel>(
+    (prefs?.notify_channels ?? ["in_app"]) as Channel[]
+  );
+
+  const inQuiet =
+    !args.force &&
+    isInQuietHours(
+      prefs?.timezone ?? "America/Sao_Paulo",
+      prefs?.notify_quiet_start ?? 23,
+      prefs?.notify_quiet_end ?? 9
+    );
+
+  if (!inQuiet && enabled.has("discord") && prefs?.discord_webhook_url) {
+    const ok = await sendDiscord(prefs.discord_webhook_url, args, prefs.player_name);
+    if (ok) channelsSent.push("discord");
+  }
+
+  if (!inQuiet && enabled.has("whatsapp") && prefs?.whatsapp_phone) {
+    const ok = await sendWhatsapp(prefs.whatsapp_phone, args, prefs.player_name);
+    if (ok) channelsSent.push("whatsapp");
+  }
+
+  // Atualiza histórico de envio se foi além do in-app
+  if (channelsSent.length > 1) {
+    await supabase
+      .from("notifications")
+      .update({ channels_sent: channelsSent })
+      .eq("diagnostic_id", args.diagnosticId)
+      .eq("kind", args.kind)
+      .eq("title", args.title)
+      .order("created_at", { ascending: false })
+      .limit(1);
+  }
+
+  return { ok: true, channelsSent };
+}
+
+// ---------------------------------------------------------------------------
+// Quiet hours (timezone-aware)
+// ---------------------------------------------------------------------------
+
+function isInQuietHours(timezone: string, start: number, end: number): boolean {
+  // Pega a hora local do aluno usando Intl
+  const localHourStr = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  const hour = parseInt(localHourStr, 10);
+  if (Number.isNaN(hour)) return false;
+
+  // Janela atravessa meia-noite (ex.: 23 → 9)
+  if (start > end) return hour >= start || hour < end;
+  // Janela mesma data (ex.: 13 → 17)
+  return hour >= start && hour < end;
+}
+
+// ---------------------------------------------------------------------------
+// Discord webhook
+// ---------------------------------------------------------------------------
+
+async function sendDiscord(
+  webhookUrl: string,
+  args: SendNotificationArgs,
+  playerName: string
+): Promise<boolean> {
+  try {
+    const colorByKind: Record<string, number> = {
+      post_session: 0xfbbf24,
+      streak_risk: 0xef4444,
+      quest_done: 0x10b981,
+      drop_active: 0xa855f7,
+      badge_unlocked: 0xfbbf24,
+      leak_alert: 0xf97316,
+    };
+
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: "REX",
+        embeds: [
+          {
+            title: args.title,
+            description: args.body ?? "",
+            color: colorByKind[args.kind] ?? 0x9ca3af,
+            footer: { text: `RegLife · ${playerName}` },
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// WhatsApp (Z-API / Evolution API)
+// ---------------------------------------------------------------------------
+
+async function sendWhatsapp(
+  phone: string,
+  args: SendNotificationArgs,
+  playerName: string
+): Promise<boolean> {
+  const url = process.env.WHATSAPP_API_URL;
+  const token = process.env.WHATSAPP_API_TOKEN;
+  if (!url || !token) {
+    console.warn("[notify] WhatsApp não configurado, pulando.");
+    return false;
+  }
+  try {
+    const message = `*${args.title}*\n${args.body ?? ""}\n\n— REX (RegLife)`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        // Formato genérico — ajustar conforme provider escolhido
+        phone: phone.replace(/\D/g, ""),
+        message,
+        meta: { player: playerName, kind: args.kind },
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

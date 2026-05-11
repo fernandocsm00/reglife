@@ -8,6 +8,7 @@ import {
   savePlan,
   type SavedPlan,
 } from "@/lib/poker/planStorage";
+import { postProgressEvent } from "@/lib/poker/progress";
 import {
   PROFIT_GOAL_LABELS,
   PROFIT_GOAL_ADVICE,
@@ -15,6 +16,9 @@ import {
 } from "@/lib/poker/planBuilder";
 import { Logo } from "@/components/Logo";
 import { RetakeModal } from "./RetakeModal";
+import { RexHud } from "./RexHud";
+import { NotificationsBell } from "./NotificationsBell";
+import { NotifySettings } from "./NotifySettings";
 
 interface Props {
   plan: SavedPlan;
@@ -36,7 +40,8 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
 
   const toggleLesson = (url: string) => {
     const set = new Set(plan.progress.checkedLessonUrls);
-    if (set.has(url)) set.delete(url);
+    const wasChecked = set.has(url);
+    if (wasChecked) set.delete(url);
     else set.add(url);
     const next: SavedPlan = {
       ...plan,
@@ -44,11 +49,16 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
     };
     savePlan(next);
     onPlanChange(next);
+    postProgressEvent(plan.diagnosticId, {
+      eventType: wasChecked ? "lesson_unchecked" : "lesson_checked",
+      eventData: { url },
+    });
   };
 
   const toggleTask = (id: string) => {
     const set = new Set(plan.progress.checkedTaskIds);
-    if (set.has(id)) set.delete(id);
+    const wasChecked = set.has(id);
+    if (wasChecked) set.delete(id);
     else set.add(id);
     const next: SavedPlan = {
       ...plan,
@@ -56,6 +66,10 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
     };
     savePlan(next);
     onPlanChange(next);
+    postProgressEvent(plan.diagnosticId, {
+      eventType: wasChecked ? "task_unchecked" : "task_checked",
+      eventData: { taskId: id },
+    });
   };
 
   // Próximo passo: primeira tarefa ou aula não marcada percorrendo as fases
@@ -88,9 +102,12 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
           >
             ← Início
           </Link>
-          <span className="rounded-full border border-amber-400/30 bg-amber-400/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-            Plano ativo · Dia {day} de 90
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-amber-400/30 bg-amber-400/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+              Plano ativo · Dia {day} de 90
+            </span>
+            <NotificationsBell diagnosticId={plan.diagnosticId} />
+          </div>
         </div>
 
         {/* Header */}
@@ -107,11 +124,53 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             Esse plano não é uma nota. É o caminho que a reglife traçou pra você
             nos próximos 90 dias. Cumpra fase por fase e a evolução acontece.
           </p>
+
+          {/* CTA do REX */}
+          <Link
+            href="/manager"
+            className="group mt-5 inline-flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-5 py-3 transition hover:border-amber-400/40 hover:bg-amber-400/10"
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-neutral-950">
+              R
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-300">Falar com o REX</p>
+              <p className="text-xs text-neutral-500">Seu Manager de Evolução · online agora</p>
+            </div>
+            <span className="ml-auto text-neutral-500 transition group-hover:translate-x-1">→</span>
+          </Link>
           <p className="mt-2 text-xs text-neutral-500">
             Criado em {createdAtLabel} · {STUDY_TIME_LABELS[plan.studyTime]} ·{" "}
             Meta: {PROFIT_GOAL_LABELS[plan.profitGoal]}
           </p>
         </motion.div>
+
+        {/* HUD do Rex — XP, streak, volume, quest */}
+        <div className="mb-4">
+          <RexHud
+            diagnosticId={plan.diagnosticId}
+            fallbackVolumeTarget={plan.volumeTargetWeekly ?? null}
+          />
+        </div>
+
+        {/* Link pro histórico mensal */}
+        <Link
+          href="/historico"
+          className="mb-8 flex items-center justify-between rounded-xl border border-purple-400/20 bg-purple-400/5 px-4 py-3 text-sm transition hover:border-purple-400/40 hover:bg-purple-400/10 print:hidden"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-400/20 text-base">
+              📊
+            </span>
+            <div>
+              <p className="font-semibold text-purple-200">Histórico mensal</p>
+              <p className="text-xs text-neutral-500">
+                Profit / ROI / ITM mês a mês via SharkScope
+              </p>
+            </div>
+          </div>
+          <span className="text-neutral-500">→</span>
+        </Link>
 
         {/* Próximo passo destacado */}
         {nextStep ? (
@@ -302,6 +361,11 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             e poste qual é o seu leak nº1. A galera te cobra. Compromisso
             público é metade da execução.
           </p>
+        </div>
+
+        {/* Configurações de notificação */}
+        <div className="mt-10">
+          <NotifySettings diagnosticId={plan.diagnosticId} />
         </div>
 
         {/* Footer actions */}
