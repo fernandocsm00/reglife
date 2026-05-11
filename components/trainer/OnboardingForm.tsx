@@ -5,13 +5,41 @@ import { motion } from "motion/react";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 
+export type SharkscopeNetwork =
+  | "PokerStars"
+  | "GGPoker"
+  | "PartyPoker"
+  | "888Poker"
+  | "WPN"
+  | "iPoker";
+
 export interface OnboardingData {
   playerName: string;
   email: string;
   phone: string;
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
+  sharkscopeUsername: string; // pode vir vazio (opcional)
+  sharkscopeNetwork: SharkscopeNetwork;
+  /** Meta semanal de torneios (usada pelo Rex pra cobrar volume). */
+  volumeTargetWeekly: number;
 }
+
+const NETWORK_OPTIONS: SharkscopeNetwork[] = [
+  "PokerStars",
+  "GGPoker",
+  "PartyPoker",
+  "888Poker",
+  "WPN",
+  "iPoker",
+];
+
+const VOLUME_OPTIONS: { value: number; label: string }[] = [
+  { value: 50, label: "Até 50/sem" },
+  { value: 100, label: "50-100/sem" },
+  { value: 200, label: "100-200/sem" },
+  { value: 300, label: "200+/sem" },
+];
 
 interface Props {
   onSubmit: (data: OnboardingData) => void;
@@ -55,6 +83,10 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [phone, setPhone] = useState("");
   const [studyTime, setStudyTime] = useState<StudyTime>("ate15");
   const [profitGoal, setProfitGoal] = useState<ProfitGoal>("usd1k");
+  const [sharkscopeUsername, setSharkscopeUsername] = useState("");
+  const [sharkscopeNetwork, setSharkscopeNetwork] =
+    useState<SharkscopeNetwork>("PokerStars");
+  const [volumeTargetWeekly, setVolumeTargetWeekly] = useState(100);
 
   const canSubmit =
     playerName.trim().length >= 2 && isValidEmail(email) && isValidPhone(phone);
@@ -90,6 +122,9 @@ export function OnboardingForm({ onSubmit }: Props) {
               phone,
               studyTime,
               profitGoal,
+              sharkscopeUsername: sharkscopeUsername.trim(),
+              sharkscopeNetwork,
+              volumeTargetWeekly,
             });
           }}
           className="mt-10 w-full space-y-6"
@@ -153,6 +188,49 @@ export function OnboardingForm({ onSubmit }: Props) {
                 />
               ))}
             </div>
+          </Field>
+
+          <Field label="Meta de volume — torneios por semana">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {VOLUME_OPTIONS.map((opt) => (
+                <OptionButton
+                  key={opt.value}
+                  selected={volumeTargetWeekly === opt.value}
+                  onClick={() => setVolumeTargetWeekly(opt.value)}
+                  label={opt.label}
+                />
+              ))}
+            </div>
+          </Field>
+
+          <Field label="Seu nick no site (opcional — para o Rex acompanhar seu ROI)">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+              <input
+                type="text"
+                value={sharkscopeUsername}
+                onChange={(e) => setSharkscopeUsername(e.target.value)}
+                placeholder="Ex: hero123"
+                className={inputClass}
+                autoComplete="off"
+              />
+              <select
+                value={sharkscopeNetwork}
+                onChange={(e) =>
+                  setSharkscopeNetwork(e.target.value as SharkscopeNetwork)
+                }
+                className={`${inputClass} sm:w-44`}
+              >
+                {NETWORK_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="mt-2 text-[11px] text-neutral-500">
+              Não pedimos senha. Só usamos seu nick público pra puxar ROI/ITM
+              via SharkScope.
+            </p>
           </Field>
 
           <button

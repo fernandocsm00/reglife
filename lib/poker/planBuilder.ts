@@ -23,6 +23,7 @@ interface BuildPlanInput {
   stoppedEarly?: boolean;
   spotsPlayed?: number;
   spotsFailed?: number;
+  volumeTargetWeekly?: number;
 }
 
 export const STUDY_TIME_LABELS: Record<StudyTime, string> = {
@@ -136,6 +137,7 @@ export function buildPlan({
   stoppedEarly = false,
   spotsPlayed = 0,
   spotsFailed = 0,
+  volumeTargetWeekly,
 }: BuildPlanInput): SavedPlan {
   const sortedLeaks = summary.leaks;
 
@@ -194,6 +196,7 @@ export function buildPlan({
     phone,
     studyTime,
     profitGoal,
+    volumeTargetWeekly: volumeTargetWeekly ?? previous?.volumeTargetWeekly,
     playerTier: summary.playerTier,
     playerTierLabel: summary.playerTierLabel,
     accuracyPct: summary.accuracyPct,

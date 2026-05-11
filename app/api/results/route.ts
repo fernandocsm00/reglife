@@ -12,6 +12,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Server misconfigured: missing Supabase env vars" }, { status: 500 });
   }
 
+  const ssUsername = typeof body.sharkscopeUsername === "string" && body.sharkscopeUsername.trim()
+    ? body.sharkscopeUsername.trim()
+    : null;
+  const ssNetwork = ssUsername ? (body.sharkscopeNetwork ?? "PokerStars") : null;
+  const volumeTarget =
+    typeof body.volumeTargetWeekly === "number" && body.volumeTargetWeekly > 0
+      ? Math.round(body.volumeTargetWeekly)
+      : null;
+
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .insert([
@@ -26,6 +35,9 @@ export async function POST(req: NextRequest) {
         spots_failed: body.spotsFailed ?? 0,
         spot_summaries: body.spotSummaries ?? [],
         results: body.results ?? [],
+        sharkscope_username: ssUsername,
+        sharkscope_network: ssNetwork,
+        volume_target_weekly: volumeTarget,
       },
     ])
     .select("id")

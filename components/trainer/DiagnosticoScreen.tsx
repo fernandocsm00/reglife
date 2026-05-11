@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useDiagnosticoStore } from "@/lib/poker/diagnosticoStore";
 import { PokerTable } from "./PokerTable";
@@ -47,6 +48,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const phone = useDiagnosticoStore((s) => s.phone);
   const studyTime = useDiagnosticoStore((s) => s.studyTime);
   const profitGoal = useDiagnosticoStore((s) => s.profitGoal);
+  const sharkscopeUsername = useDiagnosticoStore((s) => s.sharkscopeUsername);
+  const sharkscopeNetwork = useDiagnosticoStore((s) => s.sharkscopeNetwork);
+  const volumeTargetWeekly = useDiagnosticoStore((s) => s.volumeTargetWeekly);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
@@ -86,10 +90,12 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       stoppedEarly,
       spotsPlayed: spotSummaries.length,
       spotsFailed: failedSpotCount,
+      volumeTargetWeekly,
     });
     savePlan(plan);
 
-    // Persist to server (fire-and-forget — don't block redirect on failure)
+    // Persist to server — captura o id retornado pra ligar o plano à linha
+    // do reglife_diagnostic_results (Rex usa isso pra ler sharkscope).
     fetch("/api/results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -104,13 +110,23 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         spotsFailed: failedSpotCount,
         spotSummaries,
         results,
+        sharkscopeUsername: sharkscopeUsername || null,
+        sharkscopeNetwork: sharkscopeUsername ? sharkscopeNetwork : null,
+        volumeTargetWeekly,
       }),
-    }).catch(() => { /* silently ignore */ });
+    })
+      .then(async (r) => {
+        if (!r.ok) return;
+        const data = await r.json().catch(() => null);
+        if (data?.id) savePlan({ ...plan, diagnosticId: data.id });
+      })
+      .catch(() => { /* silently ignore */ });
 
     const t = setTimeout(() => router.push("/meu-plano"), 900);
     return () => clearTimeout(t);
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
-      stoppedEarly, spotSummaries, failedSpotCount]);
+      stoppedEarly, spotSummaries, failedSpotCount, sharkscopeUsername, sharkscopeNetwork,
+      volumeTargetWeekly]);
 
   const handlePick = (text: string) => {
     pickAnswer(text);
@@ -313,9 +329,15 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         )}
       </div>
 
-      {/* Brand bottom-left */}
-      <div className="absolute bottom-4 left-4">
+      {/* Brand + atalho pra home (bottom-left) */}
+      <div className="absolute bottom-4 left-4 flex items-center gap-3">
         <Logo size="md" />
+        <Link
+          href="/"
+          className="rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1 text-[11px] text-neutral-400 backdrop-blur transition hover:border-amber-400/40 hover:text-amber-300"
+        >
+          ← Início
+        </Link>
       </div>
 
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-12">

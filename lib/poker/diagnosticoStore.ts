@@ -12,6 +12,7 @@ import {
 } from "./spotEngine";
 import type { CurrentDrill, PokerAction, SpotConfigFile } from "./types";
 import type { ProfitGoal, StudyTime } from "./planStorage";
+import type { SharkscopeNetwork } from "@/components/trainer/OnboardingForm";
 
 export interface ResultEntry {
   spotLabel: string;
@@ -75,6 +76,9 @@ interface DiagnosticoState {
   phone: string;
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
+  sharkscopeUsername: string;
+  sharkscopeNetwork: SharkscopeNetwork;
+  volumeTargetWeekly: number;
 
   // Spot transition overlay
   showSpotTransition: boolean;
@@ -90,6 +94,9 @@ interface DiagnosticoState {
     phone: string;
     studyTime: StudyTime;
     profitGoal: ProfitGoal;
+    sharkscopeUsername: string;
+    sharkscopeNetwork: SharkscopeNetwork;
+    volumeTargetWeekly: number;
   }) => void;
 }
 
@@ -124,11 +131,32 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   phone: "",
   studyTime: "ate15",
   profitGoal: "usd1k",
+  sharkscopeUsername: "",
+  sharkscopeNetwork: "PokerStars",
+  volumeTargetWeekly: 100,
   showSpotTransition: false,
   lastSpotSummary: null,
 
-  setOnboarding: ({ playerName, email, phone, studyTime, profitGoal }) =>
-    set({ playerName, email, phone, studyTime, profitGoal }),
+  setOnboarding: ({
+    playerName,
+    email,
+    phone,
+    studyTime,
+    profitGoal,
+    sharkscopeUsername,
+    sharkscopeNetwork,
+    volumeTargetWeekly,
+  }) =>
+    set({
+      playerName,
+      email,
+      phone,
+      studyTime,
+      profitGoal,
+      sharkscopeUsername,
+      sharkscopeNetwork,
+      volumeTargetWeekly,
+    }),
 
   loadConfigs: (raws) => {
     const sessions: SubSession[] = [];

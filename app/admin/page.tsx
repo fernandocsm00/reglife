@@ -7,6 +7,21 @@ import type { DiagnosticRow } from "@/lib/supabase";
 
 const SECRET = "reglife2024";
 
+const SS_NETWORKS = [
+  "PokerStars",
+  "GGPoker",
+  "PartyPoker",
+  "888Poker",
+  "WPN",
+  "iPoker",
+] as const;
+type SsNetwork = (typeof SS_NETWORKS)[number];
+
+function formatRoi(v: number | null | undefined): string {
+  if (v === null || v === undefined) return "—";
+  return `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
+}
+
 const STUDY_LABELS: Record<string, string> = {
   ate15:  "Até 15h/sem",
   ate30:  "Até 30h/sem",
@@ -33,6 +48,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [ssTarget, setSsTarget] = useState<DiagnosticRow | null>(null);
 
   useEffect(() => {
     fetch(`/api/results?secret=${SECRET}`)
@@ -44,6 +60,11 @@ export default function AdminPage() {
       .catch(() => setError("Erro de rede"))
       .finally(() => setLoading(false));
   }, []);
+
+  function handleSsUpdated(updated: DiagnosticRow) {
+    setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+    setSsTarget(updated);
+  }
 
   const filtered = rows.filter((r) =>
     r.player_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -119,6 +140,7 @@ export default function AdminPage() {
                   <th className="px-4 py-3 text-center">Spots</th>
                   <th className="px-4 py-3 text-center">Média</th>
                   <th className="px-4 py-3 text-center">Status</th>
+                  <th className="px-4 py-3 text-left">Shark</th>
                   <th className="px-4 py-3 text-left">Realizado em</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -126,7 +148,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-neutral-800/60">
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-neutral-600">
+                    <td colSpan={9} className="px-4 py-10 text-center text-neutral-600">
                       Nenhum resultado encontrado
                     </td>
                   </tr>
@@ -162,6 +184,48 @@ export default function AdminPage() {
                         </span>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setSsTarget(row)}
+                        className="text-left"
+                        title="Conectar / atualizar SharkScope"
+                      >
+                        {row.sharkscope_playergroup_id || row.sharkscope_username ? (
+                          <div className="text-xs">
+                            <div className="flex items-center gap-1.5 font-mono text-neutral-200 hover:text-amber-300 transition-colors">
+                              {row.sharkscope_playergroup_id ? (
+                                <>
+                                  <span className="rounded bg-purple-500/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-purple-300">
+                                    Group
+                                  </span>
+                                  <span>{row.sharkscope_playergroup_id}</span>
+                                </>
+                              ) : (
+                                row.sharkscope_username
+                              )}
+                            </div>
+                            <div className="text-neutral-600">
+                              {row.sharkscope_network ?? "—"}
+                              {row.sharkscope_summary?.avgRoi != null && (
+                                <span
+                                  className={`ml-2 ${
+                                    row.sharkscope_summary.avgRoi >= 0
+                                      ? "text-emerald-400"
+                                      : "text-red-400"
+                                  }`}
+                                >
+                                  ROI {formatRoi(row.sharkscope_summary.avgRoi)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="rounded-md border border-dashed border-neutral-700 px-2 py-1 text-xs text-neutral-500 hover:border-amber-500 hover:text-amber-400 transition-colors">
+                            + Conectar
+                          </span>
+                        )}
+                      </button>
+                    </td>
                     <td className="px-4 py-3 text-neutral-500 text-xs whitespace-nowrap">
                       {formatDate(row.created_at)}
                     </td>
@@ -179,6 +243,253 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+      </div>
+
+      {ssTarget && (
+        <SharkscopeModal
+          row={ssTarget}
+          onClose={() => setSsTarget(null)}
+          onUpdated={handleSsUpdated}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modal: conectar / atualizar SharkScope de um aluno
+// ---------------------------------------------------------------------------
+function SharkscopeModal({
+  row,
+  onClose,
+  onUpdated,
+}: {
+  row: DiagnosticRow;
+  onClose: () => void;
+  onUpdated: (row: DiagnosticRow) => void;
+}) {
+  const [mode, setMode] = useState<"player" | "playergroup">(
+    row.sharkscope_playergroup_id ? "playergroup" : "player"
+  );
+  const [username, setUsername] = useState(row.sharkscope_username ?? "");
+  const [playergroupId, setPlayergroupId] = useState(
+    row.sharkscope_playergroup_id ?? ""
+  );
+  const [network, setNetwork] = useState<SsNetwork>(
+    (row.sharkscope_network as SsNetwork) ?? "PokerStars"
+  );
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function sync() {
+    setBusy(true);
+    setErr("");
+    try {
+      // Em "player" mode, limpa o group id (manda string vazia pro endpoint).
+      // Em "playergroup" mode, mantém o username (pode ser útil pra fallback)
+      // mas o sync usa o group.
+      const res = await fetch("/api/sharkscope/sync-diagnostic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          diagnosticId: row.id,
+          username: username.trim(),
+          playergroupId: mode === "playergroup" ? playergroupId.trim() : "",
+          network,
+          secret: SECRET,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErr(data.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      onUpdated({
+        ...row,
+        sharkscope_username: data.username,
+        sharkscope_playergroup_id: data.playergroupId ?? null,
+        sharkscope_network: data.network,
+        sharkscope_last_sync: new Date().toISOString(),
+        sharkscope_summary: data.summary,
+      });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro de rede");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const summary = row.sharkscope_summary;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-950 p-6 text-neutral-100 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-bold">SharkScope</h2>
+            <p className="text-xs text-neutral-500">{row.player_name}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-neutral-500 hover:text-neutral-200"
+            aria-label="Fechar"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Toggle modo */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Origem dos dados
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("player")}
+                className={`rounded-md border px-3 py-2 text-xs font-medium transition ${
+                  mode === "player"
+                    ? "border-amber-400/60 bg-amber-400/10 text-amber-300"
+                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                }`}
+              >
+                Player único
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("playergroup")}
+                className={`rounded-md border px-3 py-2 text-xs font-medium transition ${
+                  mode === "playergroup"
+                    ? "border-purple-400/60 bg-purple-400/10 text-purple-300"
+                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                }`}
+              >
+                PlayerGroup (consolidado)
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-neutral-600">
+              {mode === "playergroup"
+                ? "Use quando o aluno tem várias contas / multi-skin. O identificador é o nome do Player Group exibido no SharkScope (ex: rafaelbsoave-COM)."
+                : "Padrão: usa o nick público do jogador no site escolhido."}
+            </p>
+          </div>
+
+          {mode === "player" ? (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Nick no site
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Ex: hero123"
+                className="mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/60"
+                autoFocus
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Nome do Player Group
+              </label>
+              <input
+                type="text"
+                value={playergroupId}
+                onChange={(e) => setPlayergroupId(e.target.value)}
+                placeholder="Ex: rafaelbsoave-COM"
+                className="mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-purple-400/60"
+                autoFocus
+              />
+              <p className="mt-1 text-[11px] text-neutral-600">
+                No SharkScope: dropdown &quot;Grupo de Jogadores&quot; → o nome
+                exato exibido (ex: <code>rafaelbsoave-COM</code>). É o que vai
+                no path da API: <code>/playergroups/&lt;nome&gt;</code>.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Network
+            </label>
+            <select
+              value={network}
+              onChange={(e) => setNetwork(e.target.value as SsNetwork)}
+              className="mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/60"
+            >
+              {SS_NETWORKS.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {err && (
+            <p className="rounded-md border border-red-900/60 bg-red-950/40 px-3 py-2 text-xs text-red-300">
+              {err}
+            </p>
+          )}
+
+          {summary && (
+            <div className="rounded-md border border-neutral-800 bg-neutral-900/60 p-3 text-xs">
+              <p className="mb-2 font-semibold text-neutral-400">Último snapshot</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="text-neutral-500">Torneios</div>
+                  <div className="font-bold tabular-nums">
+                    {summary.entries ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-neutral-500">ROI médio</div>
+                  <div
+                    className={`font-bold tabular-nums ${
+                      (summary.avgRoi ?? 0) >= 0
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {formatRoi(summary.avgRoi)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-neutral-500">ITM</div>
+                  <div className="font-bold tabular-nums">
+                    {summary.itm != null ? `${summary.itm.toFixed(1)}%` : "—"}
+                  </div>
+                </div>
+              </div>
+              {row.sharkscope_last_sync && (
+                <p className="mt-2 text-center text-[11px] text-neutral-600">
+                  Atualizado{" "}
+                  {new Date(row.sharkscope_last_sync).toLocaleString("pt-BR")}
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={sync}
+            disabled={
+              busy ||
+              (mode === "player"
+                ? username.trim().length < 2
+                : playergroupId.trim().length < 1)
+            }
+            className="w-full rounded-md bg-amber-300 px-4 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy ? "Sincronizando…" : "Salvar e sincronizar"}
+          </button>
+        </div>
       </div>
     </div>
   );
