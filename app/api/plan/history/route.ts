@@ -24,6 +24,51 @@ function parseDiagId(userId: string | null): string | null {
   return userId.startsWith("diag:") ? userId.slice("diag:".length) : null;
 }
 
+interface DiagRow {
+  id: string;
+  email: string | null;
+  sharkscope_username: string | null;
+  sharkscope_network: string | null;
+  sharkscope_playergroup_id: string | null;
+}
+
+/**
+ * Resolve a linha do diagnóstico que tem Sharkscope conectado pra esse aluno.
+ *
+ * Cenário: aluno fez vários nivelamentos. Admin conectou Sharkscope numa
+ * linha antiga. O localStorage do aluno aponta pra uma linha mais recente
+ * que está sem conexão. Fazemos fallback procurando, pelo email, a linha
+ * mais recente que tenha Sharkscope conectado.
+ *
+ * Retorna a linha atual se ela já tem conexão; senão a linha de fallback;
+ * senão a linha atual mesmo (e o caller decide o que fazer).
+ */
+async function resolveEffectiveDiagRow(
+  supabase: ReturnType<typeof service>,
+  diagId: string
+): Promise<DiagRow | null> {
+  const { data: current } = await supabase
+    .from("reglife_diagnostic_results")
+    .select("id, email, sharkscope_username, sharkscope_network, sharkscope_playergroup_id")
+    .eq("id", diagId)
+    .single<DiagRow>();
+
+  if (!current) return null;
+  if (current.sharkscope_username || current.sharkscope_playergroup_id) return current;
+  if (!current.email) return current;
+
+  const { data: fallback } = await supabase
+    .from("reglife_diagnostic_results")
+    .select("id, email, sharkscope_username, sharkscope_network, sharkscope_playergroup_id")
+    .eq("email", current.email)
+    .or("sharkscope_username.not.is.null,sharkscope_playergroup_id.not.is.null")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<DiagRow>();
+
+  return fallback ?? current;
+}
+
 // ---------------------------------------------------------------------------
 // GET — lista o histórico mensal + estado da conexão SharkScope
 // ---------------------------------------------------------------------------
@@ -34,36 +79,27 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = service();
+  const effective = await resolveEffectiveDiagRow(supabase, diagId);
+  const effectiveId = effective?.id ?? diagId;
 
-  const [rowsRes, diagRes] = await Promise.allSettled([
-    supabase
-      .from("sharkscope_monthly_stats")
-      .select(
-        "year, month, source, subject_value, network, entries, count_sessions, avg_stake, profit, avg_roi, total_roi, itm, avg_entrants, final_tables, re_entries, created_at"
-      )
-      .eq("diagnostic_id", diagId)
-      .order("year", { ascending: false })
-      .order("month", { ascending: false }),
+  const { data: rowsData } = await supabase
+    .from("sharkscope_monthly_stats")
+    .select(
+      "year, month, source, subject_value, network, entries, count_sessions, avg_stake, profit, avg_roi, total_roi, itm, avg_entrants, final_tables, re_entries, created_at"
+    )
+    .eq("diagnostic_id", effectiveId)
+    .order("year", { ascending: false })
+    .order("month", { ascending: false });
 
-    supabase
-      .from("reglife_diagnostic_results")
-      .select(
-        "sharkscope_username, sharkscope_network, sharkscope_playergroup_id"
-      )
-      .eq("id", diagId)
-      .single(),
-  ]);
-
-  const rows = rowsRes.status === "fulfilled" ? rowsRes.value.data ?? [] : [];
-  const diag = diagRes.status === "fulfilled" ? diagRes.value.data : null;
-  const connected = !!(diag?.sharkscope_playergroup_id || diag?.sharkscope_username);
+  const rows = rowsData ?? [];
+  const connected = !!(effective?.sharkscope_playergroup_id || effective?.sharkscope_username);
 
   return NextResponse.json({
     rows,
     connected,
-    source: diag?.sharkscope_playergroup_id ? "playergroup" : diag?.sharkscope_username ? "player" : null,
-    subject: diag?.sharkscope_playergroup_id ?? diag?.sharkscope_username ?? null,
-    network: diag?.sharkscope_network ?? null,
+    source: effective?.sharkscope_playergroup_id ? "playergroup" : effective?.sharkscope_username ? "player" : null,
+    subject: effective?.sharkscope_playergroup_id ?? effective?.sharkscope_username ?? null,
+    network: effective?.sharkscope_network ?? null,
   });
 }
 
@@ -93,15 +129,9 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = service();
-  const { data: row, error: loadErr } = await supabase
-    .from("reglife_diagnostic_results")
-    .select(
-      "id, sharkscope_username, sharkscope_network, sharkscope_playergroup_id"
-    )
-    .eq("id", diagId)
-    .single();
+  const row = await resolveEffectiveDiagRow(supabase, diagId);
 
-  if (loadErr || !row) {
+  if (!row) {
     return NextResponse.json({ error: "Diagnóstico não encontrado" }, { status: 404 });
   }
   if (!row.sharkscope_username && !row.sharkscope_playergroup_id) {
@@ -116,6 +146,9 @@ export async function POST(req: NextRequest) {
     ? { kind: "playergroup", identifier: row.sharkscope_playergroup_id! }
     : { kind: "player", identifier: row.sharkscope_username! };
   const network = row.sharkscope_network ?? "PokerStars";
+  // Os monthly stats devem ser gravados sob o id da linha que tem a conexão,
+  // pra que o GET acima encontre — não o diagId vindo do localStorage.
+  const targetDiagId = row.id;
 
   try {
     const client = getSharkscopeClient();
@@ -128,7 +161,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = {
-      diagnostic_id: diagId,
+      diagnostic_id: targetDiagId,
       year,
       month,
       source: useGroup ? "playergroup" : "player",
