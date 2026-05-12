@@ -43,6 +43,22 @@ export async function POST(req: NextRequest) {
 
   const savedPlan = body.savedPlan as SavedPlan | undefined;
 
+  // Lead scoring (admin-side, lead não vê)
+  const quizAnswers =
+    body.quizAnswers && typeof body.quizAnswers === "object"
+      ? body.quizAnswers
+      : null;
+  const leadScore =
+    typeof body.leadScore === "number" && Number.isFinite(body.leadScore)
+      ? Math.round(body.leadScore)
+      : null;
+  const leadCategory =
+    typeof body.leadCategory === "string" ? body.leadCategory : null;
+  const stakeGrade =
+    typeof body.stakeGrade === "number" && Number.isFinite(body.stakeGrade)
+      ? body.stakeGrade
+      : null;
+
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .insert([
@@ -63,6 +79,10 @@ export async function POST(req: NextRequest) {
         notify_channels: notifyChannels,
         whatsapp_phone: whatsappPhone,
         saved_plan: savedPlan ?? null,
+        quiz_answers: quizAnswers,
+        lead_score: leadScore,
+        lead_category: leadCategory,
+        stake_grade: stakeGrade,
       },
     ])
     .select("id")

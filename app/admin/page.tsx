@@ -36,6 +36,16 @@ const PROFIT_LABELS: Record<string, string> = {
   usd100k: "U$100.000",
 };
 
+const LEAD_BADGE: Record<
+  string,
+  { label: string; bg: string; text: string }
+> = {
+  super_quente: { label: "Super Quente", bg: "bg-red-500/20",     text: "text-red-300" },
+  quente:       { label: "Quente",       bg: "bg-amber-500/20",   text: "text-amber-300" },
+  morno:        { label: "Morno",        bg: "bg-yellow-500/15",  text: "text-yellow-300" },
+  frio:         { label: "Frio",         bg: "bg-sky-500/15",     text: "text-sky-300" },
+};
+
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -136,6 +146,7 @@ export default function AdminPage() {
                 <tr>
                   <th className="px-4 py-3 text-left">Jogador</th>
                   <th className="px-4 py-3 text-left">Contato</th>
+                  <th className="px-4 py-3 text-center">Lead</th>
                   <th className="px-4 py-3 text-left">Meta / Dedicação</th>
                   <th className="px-4 py-3 text-center">Spots</th>
                   <th className="px-4 py-3 text-center">Média</th>
@@ -148,7 +159,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-neutral-800/60">
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-10 text-center text-neutral-600">
+                    <td colSpan={10} className="px-4 py-10 text-center text-neutral-600">
                       Nenhum resultado encontrado
                     </td>
                   </tr>
@@ -159,6 +170,25 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-neutral-400">
                       <div>{row.email ?? "—"}</div>
                       {row.phone && <div className="text-xs text-neutral-600">{row.phone}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {row.lead_category && LEAD_BADGE[row.lead_category] ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LEAD_BADGE[row.lead_category].bg} ${LEAD_BADGE[row.lead_category].text}`}
+                          >
+                            {LEAD_BADGE[row.lead_category].label}
+                          </span>
+                          {row.lead_score != null && (
+                            <span className="text-[10px] text-neutral-600 tabular-nums">
+                              {row.lead_score}/25
+                              {row.stake_grade != null && ` · $${row.stake_grade}`}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-neutral-700">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-neutral-400 text-xs">
                       <div>{PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "—"}</div>

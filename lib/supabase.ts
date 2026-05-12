@@ -54,6 +54,11 @@ export interface DiagnosticRow {
   sharkscope_last_sync: string | null;
   sharkscope_summary: SharkscopeSummary | null;
   volume_target_weekly: number | null;
+  // Lead scoring (admin-only)
+  lead_score: number | null;
+  lead_category: string | null; // 'frio' | 'morno' | 'quente' | 'super_quente'
+  quiz_answers: Record<string, string> | null;
+  stake_grade: number | null;
 }
 
 export interface SpotSummaryRow {
