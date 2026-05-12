@@ -14,6 +14,7 @@ import {
   PROFIT_GOAL_ADVICE,
   STUDY_TIME_LABELS,
 } from "@/lib/poker/planBuilder";
+import { groupLeaksByTheme } from "@/lib/poker/leakThemes";
 import { Logo } from "@/components/Logo";
 import { RetakeModal } from "./RetakeModal";
 import { EvHud } from "./EvHud";
@@ -336,22 +337,40 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
               Seus pontos fracos
             </h2>
             <div className="space-y-3">
-              {plan.leaks.map((leak) => (
+              {groupLeaksByTheme(plan.leaks).map((theme) => (
                 <div
-                  key={leak.id}
+                  key={theme.id}
                   className="rounded-lg border border-red-500/20 bg-red-500/5 p-4"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="font-semibold text-neutral-100">
-                      {leak.actionLabel} · {leak.position} · {leak.stackBand}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-neutral-100">
+                        {theme.emoji} {theme.title}
+                      </div>
+                      <div className="mt-0.5 text-xs text-neutral-500">
+                        {theme.phaseLabel}
+                      </div>
                     </div>
-                    <span className="rounded bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-300">
-                      {leak.errors}/{leak.total} erros
+                    <span className="shrink-0 rounded bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-300">
+                      {theme.totalErrors}/{theme.totalAttempts} erros · {theme.affectedCount} spots
                     </span>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-300">
-                    {leak.recommendation}
+                  <p className="mt-3 text-sm leading-relaxed text-neutral-300">
+                    {theme.cta}
                   </p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {theme.affectedSpots.map((spot, i) => (
+                      <span
+                        key={i}
+                        className="rounded-md border border-neutral-800 bg-neutral-900/60 px-2 py-0.5 text-[11px] text-neutral-400"
+                        title={`${spot.accuracyPct}% acerto · ${spot.errors}/${spot.total} erros`}
+                      >
+                        {spot.label}{" "}
+                        <span className="text-neutral-600">·</span>{" "}
+                        <span className="text-neutral-500">{spot.accuracyPct}%</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
