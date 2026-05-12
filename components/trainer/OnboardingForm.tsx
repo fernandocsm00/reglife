@@ -77,9 +77,6 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [playerName, setPlayerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [notifyEmail, setNotifyEmail] = useState(true);
-  const [notifyWhatsapp, setNotifyWhatsapp] = useState(false);
-  const [whatsappPhone, setWhatsappPhone] = useState("");
 
   // Step 2 — Quem você é (3 perguntas pontuadas)
   const [idade, setIdade] = useState<IdadeAnswer | null>(null);
@@ -94,9 +91,7 @@ export function OnboardingForm({ onSubmit }: Props) {
   const step1Valid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
-    isValidPhone(phone) &&
-    (notifyEmail || notifyWhatsapp) &&
-    (!notifyWhatsapp || whatsappPhone.trim().length > 0);
+    isValidPhone(phone);
 
   const step2Valid = idade !== null && tempo !== null && objetivo !== null;
   const step3Valid = abi !== null && volume !== null && banca !== null;
@@ -117,16 +112,16 @@ export function OnboardingForm({ onSubmit }: Props) {
     const leadCategory = computeLeadCategory(leadScore);
     const stakeGrade = computeStakeGrade(quizAnswers);
 
-    const notifyChannels: string[] = [];
-    if (notifyEmail) notifyChannels.push("email");
-    if (notifyWhatsapp) notifyChannels.push("whatsapp");
+    // Email é o canal default — não pergunta mais ao lead. Admin pode
+    // ativar WhatsApp depois conforme preferência manual.
+    const notifyChannels: string[] = ["email"];
 
     onSubmit({
       playerName: playerName.trim(),
       email: email.trim().toLowerCase(),
       phone,
       notifyChannels,
-      whatsappPhone: notifyWhatsapp ? whatsappPhone.trim() : null,
+      whatsappPhone: null,
       quizAnswers,
       leadScore,
       leadCategory,
@@ -202,41 +197,6 @@ export function OnboardingForm({ onSubmit }: Props) {
                   />
                 </Field>
 
-                <fieldset className="rounded-md border border-neutral-800 p-3">
-                  <legend className="px-2 text-xs font-semibold text-neutral-300">
-                    Como você quer receber seu relatório
-                  </legend>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifyEmail}
-                      onChange={(e) => setNotifyEmail(e.target.checked)}
-                    />
-                    <span>Email (será enviado pro endereço acima)</span>
-                  </label>
-                  <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifyWhatsapp}
-                      onChange={(e) => {
-                        setNotifyWhatsapp(e.target.checked);
-                        if (e.target.checked && !whatsappPhone)
-                          setWhatsappPhone(phone);
-                      }}
-                    />
-                    <span>WhatsApp</span>
-                  </label>
-                  {notifyWhatsapp && (
-                    <input
-                      type="tel"
-                      value={whatsappPhone}
-                      onChange={(e) => setWhatsappPhone(e.target.value)}
-                      placeholder="Confirme o número (com DDI)"
-                      className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm"
-                      required={notifyWhatsapp}
-                    />
-                  )}
-                </fieldset>
               </div>
 
               <div className="mt-10 flex justify-end">
