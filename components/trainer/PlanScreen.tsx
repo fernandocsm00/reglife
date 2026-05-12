@@ -139,6 +139,16 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             </div>
             <span className="ml-auto text-neutral-500 transition group-hover:translate-x-1">→</span>
           </Link>
+          {plan.diagnosticId && (
+            <a
+              href={`/r/${plan.diagnosticId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-3 mt-5 inline-flex items-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900/50 px-4 py-2 text-sm text-neutral-200 transition hover:border-amber-400/50 hover:text-amber-300 print:hidden"
+            >
+              📄 Baixar relatório (PDF)
+            </a>
+          )}
           <p className="mt-2 text-xs text-neutral-500">
             Criado em {createdAtLabel} · {STUDY_TIME_LABELS[plan.studyTime]} ·{" "}
             Meta: {PROFIT_GOAL_LABELS[plan.profitGoal]}
