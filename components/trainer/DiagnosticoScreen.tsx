@@ -9,12 +9,12 @@ import { useDiagnosticoStore } from "@/lib/poker/diagnosticoStore";
 import { PokerTable } from "./PokerTable";
 import { ActionButtonsBar } from "./ActionButtonsBar";
 import { ActionHistoryPanel } from "./ActionHistoryPanel";
-import { OnboardingForm } from "./OnboardingForm";
+import { OnboardingForm, type OnboardingData } from "./OnboardingForm";
 import { Logo } from "@/components/Logo";
 import { sounds } from "@/lib/audio/sounds";
 import { analyzeResults } from "@/lib/poker/leakAnalysis";
 import { buildPlan } from "@/lib/poker/planBuilder";
-import { getStoredPlan, savePlan } from "@/lib/poker/planStorage";
+import { getStoredPlan, savePlan, type SavedPlan } from "@/lib/poker/planStorage";
 
 interface Props {
   initialConfigs: unknown[];
@@ -55,12 +55,14 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const leadScore = useDiagnosticoStore((s) => s.leadScore);
   const leadCategory = useDiagnosticoStore((s) => s.leadCategory);
   const stakeGrade = useDiagnosticoStore((s) => s.stakeGrade);
+  const leadId = useDiagnosticoStore((s) => s.leadId);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
   const nextDrill = useDiagnosticoStore((s) => s.nextDrill);
   const dismissSpotTransition = useDiagnosticoStore((s) => s.dismissSpotTransition);
   const setOnboarding = useDiagnosticoStore((s) => s.setOnboarding);
+  const setLeadId = useDiagnosticoStore((s) => s.setLeadId);
 
   const [muted, setMuted] = useState(false);
   const builtRef = useRef(false);
@@ -100,10 +102,19 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
 
     // Persist to server — captura o id retornado pra ligar o plano à linha
     // do reglife_diagnostic_results (EV usa isso pra ler sharkscope).
+    // Se já temos leadId (POST /api/leads rodou ok no fim do quiz),
+    // mandamos pra fazer UPDATE — não duplica linha. Se não temos,
+    // /api/results faz INSERT como fallback.
+    const planForServer: SavedPlan = leadId
+      ? { ...plan, diagnosticId: leadId }
+      : plan;
+    if (leadId) savePlan(planForServer);
+
     fetch("/api/results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        diagnosticId: leadId, // UPDATE quando presente, INSERT quando null
         playerName: playerName || "Jogador",
         email,
         phone,
@@ -117,18 +128,19 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         volumeTargetWeekly,
         notifyChannels,
         whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
-        // Lead scoring (admin-side)
+        // Lead scoring (admin-side) — só relevante no INSERT, mas mandamos
+        // sempre pro caso do leadId não ter sido gravado por algum motivo
         quizAnswers,
         leadScore,
         leadCategory,
         stakeGrade,
-        savedPlan: plan,
+        savedPlan: planForServer,
       }),
     })
       .then(async (r) => {
         if (!r.ok) return;
         const data = await r.json().catch(() => null);
-        if (data?.id) savePlan({ ...plan, diagnosticId: data.id });
+        if (data?.id) savePlan({ ...planForServer, diagnosticId: data.id });
       })
       .catch(() => { /* silently ignore */ });
 
@@ -137,7 +149,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
       stoppedEarly, spotSummaries, failedSpotCount,
       volumeTargetWeekly, notifyChannels, whatsappPhone,
-      quizAnswers, leadScore, leadCategory, stakeGrade]);
+      quizAnswers, leadScore, leadCategory, stakeGrade, leadId]);
 
   const handlePick = (text: string) => {
     pickAnswer(text);
@@ -162,7 +174,40 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
 
   // Onboarding gate
   if (!playerName) {
-    return <OnboardingForm onSubmit={setOnboarding} />;
+    return (
+      <OnboardingForm
+        onSubmit={(data: OnboardingData) => {
+          // Atualiza o store imediatamente pra a tela do trainer já renderizar
+          setOnboarding(data);
+          // Fire-and-forget: captura o lead no banco (não bloqueia o teste).
+          // Quando termina o teste, /api/results faz UPDATE neste id.
+          fetch("/api/leads", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              playerName: data.playerName,
+              email: data.email,
+              phone: data.phone,
+              studyTime: data.studyTime,
+              profitGoal: data.profitGoal,
+              volumeTargetWeekly: data.volumeTargetWeekly,
+              notifyChannels: data.notifyChannels,
+              whatsappPhone: data.whatsappPhone,
+              quizAnswers: data.quizAnswers,
+              leadScore: data.leadScore,
+              leadCategory: data.leadCategory,
+              stakeGrade: data.stakeGrade,
+            }),
+          })
+            .then(async (r) => {
+              if (!r.ok) return;
+              const json = await r.json().catch(() => null);
+              if (json?.id) setLeadId(json.id);
+            })
+            .catch(() => { /* silently ignore */ });
+        }}
+      />
+    );
   }
 
   // "Montando seu plano…" screen

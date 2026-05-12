@@ -83,6 +83,14 @@ interface DiagnosticoState {
   leadCategory: LeadCategory | null;
   stakeGrade: number;
 
+  /**
+   * ID da linha em reglife_diagnostic_results criada pelo POST /api/leads
+   * no fim do quiz. Quando o teste completa, este id vai no body do
+   * /api/results pra fazer UPDATE em vez de INSERT — assim o lead que
+   * abandona no meio do teste fica registrado mesmo sem dados de spots.
+   */
+  leadId: string | null;
+
   // Legacy fields derivados do quiz — alimentam o planBuilder
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
@@ -96,6 +104,7 @@ interface DiagnosticoState {
   pickAnswer: (buttonText: string) => void;
   nextDrill: () => void;
   dismissSpotTransition: () => void;
+  setLeadId: (id: string) => void;
   setOnboarding: (data: {
     playerName: string;
     email: string;
@@ -147,11 +156,14 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   leadScore: 0,
   leadCategory: null,
   stakeGrade: 0,
+  leadId: null,
   studyTime: "ate15",
   profitGoal: "usd1k",
   volumeTargetWeekly: 100,
   showSpotTransition: false,
   lastSpotSummary: null,
+
+  setLeadId: (id) => set({ leadId: id }),
 
   setOnboarding: ({
     playerName,

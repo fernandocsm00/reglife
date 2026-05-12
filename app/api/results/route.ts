@@ -59,41 +59,80 @@ export async function POST(req: NextRequest) {
       ? body.stakeGrade
       : null;
 
-  const { data, error } = await supabase
-    .from("reglife_diagnostic_results")
-    .insert([
-      {
-        player_name: body.playerName ?? "Jogador",
-        email: body.email ?? null,
-        phone: body.phone ?? null,
-        study_time: body.studyTime ?? null,
-        profit_goal: body.profitGoal ?? null,
+  // Se vier diagnosticId no body, é o caso "lead já existe (criado pelo
+  // /api/leads no fim do quiz) e agora termina o teste" → UPDATE.
+  // Sem id no body, segue o INSERT legado (back-compat).
+  const existingId =
+    typeof body.diagnosticId === "string" && body.diagnosticId.trim()
+      ? body.diagnosticId.trim()
+      : null;
+
+  let diagnosticId: string;
+
+  if (existingId) {
+    const { data: updated, error: updErr } = await supabase
+      .from("reglife_diagnostic_results")
+      .update({
+        // Sobrescreve campos do teste sem mexer em identidade/quiz que já
+        // foram salvos no /api/leads
         stopped_early: body.stoppedEarly ?? false,
         spots_played: body.spotsPlayed ?? 0,
         spots_failed: body.spotsFailed ?? 0,
         spot_summaries: body.spotSummaries ?? [],
         results: body.results ?? [],
-        sharkscope_username: ssUsername,
-        sharkscope_network: ssNetwork,
-        volume_target_weekly: volumeTarget,
+        saved_plan: savedPlan ?? null,
+        // Permite refresh dos canais caso lead tenha mudado preferência no quiz
         notify_channels: notifyChannels,
         whatsapp_phone: whatsappPhone,
-        saved_plan: savedPlan ?? null,
-        quiz_answers: quizAnswers,
-        lead_score: leadScore,
-        lead_category: leadCategory,
-        stake_grade: stakeGrade,
-      },
-    ])
-    .select("id")
-    .single();
+      })
+      .eq("id", existingId)
+      .select("id")
+      .single();
 
-  if (error) {
-    console.error("[api/results] insert error", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (updErr || !updated) {
+      console.error("[api/results] update error", updErr);
+      return NextResponse.json(
+        { error: updErr?.message ?? "diagnosticId não encontrado" },
+        { status: updErr ? 500 : 404 }
+      );
+    }
+    diagnosticId = updated.id;
+  } else {
+    const { data, error } = await supabase
+      .from("reglife_diagnostic_results")
+      .insert([
+        {
+          player_name: body.playerName ?? "Jogador",
+          email: body.email ?? null,
+          phone: body.phone ?? null,
+          study_time: body.studyTime ?? null,
+          profit_goal: body.profitGoal ?? null,
+          stopped_early: body.stoppedEarly ?? false,
+          spots_played: body.spotsPlayed ?? 0,
+          spots_failed: body.spotsFailed ?? 0,
+          spot_summaries: body.spotSummaries ?? [],
+          results: body.results ?? [],
+          sharkscope_username: ssUsername,
+          sharkscope_network: ssNetwork,
+          volume_target_weekly: volumeTarget,
+          notify_channels: notifyChannels,
+          whatsapp_phone: whatsappPhone,
+          saved_plan: savedPlan ?? null,
+          quiz_answers: quizAnswers,
+          lead_score: leadScore,
+          lead_category: leadCategory,
+          stake_grade: stakeGrade,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("[api/results] insert error", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    diagnosticId = data.id;
   }
-
-  const diagnosticId = data.id;
   let pdfUrl: string | null = null;
 
   if (savedPlan) {
