@@ -23,7 +23,7 @@ export type NotificationKind =
   | "leak_alert"
   | "phase_transition";
 
-export type Channel = "in_app" | "discord" | "whatsapp";
+export type Channel = "in_app" | "discord" | "whatsapp" | "email";
 
 export interface SendNotificationArgs {
   diagnosticId: string;
@@ -276,5 +276,69 @@ async function sendWhatsapp(
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Envia o PDF do plano pelo WhatsApp. Tenta como documento primeiro;
+ * fallback é mensagem de texto com o link.
+ *
+ * Não passa pelo fluxo de quiet hours / canais — é entrega transacional
+ * (one-shot, disparada quando o aluno acabou de pedir).
+ */
+export async function sendPlanReportWhatsapp(args: {
+  phone: string;
+  playerName: string;
+  pdfUrl: string;
+}): Promise<{ ok: boolean; mode: "document" | "text" | "skipped"; error?: string }> {
+  const url = process.env.WHATSAPP_API_URL;
+  const token = process.env.WHATSAPP_API_TOKEN;
+  if (!url || !token) {
+    console.warn("[notify] WhatsApp não configurado, pulando envio de PDF.");
+    return { ok: false, mode: "skipped", error: "not configured" };
+  }
+  const phone = args.phone.replace(/\D/g, "");
+  if (!phone) {
+    return { ok: false, mode: "skipped", error: "invalid phone" };
+  }
+
+  const caption = `Seu relatório Reglife 📎 — abre quando puder. — EV`;
+  const fallbackText = `Oi ${args.playerName}, teu relatório Reglife tá pronto. Baixa aqui: ${args.pdfUrl}\n— EV`;
+
+  // 1) tenta como documento
+  try {
+    const res = await fetch(`${url.replace(/\/+$/, "")}/send-document`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        phone,
+        document: args.pdfUrl,
+        fileName: "plano-reglife.pdf",
+        caption,
+      }),
+    });
+    if (res.ok) return { ok: true, mode: "document" };
+  } catch (err) {
+    console.warn("[notify] WhatsApp document falhou, indo pro fallback texto", err);
+  }
+
+  // 2) fallback texto
+  try {
+    const res = await fetch(`${url.replace(/\/+$/, "")}/send-text`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ phone, message: fallbackText }),
+    });
+    if (res.ok) return { ok: true, mode: "text" };
+    return { ok: false, mode: "text", error: `HTTP ${res.status}` };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, mode: "text", error: msg };
   }
 }
