@@ -12,7 +12,7 @@ import {
 } from "./spotEngine";
 import type { CurrentDrill, PokerAction, SpotConfigFile } from "./types";
 import type { ProfitGoal, StudyTime } from "./planStorage";
-import type { SharkscopeNetwork } from "@/components/trainer/OnboardingForm";
+import type { LeadCategory, QuizAnswers } from "./leadScoring";
 
 export interface ResultEntry {
   spotLabel: string;
@@ -70,17 +70,23 @@ interface DiagnosticoState {
   currentSpotCorrect: number; // correct answers in current spot
   drillsPlayed: number; // overall
 
-  // Onboarding
+  // Onboarding — identidade do lead
   playerName: string;
   email: string;
   phone: string;
-  studyTime: StudyTime;
-  profitGoal: ProfitGoal;
-  sharkscopeUsername: string;
-  sharkscopeNetwork: SharkscopeNetwork;
-  volumeTargetWeekly: number;
   notifyChannels: string[];
   whatsappPhone: string | null;
+
+  // Lead scoring (computed antes do teste, persistido pra usar no /api/results)
+  quizAnswers: QuizAnswers | null;
+  leadScore: number;
+  leadCategory: LeadCategory | null;
+  stakeGrade: number;
+
+  // Legacy fields derivados do quiz — alimentam o planBuilder
+  studyTime: StudyTime;
+  profitGoal: ProfitGoal;
+  volumeTargetWeekly: number;
 
   // Spot transition overlay
   showSpotTransition: boolean;
@@ -94,13 +100,15 @@ interface DiagnosticoState {
     playerName: string;
     email: string;
     phone: string;
-    studyTime: StudyTime;
-    profitGoal: ProfitGoal;
-    sharkscopeUsername: string;
-    sharkscopeNetwork: SharkscopeNetwork;
-    volumeTargetWeekly: number;
     notifyChannels: string[];
     whatsappPhone: string | null;
+    quizAnswers: QuizAnswers;
+    leadScore: number;
+    leadCategory: LeadCategory;
+    stakeGrade: number;
+    studyTime: StudyTime;
+    profitGoal: ProfitGoal;
+    volumeTargetWeekly: number;
   }) => void;
 }
 
@@ -133,13 +141,15 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   playerName: "",
   email: "",
   phone: "",
-  studyTime: "ate15",
-  profitGoal: "usd1k",
-  sharkscopeUsername: "",
-  sharkscopeNetwork: "PokerStars",
-  volumeTargetWeekly: 100,
   notifyChannels: ["email"],
   whatsappPhone: null,
+  quizAnswers: null,
+  leadScore: 0,
+  leadCategory: null,
+  stakeGrade: 0,
+  studyTime: "ate15",
+  profitGoal: "usd1k",
+  volumeTargetWeekly: 100,
   showSpotTransition: false,
   lastSpotSummary: null,
 
@@ -147,25 +157,29 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
     playerName,
     email,
     phone,
-    studyTime,
-    profitGoal,
-    sharkscopeUsername,
-    sharkscopeNetwork,
-    volumeTargetWeekly,
     notifyChannels,
     whatsappPhone,
+    quizAnswers,
+    leadScore,
+    leadCategory,
+    stakeGrade,
+    studyTime,
+    profitGoal,
+    volumeTargetWeekly,
   }) =>
     set({
       playerName,
       email,
       phone,
-      studyTime,
-      profitGoal,
-      sharkscopeUsername,
-      sharkscopeNetwork,
-      volumeTargetWeekly,
       notifyChannels,
       whatsappPhone,
+      quizAnswers,
+      leadScore,
+      leadCategory,
+      stakeGrade,
+      studyTime,
+      profitGoal,
+      volumeTargetWeekly,
     }),
 
   loadConfigs: (raws) => {

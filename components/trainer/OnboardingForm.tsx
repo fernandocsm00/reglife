@@ -1,66 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
-
-export type SharkscopeNetwork =
-  | "PokerStars"
-  | "GGPoker"
-  | "PartyPoker"
-  | "888Poker"
-  | "WPN"
-  | "iPoker";
+import {
+  ABI_OPTIONS,
+  BANCA_OPTIONS,
+  IDADE_OPTIONS,
+  OBJETIVO_OPTIONS,
+  TEMPO_OPTIONS,
+  VOLUME_OPTIONS,
+  computeLeadCategory,
+  computeLeadScore,
+  computeStakeGrade,
+  defaultStudyTime,
+  objetivoToProfitGoal,
+  volumeToWeeklyTarget,
+  type AbiAnswer,
+  type BancaAnswer,
+  type IdadeAnswer,
+  type LeadCategory,
+  type ObjetivoAnswer,
+  type QuizAnswers,
+  type QuizOption,
+  type TempoAnswer,
+  type VolumeAnswer,
+} from "@/lib/poker/leadScoring";
 
 export interface OnboardingData {
   playerName: string;
   email: string;
   phone: string;
+  notifyChannels: string[];
+  whatsappPhone: string | null;
+  quizAnswers: QuizAnswers;
+  // Lead scoring (computed) — admin-side only, lead não vê
+  leadScore: number;
+  leadCategory: LeadCategory;
+  stakeGrade: number;
+  // Legacy fields derivados do quiz — alimentam planBuilder
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
-  sharkscopeUsername: string; // pode vir vazio (opcional)
-  sharkscopeNetwork: SharkscopeNetwork;
-  /** Meta semanal de torneios (usada pelo EV pra cobrar volume). */
   volumeTargetWeekly: number;
-  /** Canais escolhidos pra receber o relatório do plano. */
-  notifyChannels: string[];
-  /** WhatsApp confirmado pelo usuário (quando marcar o canal). */
-  whatsappPhone: string | null;
 }
-
-const NETWORK_OPTIONS: SharkscopeNetwork[] = [
-  "PokerStars",
-  "GGPoker",
-  "PartyPoker",
-  "888Poker",
-  "WPN",
-  "iPoker",
-];
-
-const VOLUME_OPTIONS: { value: number; label: string }[] = [
-  { value: 50, label: "Até 50/sem" },
-  { value: 100, label: "50-100/sem" },
-  { value: 200, label: "100-200/sem" },
-  { value: 300, label: "200+/sem" },
-];
 
 interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
-
-const STUDY_OPTIONS: { id: StudyTime; label: string }[] = [
-  { id: "ate15", label: "Até 15h semanais" },
-  { id: "ate40", label: "Até 40h semanais" },
-  { id: "mais40", label: "Mais de 40h semanais" },
-];
-
-const PROFIT_OPTIONS: { id: ProfitGoal; label: string }[] = [
-  { id: "usd1k", label: "U$ 1.000" },
-  { id: "usd10k", label: "U$ 10.000" },
-  { id: "usd50k", label: "U$ 50.000" },
-  { id: "usd100k", label: "U$ 100.000" },
-];
 
 // Formata o celular enquanto o usuário digita: (99) 99999-9999
 function formatPhone(raw: string): string {
@@ -81,26 +68,74 @@ function isValidPhone(phone: string): boolean {
   return phone.replace(/\D/g, "").length >= 10;
 }
 
+type Step = 1 | 2 | 3;
+
 export function OnboardingForm({ onSubmit }: Props) {
+  const [step, setStep] = useState<Step>(1);
+
+  // Step 1 — Identificação
   const [playerName, setPlayerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [studyTime, setStudyTime] = useState<StudyTime>("ate15");
-  const [profitGoal, setProfitGoal] = useState<ProfitGoal>("usd1k");
-  const [sharkscopeUsername, setSharkscopeUsername] = useState("");
-  const [sharkscopeNetwork, setSharkscopeNetwork] =
-    useState<SharkscopeNetwork>("PokerStars");
-  const [volumeTargetWeekly, setVolumeTargetWeekly] = useState(100);
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(false);
   const [whatsappPhone, setWhatsappPhone] = useState("");
 
-  const canSubmit =
+  // Step 2 — Quem você é (3 perguntas pontuadas)
+  const [idade, setIdade] = useState<IdadeAnswer | null>(null);
+  const [tempo, setTempo] = useState<TempoAnswer | null>(null);
+  const [objetivo, setObjetivo] = useState<ObjetivoAnswer | null>(null);
+
+  // Step 3 — Seus números
+  const [abi, setAbi] = useState<AbiAnswer | null>(null);
+  const [volume, setVolume] = useState<VolumeAnswer | null>(null);
+  const [banca, setBanca] = useState<BancaAnswer | null>(null);
+
+  const step1Valid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone) &&
     (notifyEmail || notifyWhatsapp) &&
     (!notifyWhatsapp || whatsappPhone.trim().length > 0);
+
+  const step2Valid = idade !== null && tempo !== null && objetivo !== null;
+  const step3Valid = abi !== null && volume !== null && banca !== null;
+
+  const finalSubmit = () => {
+    if (!step1Valid || !step2Valid || !step3Valid) return;
+
+    const quizAnswers: QuizAnswers = {
+      idade: idade!,
+      tempo: tempo!,
+      objetivo: objetivo!,
+      abi: abi!,
+      volume: volume!,
+      banca: banca!,
+    };
+
+    const leadScore = computeLeadScore(quizAnswers);
+    const leadCategory = computeLeadCategory(leadScore);
+    const stakeGrade = computeStakeGrade(quizAnswers);
+
+    const notifyChannels: string[] = [];
+    if (notifyEmail) notifyChannels.push("email");
+    if (notifyWhatsapp) notifyChannels.push("whatsapp");
+
+    onSubmit({
+      playerName: playerName.trim(),
+      email: email.trim().toLowerCase(),
+      phone,
+      notifyChannels,
+      whatsappPhone: notifyWhatsapp ? whatsappPhone.trim() : null,
+      quizAnswers,
+      leadScore,
+      leadCategory,
+      stakeGrade,
+      studyTime: defaultStudyTime(),
+      profitGoal: objetivoToProfitGoal(objetivo!),
+      volumeTargetWeekly: volumeToWeeklyTarget(volume!),
+    });
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-neutral-100">
@@ -111,254 +146,325 @@ export function OnboardingForm({ onSubmit }: Props) {
       <div className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-16">
         <Logo size="lg" className="mb-6" />
 
-        <motion.h1
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center text-3xl font-bold"
-        >
-          Antes de começar
-        </motion.h1>
-        <p className="mt-3 max-w-md text-center text-sm text-neutral-400">
-          Vamos personalizar seu plano de 90 dias com base no seu ritmo de
-          estudo e onde você quer chegar.
-        </p>
+        <ProgressDots current={step} />
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!canSubmit) return;
-            if (!notifyEmail && !notifyWhatsapp) {
-              alert("Escolhe pelo menos um canal pra receber o relatório.");
-              return;
-            }
-            if (notifyEmail && !email.trim()) {
-              alert("Email obrigatório pra receber o relatório.");
-              return;
-            }
-            if (notifyWhatsapp && !whatsappPhone.trim()) {
-              alert("Confirme o número de WhatsApp.");
-              return;
-            }
-            const notifyChannels: string[] = [];
-            if (notifyEmail) notifyChannels.push("email");
-            if (notifyWhatsapp) notifyChannels.push("whatsapp");
-            onSubmit({
-              playerName: playerName.trim(),
-              email: email.trim().toLowerCase(),
-              phone,
-              studyTime,
-              profitGoal,
-              sharkscopeUsername: sharkscopeUsername.trim(),
-              sharkscopeNetwork,
-              volumeTargetWeekly,
-              notifyChannels,
-              whatsappPhone: notifyWhatsapp ? whatsappPhone.trim() : null,
-            });
-          }}
-          className="mt-10 w-full space-y-6"
-        >
-          <Field label="Seu nome">
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Ex: Léo"
-              className={inputClass}
-              autoFocus
-            />
-          </Field>
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.2 }}
+              className="w-full"
+            >
+              <h1 className="mt-6 text-center text-3xl font-bold">
+                Antes de começar
+              </h1>
+              <p className="mt-3 text-center text-sm text-neutral-400">
+                Personalizamos a sua experiência. Leva 2 minutos.
+              </p>
 
-          <Field label="E-mail usado na comunidade reglife">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@email.com"
-              className={inputClass}
-              inputMode="email"
-              autoComplete="email"
-              required
-            />
-          </Field>
+              <div className="mt-10 space-y-6">
+                <Field label="Seu nome">
+                  <input
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Ex: Léo"
+                    className={inputClass}
+                    autoFocus
+                  />
+                </Field>
 
-          <Field label="Celular">
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
-              placeholder="(11) 99999-9999"
-              className={inputClass}
-              inputMode="tel"
-              autoComplete="tel"
-            />
-          </Field>
+                <Field label="E-mail">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="voce@email.com"
+                    className={inputClass}
+                    inputMode="email"
+                    autoComplete="email"
+                    required
+                  />
+                </Field>
 
-          <fieldset className="rounded-md border border-neutral-800 p-3 mt-3">
-            <legend className="px-2 text-xs font-semibold text-neutral-300">
-              Como você quer receber seu relatório
-            </legend>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={notifyEmail}
-                onChange={(e) => setNotifyEmail(e.target.checked)}
-              />
-              <span>Email (será enviado pro endereço acima)</span>
-            </label>
-            <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={notifyWhatsapp}
-                onChange={(e) => {
-                  setNotifyWhatsapp(e.target.checked);
-                  if (e.target.checked && !whatsappPhone) setWhatsappPhone(phone);
-                }}
-              />
-              <span>WhatsApp</span>
-            </label>
-            {notifyWhatsapp && (
-              <input
-                type="tel"
-                value={whatsappPhone}
-                onChange={(e) => setWhatsappPhone(e.target.value)}
-                placeholder="Confirme o número (com DDI)"
-                className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm"
-                required={notifyWhatsapp}
-              />
-            )}
-            <p className="mt-2 text-xs text-neutral-500">
-              EV também usa esses canais pra te lembrar de check-ins. Você pode mudar depois em Configurações.
-            </p>
-          </fieldset>
+                <Field label="WhatsApp">
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    placeholder="(11) 99999-9999"
+                    className={inputClass}
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
+                </Field>
 
-          <Field label="Tempo disponível para estudar por semana">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {STUDY_OPTIONS.map((opt) => (
-                <OptionButton
-                  key={opt.id}
-                  selected={studyTime === opt.id}
-                  onClick={() => setStudyTime(opt.id)}
-                  label={opt.label}
+                <fieldset className="rounded-md border border-neutral-800 p-3">
+                  <legend className="px-2 text-xs font-semibold text-neutral-300">
+                    Como você quer receber seu relatório
+                  </legend>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={notifyEmail}
+                      onChange={(e) => setNotifyEmail(e.target.checked)}
+                    />
+                    <span>Email (será enviado pro endereço acima)</span>
+                  </label>
+                  <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={notifyWhatsapp}
+                      onChange={(e) => {
+                        setNotifyWhatsapp(e.target.checked);
+                        if (e.target.checked && !whatsappPhone)
+                          setWhatsappPhone(phone);
+                      }}
+                    />
+                    <span>WhatsApp</span>
+                  </label>
+                  {notifyWhatsapp && (
+                    <input
+                      type="tel"
+                      value={whatsappPhone}
+                      onChange={(e) => setWhatsappPhone(e.target.value)}
+                      placeholder="Confirme o número (com DDI)"
+                      className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm"
+                      required={notifyWhatsapp}
+                    />
+                  )}
+                </fieldset>
+              </div>
+
+              <div className="mt-10 flex justify-end">
+                <NextButton
+                  disabled={!step1Valid}
+                  onClick={() => setStep(2)}
+                  label="Continuar →"
                 />
-              ))}
-            </div>
-          </Field>
+              </div>
+            </motion.div>
+          )}
 
-          <Field label="Quanto de profit você quer nos próximos 12 meses?">
-            <div className="grid grid-cols-2 gap-2">
-              {PROFIT_OPTIONS.map((opt) => (
-                <OptionButton
-                  key={opt.id}
-                  selected={profitGoal === opt.id}
-                  onClick={() => setProfitGoal(opt.id)}
-                  label={opt.label}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.2 }}
+              className="w-full"
+            >
+              <h1 className="mt-6 text-center text-3xl font-bold">
+                Sobre você
+              </h1>
+              <p className="mt-3 text-center text-sm text-neutral-400">
+                3 perguntas rápidas pra entender seu perfil.
+              </p>
+
+              <div className="mt-10 space-y-8">
+                <QuizQuestion
+                  question="Qual é a sua idade?"
+                  options={IDADE_OPTIONS}
+                  value={idade}
+                  onChange={setIdade}
                 />
-              ))}
-            </div>
-          </Field>
-
-          <Field label="Meta de volume — torneios por semana">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {VOLUME_OPTIONS.map((opt) => (
-                <OptionButton
-                  key={opt.value}
-                  selected={volumeTargetWeekly === opt.value}
-                  onClick={() => setVolumeTargetWeekly(opt.value)}
-                  label={opt.label}
+                <QuizQuestion
+                  question="Há quanto tempo você joga poker?"
+                  options={TEMPO_OPTIONS}
+                  value={tempo}
+                  onChange={setTempo}
                 />
-              ))}
-            </div>
-          </Field>
+                <QuizQuestion
+                  question="Qual é o seu objetivo no poker?"
+                  options={OBJETIVO_OPTIONS}
+                  value={objetivo}
+                  onChange={setObjetivo}
+                />
+              </div>
 
-          <Field label="Seu nick no site (opcional — para o EV acompanhar seu ROI)">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
-              <input
-                type="text"
-                value={sharkscopeUsername}
-                onChange={(e) => setSharkscopeUsername(e.target.value)}
-                placeholder="Ex: hero123"
-                className={inputClass}
-                autoComplete="off"
-              />
-              <select
-                value={sharkscopeNetwork}
-                onChange={(e) =>
-                  setSharkscopeNetwork(e.target.value as SharkscopeNetwork)
-                }
-                className={`${inputClass} sm:w-44`}
-              >
-                {NETWORK_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p className="mt-2 text-[11px] text-neutral-500">
-              Não pedimos senha. Só usamos seu nick público pra puxar ROI/ITM
-              via SharkScope.
-            </p>
-          </Field>
+              <div className="mt-10 flex items-center justify-between">
+                <BackButton onClick={() => setStep(1)} />
+                <NextButton
+                  disabled={!step2Valid}
+                  onClick={() => setStep(3)}
+                  label="Continuar →"
+                />
+              </div>
+            </motion.div>
+          )}
 
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full rounded-md bg-amber-300 px-6 py-3 text-base font-bold text-neutral-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Começar o nivelamento →
-          </button>
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.2 }}
+              className="w-full"
+            >
+              <h1 className="mt-6 text-center text-3xl font-bold">
+                Seus números
+              </h1>
+              <p className="mt-3 text-center text-sm text-neutral-400">
+                Últimas 3 perguntas. Tudo conforme o seu SharkScope dos últimos 6 meses.
+              </p>
 
-          <p className="text-center text-[11px] text-neutral-600">
-            Seus dados ficam salvos apenas no seu navegador pra personalizar o
-            plano. Responda com calma — seu plano depende da honestidade do que
-            você jogar agora.
-          </p>
-        </form>
+              <div className="mt-10 space-y-8">
+                <QuizQuestion
+                  question="Qual é o seu ABI (buy-in médio) em dólares?"
+                  options={ABI_OPTIONS}
+                  value={abi}
+                  onChange={setAbi}
+                />
+                <QuizQuestion
+                  question="Quantos torneios você joga por mês?"
+                  options={VOLUME_OPTIONS}
+                  value={volume}
+                  onChange={setVolume}
+                />
+                <QuizQuestion
+                  question="Qual é a sua banca total (em dólares) agora?"
+                  hint="Não é só o que tem na sala — é todo o dinheiro disponível pra dar buy-ins, incluindo o que você consegue depositar."
+                  options={BANCA_OPTIONS}
+                  value={banca}
+                  onChange={setBanca}
+                />
+              </div>
+
+              <div className="mt-10 flex items-center justify-between">
+                <BackButton onClick={() => setStep(2)} />
+                <NextButton
+                  disabled={!step3Valid}
+                  onClick={finalSubmit}
+                  label="Começar o teste →"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-const inputClass =
-  "mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-base text-neutral-100 outline-none transition focus:border-amber-400/60";
+// ---------------------------------------------------------------------------
+// Subcomponentes
+// ---------------------------------------------------------------------------
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function ProgressDots({ current }: { current: Step }) {
   return (
-    <div>
-      <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500">
-        {label}
-      </label>
-      {children}
+    <div className="flex gap-2">
+      {[1, 2, 3].map((n) => (
+        <span
+          key={n}
+          className={`h-1.5 w-8 rounded-full transition-colors ${
+            n <= current ? "bg-amber-400" : "bg-neutral-800"
+          }`}
+        />
+      ))}
     </div>
   );
 }
 
-function OptionButton({
-  selected,
-  onClick,
-  label,
+const inputClass =
+  "w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/30";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function QuizQuestion<T extends string>({
+  question,
+  hint,
+  options,
+  value,
+  onChange,
 }: {
-  selected: boolean;
-  onClick: () => void;
+  question: string;
+  hint?: string;
+  options: QuizOption<T>[];
+  value: T | null;
+  onChange: (v: T) => void;
+}) {
+  // useMemo só pra evitar reordenação inesperada
+  const opts = useMemo(() => options, [options]);
+
+  return (
+    <div>
+      <p className="text-sm font-semibold text-neutral-200">{question}</p>
+      {hint && <p className="mt-1 text-xs text-neutral-500">{hint}</p>}
+      <div className="mt-3 space-y-2">
+        {opts.map((o) => {
+          const selected = value === o.value;
+          return (
+            <button
+              type="button"
+              key={o.value}
+              onClick={() => onChange(o.value)}
+              className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition ${
+                selected
+                  ? "border-amber-400/60 bg-amber-400/10 text-amber-100"
+                  : "border-neutral-800 bg-neutral-900/50 text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900"
+              }`}
+            >
+              <span>{o.label}</span>
+              <span
+                className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
+                  selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
+                }`}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function NextButton({
+  label,
+  onClick,
+  disabled,
+}: {
   label: string;
+  onClick: () => void;
+  disabled: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md border px-3 py-2.5 text-xs font-medium transition ${
-        selected
-          ? "border-amber-400 bg-amber-400/10 text-amber-300"
-          : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+      disabled={disabled}
+      className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition ${
+        disabled
+          ? "cursor-not-allowed bg-neutral-800 text-neutral-500"
+          : "bg-amber-400 text-neutral-950 hover:bg-amber-300"
       }`}
     >
       {label}
+    </button>
+  );
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-sm text-neutral-400 transition hover:text-neutral-200"
+    >
+      ← Voltar
     </button>
   );
 }

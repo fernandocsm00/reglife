@@ -48,11 +48,13 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const phone = useDiagnosticoStore((s) => s.phone);
   const studyTime = useDiagnosticoStore((s) => s.studyTime);
   const profitGoal = useDiagnosticoStore((s) => s.profitGoal);
-  const sharkscopeUsername = useDiagnosticoStore((s) => s.sharkscopeUsername);
-  const sharkscopeNetwork = useDiagnosticoStore((s) => s.sharkscopeNetwork);
   const volumeTargetWeekly = useDiagnosticoStore((s) => s.volumeTargetWeekly);
   const notifyChannels = useDiagnosticoStore((s) => s.notifyChannels);
   const whatsappPhone = useDiagnosticoStore((s) => s.whatsappPhone);
+  const quizAnswers = useDiagnosticoStore((s) => s.quizAnswers);
+  const leadScore = useDiagnosticoStore((s) => s.leadScore);
+  const leadCategory = useDiagnosticoStore((s) => s.leadCategory);
+  const stakeGrade = useDiagnosticoStore((s) => s.stakeGrade);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
@@ -112,11 +114,14 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         spotsFailed: failedSpotCount,
         spotSummaries,
         results,
-        sharkscopeUsername: sharkscopeUsername || null,
-        sharkscopeNetwork: sharkscopeUsername ? sharkscopeNetwork : null,
         volumeTargetWeekly,
         notifyChannels,
         whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
+        // Lead scoring (admin-side)
+        quizAnswers,
+        leadScore,
+        leadCategory,
+        stakeGrade,
         savedPlan: plan,
       }),
     })
@@ -130,8 +135,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     const t = setTimeout(() => router.push("/meu-plano"), 900);
     return () => clearTimeout(t);
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
-      stoppedEarly, spotSummaries, failedSpotCount, sharkscopeUsername, sharkscopeNetwork,
-      volumeTargetWeekly, notifyChannels, whatsappPhone]);
+      stoppedEarly, spotSummaries, failedSpotCount,
+      volumeTargetWeekly, notifyChannels, whatsappPhone,
+      quizAnswers, leadScore, leadCategory, stakeGrade]);
 
   const handlePick = (text: string) => {
     pickAnswer(text);
