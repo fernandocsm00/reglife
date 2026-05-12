@@ -2,7 +2,7 @@
   "name": "C-Bet Turn vs BB — reg.life",
   "action": "cbetTurn",
   "mode": "sequential",
-  "tier": 2,
+  "tier": 1,
   "sessionSize": 11,
   "potSize": 10,
   "currentPotSize": 10,
