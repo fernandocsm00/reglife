@@ -21,7 +21,8 @@ export type NotificationKind =
   | "drop_active"
   | "badge_unlocked"
   | "leak_alert"
-  | "phase_transition";
+  | "phase_transition"
+  | "plan_delivered";
 
 export type Channel = "in_app" | "discord" | "whatsapp" | "email";
 
@@ -283,6 +284,13 @@ async function sendWhatsapp(
  * Envia o PDF do plano pelo WhatsApp. Tenta como documento primeiro;
  * fallback é mensagem de texto com o link.
  *
+ * Assume que o endpoint do WhatsApp (`WHATSAPP_API_URL`) é uma única URL
+ * que lida tanto com texto quanto com documentos, discriminando pelo shape
+ * do body — mesma convenção do `sendWhatsapp` já existente. Se o usuário
+ * estiver no Z-API/Evolution com paths por ação (`/send-document`,
+ * `/send-text`, etc.), ele deve configurar um proxy ou normalizar via
+ * `WHATSAPP_API_URL` antes.
+ *
  * Não passa pelo fluxo de quiet hours / canais — é entrega transacional
  * (one-shot, disparada quando o aluno acabou de pedir).
  */
@@ -305,9 +313,9 @@ export async function sendPlanReportWhatsapp(args: {
   const caption = `Seu relatório Reglife 📎 — abre quando puder. — EV`;
   const fallbackText = `Oi ${args.playerName}, teu relatório Reglife tá pronto. Baixa aqui: ${args.pdfUrl}\n— EV`;
 
-  // 1) tenta como documento
+  // 1) tenta como documento (POST direto na URL base — body discrimina)
   try {
-    const res = await fetch(`${url.replace(/\/+$/, "")}/send-document`, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -318,6 +326,7 @@ export async function sendPlanReportWhatsapp(args: {
         document: args.pdfUrl,
         fileName: "plano-reglife.pdf",
         caption,
+        meta: { kind: "plan_pdf", player: args.playerName },
       }),
     });
     if (res.ok) return { ok: true, mode: "document" };
@@ -325,15 +334,19 @@ export async function sendPlanReportWhatsapp(args: {
     console.warn("[notify] WhatsApp document falhou, indo pro fallback texto", err);
   }
 
-  // 2) fallback texto
+  // 2) fallback texto (também POST direto na URL base)
   try {
-    const res = await fetch(`${url.replace(/\/+$/, "")}/send-text`, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ phone, message: fallbackText }),
+      body: JSON.stringify({
+        phone,
+        message: fallbackText,
+        meta: { kind: "plan_pdf", player: args.playerName },
+      }),
     });
     if (res.ok) return { ok: true, mode: "text" };
     return { ok: false, mode: "text", error: `HTTP ${res.status}` };

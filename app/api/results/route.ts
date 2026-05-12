@@ -87,6 +87,22 @@ export async function POST(req: NextRequest) {
         const origin = req.nextUrl.origin;
         const shortUrl = `${origin}/r/${diagnosticId}`;
 
+        // Registra no feed in-app que o plano foi entregue (fire-and-forget)
+        supabase
+          .from("notifications")
+          .insert({
+            diagnostic_id: diagnosticId,
+            kind: "plan_delivered",
+            title: "Seu plano foi entregue",
+            body: "Relatório do nivelamento disponível. Baixe quando quiser.",
+            payload: { pdfUrl, shortUrl },
+            channels_sent: ["in_app"],
+          })
+          .then(({ error }) => {
+            if (error)
+              console.error("[api/results] notification insert failed", error);
+          });
+
         if (notifyChannels.includes("email") && body.email) {
           void sendPlanReportEmail({
             to: body.email,
