@@ -258,7 +258,7 @@ function FirstTime() {
       <p className="mt-4 max-w-xl text-sm leading-relaxed text-neutral-400">
         Ao final, você recebe um{" "}
         <span className="font-medium text-amber-300">
-          plano de 90 dias personalizado
+          plano personalizado
         </span>{" "}
         com os leaks identificados e as aulas exatas para corrigi-los.
       </p>
