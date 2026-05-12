@@ -83,7 +83,7 @@ export function NotifySettings({ diagnosticId }: Props) {
       className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-5 print:hidden"
     >
       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-        Como o Rex te avisa
+        Como o EV te avisa
       </p>
       <p className="mb-4 text-xs text-neutral-500">
         In-app é sempre ligado. Discord e WhatsApp são opcionais — escolha o

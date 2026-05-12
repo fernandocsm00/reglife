@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * RexHud — barra horizontal de status persistente em /meu-plano.
+ * EvHud — barra horizontal de status persistente em /meu-plano.
  *
  * Mostra os 4 sinais que importam pro aluno:
  *   🔥 Streak | ⚡ XP semana | 🎯 Volume da semana / target | 🏁 Quest ativa
@@ -24,7 +24,7 @@ interface Props {
   fallbackVolumeTarget: number | null;
 }
 
-export function RexHud({ diagnosticId, fallbackVolumeTarget }: Props) {
+export function EvHud({ diagnosticId, fallbackVolumeTarget }: Props) {
   const [data, setData] = useState<PlanProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -174,7 +174,7 @@ function QuestRow({
           className="shrink-0 rounded-md border border-neutral-700 px-2 py-1 text-[10px] text-neutral-300 transition hover:border-amber-400/40 hover:text-amber-300"
           title={`Quest da semana${diagnosticId ? "" : ""}`}
         >
-          Falar com Rex
+          Falar com EV
         </Link>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-neutral-800">

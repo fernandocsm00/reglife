@@ -21,7 +21,7 @@ export interface OnboardingData {
   profitGoal: ProfitGoal;
   sharkscopeUsername: string; // pode vir vazio (opcional)
   sharkscopeNetwork: SharkscopeNetwork;
-  /** Meta semanal de torneios (usada pelo Rex pra cobrar volume). */
+  /** Meta semanal de torneios (usada pelo EV pra cobrar volume). */
   volumeTargetWeekly: number;
 }
 
@@ -203,7 +203,7 @@ export function OnboardingForm({ onSubmit }: Props) {
             </div>
           </Field>
 
-          <Field label="Seu nick no site (opcional — para o Rex acompanhar seu ROI)">
+          <Field label="Seu nick no site (opcional — para o EV acompanhar seu ROI)">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
               <input
                 type="text"

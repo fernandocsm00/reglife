@@ -2,7 +2,7 @@
  * Manager.IA — Context Builder
  *
  * Agrega todos os dados do aluno em um único objeto PlayerContext
- * que alimenta o system prompt do REX.
+ * que alimenta o system prompt do EV.
  *
  * Fontes:
  * - Supabase: plans, plan_progress, streaks, xp_events, manager_conversations
@@ -72,7 +72,7 @@ export interface PlayerContext {
 // ---------------------------------------------------------------------------
 
 /**
- * Monta o contexto completo de um aluno para injetar no prompt do REX.
+ * Monta o contexto completo de um aluno para injetar no prompt do EV.
  * Usa o service_role key para acesso server-side sem restrições de RLS.
  */
 export async function buildPlayerContext(userId: string): Promise<PlayerContext> {

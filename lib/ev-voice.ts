@@ -1,5 +1,5 @@
 /**
- * lib/rex-voice.ts — Gera o texto narrativo das notificações do Rex.
+ * lib/ev-voice.ts — Gera o texto narrativo das notificações do EV.
  *
  * Chama OpenAI com a persona já estabelecida + contexto mínimo do aluno
  * + os fatos do trigger. Retorna 2-4 frases no tom do coach (não dashboard).
@@ -33,7 +33,7 @@ function service() {
 // Tipos de trigger e seus fatos
 // ---------------------------------------------------------------------------
 
-export type RexTrigger =
+export type EvTrigger =
   | "post_session"
   | "monthly_close"
   | "quest_done"
@@ -45,9 +45,9 @@ export type RexTrigger =
   | "phase_transition"
   | "comeback";
 
-export interface RexVoiceArgs {
+export interface EvVoiceArgs {
   diagnosticId: string;
-  trigger: RexTrigger;
+  trigger: EvTrigger;
   /** Bloco de fatos numéricos/objetivos pra alimentar a narrativa. */
   facts: Record<string, unknown>;
   /** Texto fallback se OpenAI falhar (mandatório — não deixa notificação muda). */
@@ -58,7 +58,7 @@ export interface RexVoiceArgs {
 // API pública
 // ---------------------------------------------------------------------------
 
-export async function generateRexVoice(args: RexVoiceArgs): Promise<string> {
+export async function generateEvVoice(args: EvVoiceArgs): Promise<string> {
   if (!process.env.OPENAI_API_KEY) {
     return args.fallback;
   }
@@ -81,7 +81,7 @@ export async function generateRexVoice(args: RexVoiceArgs): Promise<string> {
     const text = completion.choices[0]?.message?.content?.trim();
     return text && text.length > 10 ? text : args.fallback;
   } catch (err) {
-    console.error("[rex-voice] OpenAI falhou, usando fallback:", err);
+    console.error("[ev-voice] OpenAI falhou, usando fallback:", err);
     return args.fallback;
   }
 }
@@ -164,8 +164,8 @@ function resolvePhase(cycleDay: number): string {
 // Prompts
 // ---------------------------------------------------------------------------
 
-function buildSystemPrompt(trigger: RexTrigger, ctx: MinimalContext): string {
-  return `Você é REX, o Manager de Evolução da RegLife. Ex-jogador MTT que chegou ao Tier 3, hoje acompanha alunos da comunidade.
+function buildSystemPrompt(trigger: EvTrigger, ctx: MinimalContext): string {
+  return `Você é EV, o Manager de Evolução da RegLife. Ex-jogador MTT que chegou ao Tier 3, hoje acompanha alunos da comunidade.
 
 TOM:
 - Direto, sem enrolação. Sem "olá", sem "espero que esteja bem".
@@ -195,8 +195,8 @@ ${ctx.volumeTarget ? `Meta de volume: ${ctx.volumeTarget} torneios/semana.` : ""
 TIPO DE NOTIFICAÇÃO: ${triggerHumanLabel(trigger)}`;
 }
 
-function triggerHumanLabel(t: RexTrigger): string {
-  const m: Record<RexTrigger, string> = {
+function triggerHumanLabel(t: EvTrigger): string {
+  const m: Record<EvTrigger, string> = {
     post_session: "Pós-sessão — torneios novos detectados pelo SharkScope.",
     monthly_close: "Fechamento de mês — resumo do mês que acabou.",
     quest_done: "Aluno fechou a quest semanal.",
@@ -212,14 +212,14 @@ function triggerHumanLabel(t: RexTrigger): string {
 }
 
 function buildUserPrompt(
-  trigger: RexTrigger,
+  trigger: EvTrigger,
   facts: Record<string, unknown>
 ): string {
   const factsLines = Object.entries(facts)
     .filter(([, v]) => v !== null && v !== undefined && v !== "")
     .map(([k, v]) => `- ${k}: ${formatFactValue(v)}`)
     .join("\n");
-  return `Fatos deste evento:\n${factsLines}\n\nEscreva a notificação do Rex. Lembre: 2-4 frases, tom de coach, termine com ação ou pergunta direcionada. Não use emoji. Não comece com saudação.`;
+  return `Fatos deste evento:\n${factsLines}\n\nEscreva a notificação do EV. Lembre: 2-4 frases, tom de coach, termine com ação ou pergunta direcionada. Não use emoji. Não comece com saudação.`;
 }
 
 function formatFactValue(v: unknown): string {

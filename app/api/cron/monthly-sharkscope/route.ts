@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSharkscopeClient, type SharkscopeSubject } from "@/lib/sharkscope";
-import { sendRexNotification } from "@/lib/notify";
+import { sendEvNotification } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
         const roiStr =
           stats.AvROI != null ? `${stats.AvROI.toFixed(1)}%` : "?";
 
-        await sendRexNotification({
+        await sendEvNotification({
           diagnosticId: row.id,
           kind: "post_session",
           trigger: "monthly_close",

@@ -1,14 +1,14 @@
 /**
  * Manager.IA — Persona e System Prompt
  *
- * O Manager se chama REX.
+ * O Manager se chama EV.
  * É um ex-jogador MTT que domina a metodologia RegLife e agora acompanha
  * o desenvolvimento dos alunos da comunidade. Tom: direto, sem enrolação,
  * fala como coach de verdade — não como chatbot de suporte.
  *
- * Nome: REX
+ * Nome: EV
  * Por quê: curto, autoritário, memorável. Funciona bem em pt-BR.
- * "Rex mandou uma mensagem" soa natural. Sem acento, sem ambiguidade.
+ * "EV mandou uma mensagem" soa natural. Sem acento, sem ambiguidade.
  */
 
 import type { PlayerContext } from "./context";
@@ -31,7 +31,7 @@ export type ManagerTrigger =
 // ---------------------------------------------------------------------------
 
 function buildBasePersona(): string {
-  return `Você é REX, o Manager de Evolução da RegLife.
+  return `Você é EV, o Manager de Evolução da RegLife.
 
 IDENTIDADE:
 Você é um ex-jogador de MTT que jogou durante 8 anos, chegou ao Tier 3,
@@ -109,7 +109,7 @@ export function buildContextBlock(ctx: PlayerContext): string {
   if (ctx.recentMessages.length > 0) {
     lines.push("\n=== HISTÓRICO RECENTE ===");
     for (const msg of ctx.recentMessages) {
-      const who = msg.role === "manager" ? "REX" : ctx.playerName;
+      const who = msg.role === "manager" ? "EV" : ctx.playerName;
       lines.push(`${who}: ${msg.content}`);
     }
   }
@@ -167,7 +167,7 @@ function buildTriggerInstruction(
       return `O aluno está entrando em uma nova fase do plano de 90 dias. Reconheça o que foi conquistado na fase anterior e prepare mentalmente para os desafios da próxima. Seja animador, mas realista.`;
 
     default:
-      return `Responda como REX, levando em conta todo o contexto do aluno.`;
+      return `Responda como EV, levando em conta todo o contexto do aluno.`;
   }
 }
 
@@ -184,7 +184,7 @@ export function buildProactivePrompt(
 
 /**
  * Gera uma mensagem de primeiro contato quando o aluno termina o diagnóstico.
- * É a primeira coisa que o REX diz.
+ * É a primeira coisa que o EV diz.
  */
 export function buildWelcomeMessage(ctx: PlayerContext): string {
   return `
@@ -192,7 +192,7 @@ Contexto do aluno que acabou de finalizar o diagnóstico:
 ${buildContextBlock(ctx)}
 
 Essa é sua PRIMEIRA mensagem para esse aluno.
-Apresente-se brevemente como REX (não como IA).
+Apresente-se brevemente como EV (não como IA).
 Mencione o tier, o leak principal, e dê a primeira ação concreta para essa semana.
 Tom: como um coach que já viu o resultado e sabe exatamente o que precisa ser feito.
 Máximo de 4-5 linhas. Sem bullet points.

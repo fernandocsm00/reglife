@@ -1,17 +1,17 @@
 /**
  * GET /api/cron/daily-pulse
  *
- * Cron diário 21h UTC (18h BRT). É o "olho" do Rex que verifica condições
+ * Cron diário 21h UTC (18h BRT). É o "olho" do EV que verifica condições
  * que dependem do tempo:
  *   - streak_risk: aluno sem atividade há ≥36h
  *   - phase_transition: dia 31 ou 61 do ciclo (mudança de fase)
  *
- * Cada trigger é throttled — Rex não fala 2x do mesmo no mesmo dia.
+ * Cada trigger é throttled — EV não fala 2x do mesmo no mesmo dia.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasNotificationRecently, sendRexNotification } from "@/lib/notify";
+import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -93,7 +93,7 @@ async function maybeStreakRisk(
   // Throttle: max 1 streak_risk a cada 48h
   if (await hasNotificationRecently(row.id, "streak_risk", 48)) return "throttled";
 
-  await sendRexNotification({
+  await sendEvNotification({
     diagnosticId: row.id,
     kind: "streak_risk",
     trigger: "streak_risk",
@@ -129,7 +129,7 @@ async function maybePhaseTransition(
   const phaseFrom = cycleDay === 31 ? "Fase 1 — Fundamentos" : "Fase 2 — Aplicação";
   const phaseTo = cycleDay === 31 ? "Fase 2 — Aplicação" : "Fase 3 — Integração";
 
-  await sendRexNotification({
+  await sendEvNotification({
     diagnosticId: row.id,
     kind: "phase_transition",
     trigger: "phase_transition",

@@ -1,5 +1,5 @@
 /**
- * lib/notify.ts — Fan-out de notificações do Rex.
+ * lib/notify.ts — Fan-out de notificações do EV.
  *
  * Cria sempre uma notificação in-app (tabela `notifications`). Se a janela
  * de silêncio do aluno permitir e os canais externos estiverem habilitados,
@@ -10,7 +10,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { generateRexVoice, type RexTrigger } from "@/lib/rex-voice";
+import { generateEvVoice, type EvTrigger } from "@/lib/ev-voice";
 
 export type NotificationKind =
   | "post_session"
@@ -54,8 +54,8 @@ function service() {
 
 /**
  * Anti-spam: retorna true se o aluno já recebeu uma notificação desse kind
- * nas últimas N horas. Use antes de chamar sendRexNotification em loops
- * de cron pra evitar Rex falando 2x do mesmo assunto.
+ * nas últimas N horas. Use antes de chamar sendEvNotification em loops
+ * de cron pra evitar EV falando 2x do mesmo assunto.
  */
 export async function hasNotificationRecently(
   diagnosticId: string,
@@ -80,15 +80,15 @@ export async function hasNotificationRecently(
 // ---------------------------------------------------------------------------
 
 /**
- * Variante "narrativa" — gera o body com Rex antes de mandar.
+ * Variante "narrativa" — gera o body com EV antes de mandar.
  * Use sempre que o body merecer narrativa (pós-sessão, fechamento, etc).
  * Para mensagens curtas/objetivas (drop_active, drop schedule), use
  * sendNotification direto.
  */
-export async function sendRexNotification(args: {
+export async function sendEvNotification(args: {
   diagnosticId: string;
   kind: NotificationKind;
-  trigger: RexTrigger;
+  trigger: EvTrigger;
   title: string;
   /** Fatos numéricos/categóricos que alimentam a narrativa. */
   facts: Record<string, unknown>;
@@ -97,7 +97,7 @@ export async function sendRexNotification(args: {
   payload?: Record<string, unknown>;
   force?: boolean;
 }): Promise<{ ok: boolean; channelsSent: Channel[]; body: string }> {
-  const body = await generateRexVoice({
+  const body = await generateEvVoice({
     diagnosticId: args.diagnosticId,
     trigger: args.trigger,
     facts: args.facts,
@@ -109,7 +109,7 @@ export async function sendRexNotification(args: {
     kind: args.kind,
     title: args.title,
     body,
-    // Guarda a mensagem completa no payload pro chat do Rex consumir depois
+    // Guarda a mensagem completa no payload pro chat do EV consumir depois
     payload: {
       ...(args.payload ?? {}),
       message: body,
@@ -225,7 +225,7 @@ async function sendDiscord(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username: "REX",
+        username: "EV",
         embeds: [
           {
             title: args.title,
@@ -259,7 +259,7 @@ async function sendWhatsapp(
     return false;
   }
   try {
-    const message = `*${args.title}*\n${args.body ?? ""}\n\n— REX (RegLife)`;
+    const message = `*${args.title}*\n${args.body ?? ""}\n\n— EV (RegLife)`;
     const res = await fetch(url, {
       method: "POST",
       headers: {

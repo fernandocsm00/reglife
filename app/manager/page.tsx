@@ -1,5 +1,5 @@
 /**
- * /manager — Página do Manager.IA (REX)
+ * /manager — Página do Manager.IA (EV)
  *
  * Por enquanto usa dados do localStorage (plano atual) enquanto a Fase 1
  * de auth + Supabase não está implementada.
@@ -35,7 +35,7 @@ export default function ManagerPage() {
         <Logo size="lg" className="mb-6" />
         <h1 className="text-2xl font-bold">Você ainda não tem um plano</h1>
         <p className="mt-3 max-w-md text-sm text-neutral-400">
-          Faça o nivelamento primeiro para ativar o REX — seu Manager de Evolução.
+          Faça o nivelamento primeiro para ativar o EV — seu Manager de Evolução.
         </p>
         <Link
           href="/diagnostico"
@@ -48,7 +48,7 @@ export default function ManagerPage() {
   }
 
   // Sem auth nessa fase: usa o id da linha em reglife_diagnostic_results
-  // pra que o Rex consiga carregar SharkScope e contexto. Se não tiver
+  // pra que o EV consiga carregar SharkScope e contexto. Se não tiver
   // (plano antigo gerado antes do POST capturar id), cai pro temp_*.
   const tempUserId = plan.diagnosticId
     ? `diag:${plan.diagnosticId}`
@@ -79,7 +79,7 @@ export default function ManagerPage() {
               Meu Plano
             </Link>
             <span>·</span>
-            <span className="text-amber-300">REX</span>
+            <span className="text-amber-300">EV</span>
           </div>
         </div>
         <div className="flex items-center gap-3">

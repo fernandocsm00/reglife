@@ -116,7 +116,7 @@ function Dashboard({ plan }: { plan: SavedPlan }) {
 
       {/* Cards principais */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {/* REX — Manager.IA */}
+        {/* EV — Manager.IA */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,7 +135,7 @@ function Dashboard({ plan }: { plan: SavedPlan }) {
                 online
               </span>
             </div>
-            <p className="text-sm font-semibold text-amber-300">REX</p>
+            <p className="text-sm font-semibold text-amber-300">EV</p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-400">
               Seu Manager de Evolução. Acompanha seu plano, analisa suas sessões e te cobra quando precisa.
             </p>

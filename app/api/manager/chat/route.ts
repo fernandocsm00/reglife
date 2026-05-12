@@ -1,11 +1,11 @@
 /**
  * POST /api/manager/chat
  *
- * Recebe mensagem do aluno, monta contexto completo, chama o REX via Anthropic API,
+ * Recebe mensagem do aluno, monta contexto completo, chama o EV via Anthropic API,
  * salva a conversa no Supabase e retorna a resposta com streaming.
  *
  * Body: { userId: string; message: string; trigger?: ManagerTrigger }
- * Response: text/event-stream (SSE) com a resposta do REX
+ * Response: text/event-stream (SSE) com a resposta do EV
  */
 
 import { NextRequest } from "next/server";
@@ -149,8 +149,8 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Modo sem-auth: monta histórico a partir das notificações do Rex
-  // (que carregam `payload.message` quando geradas via sendRexNotification).
+  // Modo sem-auth: monta histórico a partir das notificações do EV
+  // (que carregam `payload.message` quando geradas via sendEvNotification).
   if (userId.startsWith("diag:")) {
     const diagId = userId.slice("diag:".length);
     const { createClient } = await import("@supabase/supabase-js");

@@ -29,14 +29,14 @@ export interface SavedPlan {
   version: 1;
   id: string;
   createdAt: number;
-  /** ID da linha em reglife_diagnostic_results (preenchido após POST). Usado pelo Rex sem-auth. */
+  /** ID da linha em reglife_diagnostic_results (preenchido após POST). Usado pelo EV sem-auth. */
   diagnosticId?: string;
   playerName: string;
   email: string;
   phone: string;
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
-  /** Meta semanal de torneios (Rex usa pra cobrar volume). */
+  /** Meta semanal de torneios (EV usa pra cobrar volume). */
   volumeTargetWeekly?: number;
 
   // Tier assessment

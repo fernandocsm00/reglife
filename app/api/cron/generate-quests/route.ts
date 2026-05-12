@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendRexNotification } from "@/lib/notify";
+import { sendEvNotification } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -95,8 +95,8 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    // Rex apresenta a quest da semana com narrativa
-    await sendRexNotification({
+    // EV apresenta a quest da semana com narrativa
+    await sendEvNotification({
       diagnosticId: r.id,
       kind: "quest_assigned",
       trigger: "quest_assigned",

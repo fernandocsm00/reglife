@@ -116,20 +116,20 @@ export function NotificationsBell({ diagnosticId }: Props) {
           >
             <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-2.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                Avisos do Rex
+                Avisos do EV
               </span>
               <Link
                 href="/manager"
                 className="text-[11px] text-amber-300 hover:underline"
                 onClick={() => setOpen(false)}
               >
-                Falar com Rex →
+                Falar com EV →
               </Link>
             </div>
             <div className="max-h-96 overflow-y-auto">
               {items.length === 0 ? (
                 <p className="px-4 py-8 text-center text-xs text-neutral-500">
-                  Nada por aqui ainda. O Rex avisa quando tiver algo relevante.
+                  Nada por aqui ainda. O EV avisa quando tiver algo relevante.
                 </p>
               ) : (
                 items.map((n) => (

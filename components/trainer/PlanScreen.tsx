@@ -16,7 +16,7 @@ import {
 } from "@/lib/poker/planBuilder";
 import { Logo } from "@/components/Logo";
 import { RetakeModal } from "./RetakeModal";
-import { RexHud } from "./RexHud";
+import { EvHud } from "./EvHud";
 import { NotificationsBell } from "./NotificationsBell";
 import { NotifySettings } from "./NotifySettings";
 
@@ -125,7 +125,7 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
             nos próximos 90 dias. Cumpra fase por fase e a evolução acontece.
           </p>
 
-          {/* CTA do REX */}
+          {/* CTA do EV */}
           <Link
             href="/manager"
             className="group mt-5 inline-flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-5 py-3 transition hover:border-amber-400/40 hover:bg-amber-400/10"
@@ -134,7 +134,7 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
               R
             </div>
             <div>
-              <p className="text-sm font-semibold text-amber-300">Falar com o REX</p>
+              <p className="text-sm font-semibold text-amber-300">Falar com o EV</p>
               <p className="text-xs text-neutral-500">Seu Manager de Evolução · online agora</p>
             </div>
             <span className="ml-auto text-neutral-500 transition group-hover:translate-x-1">→</span>
@@ -145,9 +145,9 @@ export function PlanScreen({ plan, onPlanChange }: Props) {
           </p>
         </motion.div>
 
-        {/* HUD do Rex — XP, streak, volume, quest */}
+        {/* HUD do EV — XP, streak, volume, quest */}
         <div className="mb-4">
-          <RexHud
+          <EvHud
             diagnosticId={plan.diagnosticId}
             fallbackVolumeTarget={plan.volumeTargetWeekly ?? null}
           />

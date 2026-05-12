@@ -17,7 +17,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasNotificationRecently, sendRexNotification } from "@/lib/notify";
+import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 
 const DEFAULT_XP_BY_EVENT: Record<string, number> = {
   task_checked: 10,
@@ -130,7 +130,7 @@ async function detectComeback(
 async function sendComebackMessage(diagId: string, daysAway: number): Promise<void> {
   // Throttle: max 1 comeback msg a cada 7d (cobre re-runs ou múltiplos eventos seguidos no retorno)
   if (await hasNotificationRecently(diagId, "streak_risk", 24)) return; // já tem mensagem fresca? não dobra
-  await sendRexNotification({
+  await sendEvNotification({
     diagnosticId: diagId,
     kind: "post_session", // sem kind dedicado pra comeback — usa o canal geral
     trigger: "comeback",
@@ -368,7 +368,7 @@ async function checkBadges(diagId: string): Promise<void> {
       .from("diagnostic_badges")
       .insert({ diagnostic_id: diagId, badge_id: b.id });
 
-    await sendRexNotification({
+    await sendEvNotification({
       diagnosticId: diagId,
       kind: "badge_unlocked",
       trigger: "badge_unlocked",
@@ -451,8 +451,8 @@ async function advanceOpenQuest(
       event_data: { quest_id: quest.id, ...eventData },
       xp_earned: quest.reward_xp,
     });
-    // Avisa o aluno — Rex comenta a vitória
-    await sendRexNotification({
+    // Avisa o aluno — EV comenta a vitória
+    await sendEvNotification({
       diagnosticId: diagId,
       kind: "quest_done",
       trigger: "quest_done",

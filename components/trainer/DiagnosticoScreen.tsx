@@ -95,7 +95,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     savePlan(plan);
 
     // Persist to server — captura o id retornado pra ligar o plano à linha
-    // do reglife_diagnostic_results (Rex usa isso pra ler sharkscope).
+    // do reglife_diagnostic_results (EV usa isso pra ler sharkscope).
     fetch("/api/results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

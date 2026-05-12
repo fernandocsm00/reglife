@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSharkscopeClient } from "@/lib/sharkscope";
-import { hasNotificationRecently, sendRexNotification } from "@/lib/notify";
+import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 
 const POST_SESSION_MIN_DELTA = 3; // só notifica se rolou ao menos 3 torneios novos
 // Downswing: profit/(volume*stake médio) abaixo desse threshold → leak alert
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
             !(await hasNotificationRecently(row.id, "leak_alert", 48));
 
           if (isDownswing && packageRoiValue !== null) {
-            await sendRexNotification({
+            await sendEvNotification({
               diagnosticId: row.id,
               kind: "leak_alert",
               trigger: "leak_alert",
@@ -163,7 +163,7 @@ export async function GET(req: NextRequest) {
               payload: { deltaEntries, deltaProfit, packageRoi: packageRoiValue },
             });
           } else {
-            await sendRexNotification({
+            await sendEvNotification({
               diagnosticId: row.id,
               kind: "post_session",
               trigger: "post_session",

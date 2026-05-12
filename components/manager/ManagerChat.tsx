@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * ManagerChat — Interface de chat com o REX
+ * ManagerChat — Interface de chat com o EV
  *
  * Features:
  * - Streaming de resposta (SSE)
  * - Histórico de mensagens
  * - Indicador de streak + XP
  * - Sugestões rápidas de resposta
- * - Avatar do REX com animação de "digitando"
+ * - Avatar do EV com animação de "digitando"
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -96,7 +96,7 @@ export function ManagerChat({
     }
     loadHistory();
 
-    // Diag mode: marca todas as notificações Rex como lidas — o aluno
+    // Diag mode: marca todas as notificações EV como lidas — o aluno
     // está vendo elas aqui no chat agora, não tem sentido manter unread.
     if (isDiagMode) {
       fetch("/api/profile/notifications", {
@@ -182,9 +182,9 @@ export function ManagerChat({
           }
         }
 
-        // Adiciona mensagem final do REX
+        // Adiciona mensagem final do EV
         const rexMsg: Message = {
-          id: `rex-${Date.now()}`,
+          id: `ev-${Date.now()}`,
           role: "manager",
           content: accumulated,
           createdAt: new Date().toISOString(),
@@ -229,7 +229,7 @@ export function ManagerChat({
       <div className="border-b border-neutral-800 bg-neutral-950/80 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Avatar REX */}
+            {/* Avatar EV */}
             <div className="relative">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-neutral-950">
                 R
@@ -240,7 +240,7 @@ export function ManagerChat({
               </span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-neutral-100">REX</p>
+              <p className="text-sm font-semibold text-neutral-100">EV</p>
               <p className="text-xs text-neutral-500">Manager RegLife · online</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ export function ManagerChat({
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <RexAvatar />
+              <EvAvatar />
               <div className="max-w-[80%] rounded-2xl rounded-tl-none bg-neutral-800 px-4 py-3 text-sm text-neutral-100">
                 <p className="whitespace-pre-wrap">{streamingText}</p>
                 <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-amber-300 align-middle" />
@@ -304,7 +304,7 @@ export function ManagerChat({
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <RexAvatar />
+              <EvAvatar />
               <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-none bg-neutral-800 px-4 py-3">
                 {[0, 0.15, 0.3].map((delay, i) => (
                   <span
@@ -346,7 +346,7 @@ export function ManagerChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Manda mensagem pro REX..."
+            placeholder="Manda mensagem pro EV..."
             rows={1}
             disabled={isTyping}
             className="flex-1 resize-none rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 focus:border-amber-400/50 focus:outline-none disabled:opacity-50"
@@ -375,7 +375,7 @@ export function ManagerChat({
 // ---------------------------------------------------------------------------
 
 function MessageBubble({ message }: { message: Message }) {
-  const isRex = message.role === "manager";
+  const isEv = message.role === "manager";
 
   return (
     <motion.div
@@ -383,12 +383,12 @@ function MessageBubble({ message }: { message: Message }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className={`flex gap-3 ${isRex ? "" : "flex-row-reverse"}`}
+      className={`flex gap-3 ${isEv ? "" : "flex-row-reverse"}`}
     >
-      {isRex ? <RexAvatar /> : null}
+      {isEv ? <EvAvatar /> : null}
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
-          isRex
+          isEv
             ? "rounded-tl-none bg-neutral-800 text-neutral-100"
             : "rounded-tr-none bg-amber-300 text-neutral-950"
         }`}
@@ -396,7 +396,7 @@ function MessageBubble({ message }: { message: Message }) {
         <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
         <p
           className={`mt-1 text-[10px] ${
-            isRex ? "text-neutral-500" : "text-neutral-700"
+            isEv ? "text-neutral-500" : "text-neutral-700"
           }`}
         >
           {formatTime(message.createdAt)}
@@ -406,7 +406,7 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-function RexAvatar() {
+function EvAvatar() {
   return (
     <div className="mt-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-neutral-950">
       R
@@ -421,7 +421,7 @@ function EmptyState({ playerName }: { playerName: string }) {
         ♠️
       </div>
       <p className="text-sm font-medium text-neutral-300">
-        Oi, {playerName}. Sou o REX.
+        Oi, {playerName}. Sou o EV.
       </p>
       <p className="mt-1 text-xs text-neutral-500">
         Manda uma mensagem pra começar.
