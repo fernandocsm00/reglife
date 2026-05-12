@@ -23,6 +23,10 @@ export interface OnboardingData {
   sharkscopeNetwork: SharkscopeNetwork;
   /** Meta semanal de torneios (usada pelo EV pra cobrar volume). */
   volumeTargetWeekly: number;
+  /** Canais escolhidos pra receber o relatório do plano. */
+  notifyChannels: string[];
+  /** WhatsApp confirmado pelo usuário (quando marcar o canal). */
+  whatsappPhone: string | null;
 }
 
 const NETWORK_OPTIONS: SharkscopeNetwork[] = [
@@ -87,9 +91,16 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [sharkscopeNetwork, setSharkscopeNetwork] =
     useState<SharkscopeNetwork>("PokerStars");
   const [volumeTargetWeekly, setVolumeTargetWeekly] = useState(100);
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyWhatsapp, setNotifyWhatsapp] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
 
   const canSubmit =
-    playerName.trim().length >= 2 && isValidEmail(email) && isValidPhone(phone);
+    playerName.trim().length >= 2 &&
+    isValidEmail(email) &&
+    isValidPhone(phone) &&
+    (notifyEmail || notifyWhatsapp) &&
+    (!notifyWhatsapp || whatsappPhone.trim().length > 0);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-neutral-100">
@@ -116,6 +127,21 @@ export function OnboardingForm({ onSubmit }: Props) {
           onSubmit={(e) => {
             e.preventDefault();
             if (!canSubmit) return;
+            if (!notifyEmail && !notifyWhatsapp) {
+              alert("Escolhe pelo menos um canal pra receber o relatório.");
+              return;
+            }
+            if (notifyEmail && !email.trim()) {
+              alert("Email obrigatório pra receber o relatório.");
+              return;
+            }
+            if (notifyWhatsapp && !whatsappPhone.trim()) {
+              alert("Confirme o número de WhatsApp.");
+              return;
+            }
+            const notifyChannels: string[] = [];
+            if (notifyEmail) notifyChannels.push("email");
+            if (notifyWhatsapp) notifyChannels.push("whatsapp");
             onSubmit({
               playerName: playerName.trim(),
               email: email.trim().toLowerCase(),
@@ -125,6 +151,8 @@ export function OnboardingForm({ onSubmit }: Props) {
               sharkscopeUsername: sharkscopeUsername.trim(),
               sharkscopeNetwork,
               volumeTargetWeekly,
+              notifyChannels,
+              whatsappPhone: notifyWhatsapp ? whatsappPhone.trim() : null,
             });
           }}
           className="mt-10 w-full space-y-6"
@@ -149,6 +177,7 @@ export function OnboardingForm({ onSubmit }: Props) {
               className={inputClass}
               inputMode="email"
               autoComplete="email"
+              required
             />
           </Field>
 
@@ -163,6 +192,44 @@ export function OnboardingForm({ onSubmit }: Props) {
               autoComplete="tel"
             />
           </Field>
+
+          <fieldset className="rounded-md border border-neutral-800 p-3 mt-3">
+            <legend className="px-2 text-xs font-semibold text-neutral-300">
+              Como você quer receber seu relatório
+            </legend>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyEmail}
+                onChange={(e) => setNotifyEmail(e.target.checked)}
+              />
+              <span>Email (será enviado pro endereço acima)</span>
+            </label>
+            <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyWhatsapp}
+                onChange={(e) => {
+                  setNotifyWhatsapp(e.target.checked);
+                  if (e.target.checked && !whatsappPhone) setWhatsappPhone(phone);
+                }}
+              />
+              <span>WhatsApp</span>
+            </label>
+            {notifyWhatsapp && (
+              <input
+                type="tel"
+                value={whatsappPhone}
+                onChange={(e) => setWhatsappPhone(e.target.value)}
+                placeholder="Confirme o número (com DDI)"
+                className="mt-2 w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm"
+                required={notifyWhatsapp}
+              />
+            )}
+            <p className="mt-2 text-xs text-neutral-500">
+              EV também usa esses canais pra te lembrar de check-ins. Você pode mudar depois em Configurações.
+            </p>
+          </fieldset>
 
           <Field label="Tempo disponível para estudar por semana">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">

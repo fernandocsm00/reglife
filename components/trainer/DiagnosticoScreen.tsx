@@ -51,6 +51,8 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const sharkscopeUsername = useDiagnosticoStore((s) => s.sharkscopeUsername);
   const sharkscopeNetwork = useDiagnosticoStore((s) => s.sharkscopeNetwork);
   const volumeTargetWeekly = useDiagnosticoStore((s) => s.volumeTargetWeekly);
+  const notifyChannels = useDiagnosticoStore((s) => s.notifyChannels);
+  const whatsappPhone = useDiagnosticoStore((s) => s.whatsappPhone);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
@@ -113,6 +115,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         sharkscopeUsername: sharkscopeUsername || null,
         sharkscopeNetwork: sharkscopeUsername ? sharkscopeNetwork : null,
         volumeTargetWeekly,
+        notifyChannels,
+        whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
+        savedPlan: plan,
       }),
     })
       .then(async (r) => {
@@ -126,7 +131,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     return () => clearTimeout(t);
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
       stoppedEarly, spotSummaries, failedSpotCount, sharkscopeUsername, sharkscopeNetwork,
-      volumeTargetWeekly]);
+      volumeTargetWeekly, notifyChannels, whatsappPhone]);
 
   const handlePick = (text: string) => {
     pickAnswer(text);

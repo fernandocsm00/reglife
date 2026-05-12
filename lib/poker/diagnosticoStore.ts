@@ -79,6 +79,8 @@ interface DiagnosticoState {
   sharkscopeUsername: string;
   sharkscopeNetwork: SharkscopeNetwork;
   volumeTargetWeekly: number;
+  notifyChannels: string[];
+  whatsappPhone: string | null;
 
   // Spot transition overlay
   showSpotTransition: boolean;
@@ -97,6 +99,8 @@ interface DiagnosticoState {
     sharkscopeUsername: string;
     sharkscopeNetwork: SharkscopeNetwork;
     volumeTargetWeekly: number;
+    notifyChannels: string[];
+    whatsappPhone: string | null;
   }) => void;
 }
 
@@ -134,6 +138,8 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   sharkscopeUsername: "",
   sharkscopeNetwork: "PokerStars",
   volumeTargetWeekly: 100,
+  notifyChannels: ["email"],
+  whatsappPhone: null,
   showSpotTransition: false,
   lastSpotSummary: null,
 
@@ -146,6 +152,8 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
     sharkscopeUsername,
     sharkscopeNetwork,
     volumeTargetWeekly,
+    notifyChannels,
+    whatsappPhone,
   }) =>
     set({
       playerName,
@@ -156,6 +164,8 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
       sharkscopeUsername,
       sharkscopeNetwork,
       volumeTargetWeekly,
+      notifyChannels,
+      whatsappPhone,
     }),
 
   loadConfigs: (raws) => {
