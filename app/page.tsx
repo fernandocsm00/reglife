@@ -247,22 +247,18 @@ function FirstTime() {
       className="flex flex-col items-center text-center"
     >
       <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
-        EVENTO GRATUITO
+        BEM-VINDO
       </div>
 
       <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
-        Desafio Profissão Poker
+        Avaliação + Teste Técnico
       </h1>
 
-      <p className="mt-6 max-w-2xl text-lg font-semibold leading-snug text-neutral-200 sm:text-2xl">
-        <span className="text-amber-300">30 dias</span> vivendo a{" "}
-        <span className="text-amber-300">rotina de profissional</span> com o{" "}
-        <span className="text-amber-300">Reg Life Team</span>
-      </p>
-
-      <p className="mt-5 max-w-xl text-sm leading-relaxed text-neutral-400">
-        Faça o teste técnico agora e receba na hora seu plano individual com as
-        aulas, os treinos e a grade de torneios pro seu ABI.
+      <p className="mt-6 max-w-2xl text-base leading-snug text-neutral-200 sm:text-xl">
+        Você vai fazer sua{" "}
+        <span className="text-amber-300">avaliação de perfil</span> e o{" "}
+        <span className="text-amber-300">teste técnico</span> pra receber seu{" "}
+        <span className="text-amber-300">plano de progressão individual</span>.
       </p>
 
       <Link
@@ -284,12 +280,12 @@ function FirstTime() {
             <path d="M13 5l7 7-7 7" />
           </svg>
         </span>
-        Eu encaro!
+        Começar agora
       </Link>
 
       <p className="mt-10 max-w-md text-xs text-neutral-600">
-        Logo após o cadastro, você faz sua avaliação de perfil e o teste técnico
-        pra receber seu plano de progressão individual.
+        Leva poucos minutos. Suas respostas e desempenho definem os spots,
+        aulas e treinos que entram no seu plano.
       </p>
     </motion.div>
   );
