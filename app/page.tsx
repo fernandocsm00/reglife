@@ -251,12 +251,11 @@ function FirstTime() {
       </div>
 
       <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
-        Avaliação + Teste Técnico
+        Teste Técnico
       </h1>
 
       <p className="mt-6 max-w-2xl text-base leading-snug text-neutral-200 sm:text-xl">
-        Você vai fazer sua{" "}
-        <span className="text-amber-300">avaliação de perfil</span> e o{" "}
+        Você vai fazer seu{" "}
         <span className="text-amber-300">teste técnico</span> pra receber seu{" "}
         <span className="text-amber-300">plano de progressão individual</span>.
       </p>
