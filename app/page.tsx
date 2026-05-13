@@ -160,7 +160,7 @@ function Dashboard({ plan }: { plan: SavedPlan }) {
             </div>
             <p className="text-sm font-semibold text-neutral-100">Meu Plano</p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-              Fases, tarefas e aulas do seu ciclo de 90 dias. Marque o que completou e acompanhe sua evolução.
+              Fases, tarefas e aulas do seu ciclo de 30 dias. Marque o que completou e acompanhe sua evolução.
             </p>
             <span className="mt-4 text-xs text-neutral-500 transition group-hover:text-neutral-300">
               Ver plano →
@@ -194,7 +194,7 @@ function Dashboard({ plan }: { plan: SavedPlan }) {
               </div>
               <p className="text-sm font-semibold text-neutral-100">Nivelamento</p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-                Refaça o diagnóstico para medir sua evolução e atualizar seu plano de 90 dias.
+                Refaça o diagnóstico para medir sua evolução e atualizar seu plano de 30 dias.
               </p>
               <span className="mt-4 text-xs text-neutral-500 transition group-hover:text-neutral-300">
                 Iniciar →
