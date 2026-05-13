@@ -280,7 +280,7 @@ function FirstTime() {
             <path d="M13 5l7 7-7 7" />
           </svg>
         </span>
-        Começar agora
+        Eu encaro!
       </Link>
     </motion.div>
   );
