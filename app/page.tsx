@@ -282,11 +282,6 @@ function FirstTime() {
         </span>
         Começar agora
       </Link>
-
-      <p className="mt-10 max-w-md text-xs text-neutral-600">
-        Leva poucos minutos. Suas respostas e desempenho definem os spots,
-        aulas e treinos que entram no seu plano.
-      </p>
     </motion.div>
   );
 }
