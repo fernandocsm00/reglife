@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
+import { downloadLeadsCsv } from "@/lib/admin/exportCsv";
 
 const SECRET = "reglife2024";
 
@@ -102,14 +103,34 @@ export default function AdminPage() {
       </div>
 
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Buscar por nome ou e-mail…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-600 focus:border-emerald-600 focus:outline-none"
-        />
+        {/* Search + actions */}
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Buscar por nome ou e-mail…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-600 focus:border-emerald-600 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => downloadLeadsCsv(filtered)}
+            disabled={loading || filtered.length === 0}
+            className="shrink-0 rounded-lg border border-emerald-700/50 bg-emerald-700/20 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-700/30 disabled:cursor-not-allowed disabled:opacity-50"
+            title={
+              search
+                ? `Exporta os ${filtered.length} leads filtrados`
+                : `Exporta todos os ${rows.length} leads`
+            }
+          >
+            📥 Exportar CSV
+            {search && filtered.length !== rows.length && (
+              <span className="ml-1 text-xs opacity-70">
+                ({filtered.length})
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Stats bar */}
         {!loading && !error && (
