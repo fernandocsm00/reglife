@@ -133,13 +133,13 @@ export function OnboardingForm({ onSubmit }: Props) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-neutral-100">
+    <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/10 blur-[150px]" />
+        <div className="absolute left-1/2 top-1/4 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-amber-400/8 blur-[140px]" />
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-16">
-        <Logo size="lg" className="mb-6" />
+        <Logo size="lg" className="mb-8" />
 
         <ProgressDots current={step} />
 
@@ -153,11 +153,11 @@ export function OnboardingForm({ onSubmit }: Props) {
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              <h1 className="mt-6 text-center text-3xl font-bold">
+              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
                 Antes de começar
               </h1>
               <p className="mt-3 text-center text-sm text-neutral-400">
-                Personalizamos a sua experiência. Leva 2 minutos.
+                Personalizamos sua experiência. Leva 2 minutos.
               </p>
 
               <div className="mt-10 space-y-6">
@@ -218,7 +218,7 @@ export function OnboardingForm({ onSubmit }: Props) {
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              <h1 className="mt-6 text-center text-3xl font-bold">
+              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
                 Sobre você
               </h1>
               <p className="mt-3 text-center text-sm text-neutral-400">
@@ -266,7 +266,7 @@ export function OnboardingForm({ onSubmit }: Props) {
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              <h1 className="mt-6 text-center text-3xl font-bold">
+              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
                 Seus números
               </h1>
               <p className="mt-3 text-center text-sm text-neutral-400">
@@ -401,18 +401,39 @@ function NextButton({
   onClick: () => void;
   disabled: boolean;
 }) {
+  // Remove a seta do label, ela vira o ícone circular
+  const cleanLabel = label.replace(/→\s*$/, "").trim();
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition ${
+      className={`group inline-flex items-center gap-3 rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide transition ${
         disabled
           ? "cursor-not-allowed bg-neutral-800 text-neutral-500"
-          : "bg-amber-400 text-neutral-950 hover:bg-amber-300"
+          : "bg-white text-neutral-900 shadow-lg shadow-amber-500/10 hover:bg-neutral-100"
       }`}
     >
-      {label}
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-full ${
+          disabled ? "bg-neutral-700" : "bg-amber-400"
+        }`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-3.5 w-3.5 transition group-hover:translate-x-0.5"
+        >
+          <path d="M5 12h14" />
+          <path d="M13 5l7 7-7 7" />
+        </svg>
+      </span>
+      {cleanLabel}
     </button>
   );
 }

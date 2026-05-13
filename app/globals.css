@@ -10,6 +10,48 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+}
+
+/* Tipografia display (Anton) — usada em headlines tipo "DESAFIO PROFISSÃO POKER" */
+.font-display {
+  font-family: var(--font-display), Impact, "Arial Narrow Bold", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+/* Fundo "starfield" sutil pra hero / onboarding — matches reg.life/desafio */
+.bg-starfield {
+  background-color: #0a0a0a;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.18) 1px, transparent 0),
+    radial-gradient(1px 1px at 28% 62%, rgba(255, 255, 255, 0.10) 1px, transparent 0),
+    radial-gradient(1px 1px at 45% 30%, rgba(255, 255, 255, 0.14) 1px, transparent 0),
+    radial-gradient(1px 1px at 62% 85%, rgba(255, 255, 255, 0.08) 1px, transparent 0),
+    radial-gradient(1px 1px at 78% 22%, rgba(255, 255, 255, 0.12) 1px, transparent 0),
+    radial-gradient(1px 1px at 88% 70%, rgba(255, 255, 255, 0.16) 1px, transparent 0);
+  background-size: 320px 320px;
+  background-repeat: repeat;
+}
+
+/* Glow âmbar sutil que aparece nas bordas inferiores das seções do desafio */
+.glow-amber-bottom {
+  position: relative;
+}
+.glow-amber-bottom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 220px;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgba(251, 191, 36, 0.18) 0%,
+    rgba(251, 191, 36, 0) 60%
+  );
+  pointer-events: none;
 }
 
 :root {

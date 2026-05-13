@@ -20,7 +20,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-neutral-100">
+    <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
       {/* Glows decorativos */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-amber-400/8 blur-[140px]" />
@@ -246,33 +246,50 @@ function FirstTime() {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center text-center"
     >
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        Trainer de Nivelamento
+      <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
+        EVENTO GRATUITO
+      </div>
+
+      <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
+        Desafio Profissão Poker
       </h1>
 
-      <p className="mt-6 max-w-xl text-base leading-relaxed text-neutral-300">
-        Bem-vindo à reglife. Você vai passar por uma sequência de spots reais de poker.
-        Responda como faria em uma sessão de verdade — sem filtro.
+      <p className="mt-6 max-w-2xl text-lg font-semibold leading-snug text-neutral-200 sm:text-2xl">
+        <span className="text-amber-300">30 dias</span> vivendo a{" "}
+        <span className="text-amber-300">rotina de profissional</span> com o{" "}
+        <span className="text-amber-300">Reg Life Team</span>
       </p>
 
-      <p className="mt-4 max-w-xl text-sm leading-relaxed text-neutral-400">
-        Ao final, você recebe um{" "}
-        <span className="font-medium text-amber-300">
-          plano personalizado
-        </span>{" "}
-        com os leaks identificados e as aulas exatas para corrigi-los.
+      <p className="mt-5 max-w-xl text-sm leading-relaxed text-neutral-400">
+        Faça o teste técnico agora e receba na hora seu plano individual com as
+        aulas, os treinos e a grade de torneios pro seu ABI.
       </p>
 
       <Link
         href="/diagnostico"
-        className="group mt-10 inline-flex items-center gap-2 rounded-md bg-amber-300 px-8 py-3 text-base font-bold text-neutral-950 shadow-lg shadow-amber-900/30 transition hover:bg-amber-200"
+        className="group mt-12 inline-flex items-center gap-3 rounded-full bg-white px-6 py-3 text-sm font-bold uppercase tracking-wide text-neutral-900 shadow-lg shadow-amber-500/10 transition hover:bg-neutral-100"
       >
-        Começar nivelamento
-        <span className="transition group-hover:translate-x-1">→</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-neutral-900">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 transition group-hover:translate-x-0.5"
+          >
+            <path d="M5 12h14" />
+            <path d="M13 5l7 7-7 7" />
+          </svg>
+        </span>
+        Eu encaro!
       </Link>
 
-      <p className="mt-8 max-w-md text-xs text-neutral-600">
-        Responda com calma. Não existe pressa — existe precisão.
+      <p className="mt-10 max-w-md text-xs text-neutral-600">
+        Logo após o cadastro, você faz sua avaliação de perfil e o teste técnico
+        pra receber seu plano de progressão individual.
       </p>
     </motion.div>
   );
