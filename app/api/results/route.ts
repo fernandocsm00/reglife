@@ -194,13 +194,9 @@ export async function POST(req: NextRequest) {
 }
 
 // GET /api/results — list all (admin)
-export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("secret");
-  const expected = process.env.ADMIN_SECRET ?? "reglife2024";
-  if (secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+// Acesso protegido pelo middleware.ts (HTTP Basic Auth com ADMIN_USER /
+// ADMIN_PASSWORD). Quem chega aqui já passou pelo middleware.
+export async function GET() {
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .select("*")

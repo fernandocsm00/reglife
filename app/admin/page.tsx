@@ -61,7 +61,7 @@ export default function AdminPage() {
   const [ssTarget, setSsTarget] = useState<DiagnosticRow | null>(null);
 
   useEffect(() => {
-    fetch(`/api/results?secret=${SECRET}`)
+    fetch(`/api/results`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setRows(data);
