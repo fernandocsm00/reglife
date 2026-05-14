@@ -150,7 +150,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       })
       .catch(() => { /* silently ignore */ });
 
-    const t = setTimeout(() => router.push("/meu-plano"), 900);
+    // 5s de tela "Montando seu plano…" antes de redirecionar — dá uma
+    // sensação de processamento e evita o flash brusco pra /meu-plano.
+    const t = setTimeout(() => router.push("/meu-plano"), 5000);
     return () => clearTimeout(t);
   }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
       stoppedEarly, spotSummaries, failedSpotCount,
@@ -222,22 +224,34 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     return <TestIntro onStart={() => setTestStarted(true)} />;
   }
 
-  // "Montando seu plano…" screen
+  // "Montando seu plano…" screen — fica 5s antes de cair em /meu-plano
   if (completed) {
     return (
-      <div className="bg-starfield flex min-h-screen flex-col items-center justify-center px-6 text-center text-neutral-100">
-        <Logo size="lg" className="mb-6" />
+      <div className="bg-starfield glow-amber-bottom relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center text-neutral-100">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/10 blur-[140px]" />
+        </div>
+
+        <Logo size="md" className="mb-10" />
+
+        {/* Anel pulsante âmbar */}
+        <div className="relative mb-8 h-16 w-16">
+          <span className="absolute inset-0 rounded-full border-2 border-amber-400 opacity-70" />
+          <span className="absolute inset-0 animate-ping rounded-full border-2 border-amber-400" />
+          <span className="absolute inset-3 rounded-full bg-amber-400/30" />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className="font-display text-3xl text-neutral-50 sm:text-4xl"
         >
-          Montando seu plano de 30 dias…
+          Montando seu plano…
         </motion.div>
-        <p className="mt-2 text-sm text-neutral-400">
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-400">
           {stoppedEarly
-            ? "Identificamos suas principais dificuldades. Preparando um plano personalizado."
-            : "Analisando seus pontos fracos e selecionando as aulas certas pra você."}
+            ? "Identificamos suas principais dificuldades. Preparando seu plano personalizado."
+            : "Analisando seu desempenho e selecionando as aulas certas pra você."}
         </p>
       </div>
     );
