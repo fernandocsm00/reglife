@@ -459,7 +459,7 @@ function TestIntro({ onStart }: { onStart: () => void }) {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
-        <Logo size="lg" className="mb-10" />
+        <Logo size="md" className="mb-10" />
 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
