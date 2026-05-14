@@ -65,6 +65,12 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const setLeadId = useDiagnosticoStore((s) => s.setLeadId);
 
   const [muted, setMuted] = useState(false);
+  /**
+   * Gate da tela de transição entre o quiz (pesquisa) e o teste técnico
+   * (mãos). Aluno termina a pesquisa → cai aqui → vê briefing dos 10 min
+   * → clica "Quero começar!" → entra no drill. Reseta a cada refresh.
+   */
+  const [testStarted, setTestStarted] = useState(false);
   const builtRef = useRef(false);
 
   useEffect(() => {
@@ -210,17 +216,23 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     );
   }
 
+  // Tela de transição: quiz já feito, mas antes de mostrar a primeira mão
+  // o aluno precisa saber que agora começa o teste técnico (e separar tempo).
+  if (!testStarted && !completed) {
+    return <TestIntro onStart={() => setTestStarted(true)} />;
+  }
+
   // "Montando seu plano…" screen
   if (completed) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 px-6 text-center text-neutral-100">
+      <div className="bg-starfield flex min-h-screen flex-col items-center justify-center px-6 text-center text-neutral-100">
         <Logo size="lg" className="mb-6" />
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-bold"
+          className="font-display text-3xl text-neutral-50 sm:text-4xl"
         >
-          Montando seu plano de 90 dias…
+          Montando seu plano de 30 dias…
         </motion.div>
         <p className="mt-2 text-sm text-neutral-400">
           {stoppedEarly
@@ -430,6 +442,68 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
             </motion.button>
           )}
         </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Transição: aluno terminou a pesquisa, agora começa o teste técnico (mãos)
+// ---------------------------------------------------------------------------
+
+function TestIntro({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/8 blur-[140px]" />
+      </div>
+
+      <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
+        <Logo size="lg" className="mb-10" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
+            PASSO 2 DE 2
+          </div>
+
+          <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
+            Teste Técnico
+          </h1>
+
+          <p className="mt-6 max-w-xl text-base leading-snug text-neutral-200 sm:text-xl">
+            Agora começa o teste com{" "}
+            <span className="text-amber-300">simulação de mãos reais</span> de
+            poker. Separe{" "}
+            <span className="text-amber-300">10 minutos</span> e faça com calma —
+            responda como faria numa sessão de verdade.
+          </p>
+
+          <button
+            type="button"
+            onClick={onStart}
+            className="group mt-12 inline-flex items-center gap-3 rounded-full bg-white px-6 py-3 text-sm font-bold uppercase tracking-wide text-neutral-900 shadow-lg shadow-amber-500/10 transition hover:bg-neutral-100"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-neutral-900">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 transition group-hover:translate-x-0.5"
+              >
+                <path d="M5 12h14" />
+                <path d="M13 5l7 7-7 7" />
+              </svg>
+            </span>
+            Quero começar!
+          </button>
+        </motion.div>
       </div>
     </div>
   );

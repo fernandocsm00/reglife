@@ -247,17 +247,17 @@ function FirstTime() {
       className="flex flex-col items-center text-center"
     >
       <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
-        BEM-VINDO
+        PASSO 1 DE 2
       </div>
 
       <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
-        Teste Técnico
+        Pesquisa Inicial
       </h1>
 
       <p className="mt-6 max-w-2xl text-base leading-snug text-neutral-200 sm:text-xl">
-        Você vai fazer seu{" "}
-        <span className="text-amber-300">teste técnico</span> pra receber seu{" "}
-        <span className="text-amber-300">plano de progressão individual</span>.
+        Antes do teste técnico, queremos te conhecer melhor com{" "}
+        <span className="text-amber-300">algumas perguntas rápidas</span> sobre
+        seu perfil de jogador.
       </p>
 
       <Link
