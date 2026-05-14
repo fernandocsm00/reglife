@@ -83,6 +83,15 @@ export interface SpotConfigFile {
   heroBetSize?: number;
   actionButtons: ActionButtonConfig[];
   actionHistory?: ActionHistoryStreet[];
+  /**
+   * Quando true, NÃO filtra os botões dimensionados (RAISE/BET/CBET) pra
+   * mostrar só os tamanhos corretos. Aluno enxerga todos os tamanhos como
+   * distratores. Útil em spots onde a escolha do tamanho é o aprendizado
+   * principal (ex.: cbet turn).
+   *
+   * Default: false (filtro ativo, como o resto do trainer).
+   */
+  showAllSizes?: boolean;
   expectedAnswers: ExpectedAnswer[];
   // Optional / legacy fields seen in real config files
   stackSize?: number | number[];

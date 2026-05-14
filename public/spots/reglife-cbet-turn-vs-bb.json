@@ -3,6 +3,7 @@
   "action": "cbetTurn",
   "mode": "sequential",
   "tier": 1,
+  "showAllSizes": true,
   "sessionSize": 11,
   "potSize": 10,
   "currentPotSize": 10,

@@ -205,14 +205,18 @@ export function createDrill(
       .map((b) => matchedPrefix(b.text))
       .filter((p): p is string => Boolean(p))
   );
-  const buttons = correctPrefixes.size
-    ? allButtons.filter((b) => {
-        const prefix = matchedPrefix(b.text);
-        if (!prefix) return true; // FOLD, CALL, CHECK, LIMP, ALL-IN — sempre presentes
-        if (!correctPrefixes.has(prefix)) return true; // prefixo sem correto no combo: distratores OK
-        return b.isCorrect; // dentro do prefixo correto, só o tamanho certo
-      })
-    : allButtons;
+  // Opt-out por spot: quando config.showAllSizes=true, NÃO filtra os
+  // botões dimensionados — todos os tamanhos aparecem como distratores
+  // (ex.: cbet turn, onde a escolha do sizing é o aprendizado principal).
+  const buttons =
+    !config.showAllSizes && correctPrefixes.size
+      ? allButtons.filter((b) => {
+          const prefix = matchedPrefix(b.text);
+          if (!prefix) return true; // FOLD, CALL, CHECK, LIMP, ALL-IN — sempre presentes
+          if (!correctPrefixes.has(prefix)) return true; // prefixo sem correto no combo: distratores OK
+          return b.isCorrect; // dentro do prefixo correto, só o tamanho certo
+        })
+      : allButtons;
 
   // 6. Build the table seats.
   const players = buildTableSeats({
