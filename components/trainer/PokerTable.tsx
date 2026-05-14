@@ -57,8 +57,10 @@ export function PokerTable({ drill, drillKey }: Props) {
         <Logo size="lg" />
       </div>
 
-      {/* Pot total */}
-      <div className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 text-center">
+      {/* Pot total — fica entre o logo (watermark) e o board.
+          NÃO usar top-[42%] aqui: as cartas do board (top-[48%], 58px de
+          altura) cobririam o texto. */}
+      <div className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 text-center">
         <div className="text-xs text-neutral-400">
           Pot total: {drill.potSize} BB
         </div>
