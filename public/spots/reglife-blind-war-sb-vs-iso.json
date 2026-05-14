@@ -4,6 +4,7 @@
   "mode": "sequential",
   "tier": 1,
   "sessionSize": 6,
+  "defaultRaiseSize": "RAISE 8.25",
   "potSize": 5.5,
   "currentPotSize": 5.5,
   "tableSize": 8,
