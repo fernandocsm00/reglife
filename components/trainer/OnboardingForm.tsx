@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
@@ -35,11 +35,9 @@ export interface OnboardingData {
   notifyChannels: string[];
   whatsappPhone: string | null;
   quizAnswers: QuizAnswers;
-  // Lead scoring (computed) — admin-side only, lead não vê
   leadScore: number;
   leadCategory: LeadCategory;
   stakeGrade: number;
-  // Legacy fields derivados do quiz — alimentam planBuilder
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
   volumeTargetWeekly: number;
@@ -49,7 +47,9 @@ interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-// Formata o celular enquanto o usuário digita: (99) 99999-9999
+const TOTAL_STEPS = 7; // 1 identidade + 6 perguntas
+const ADVANCE_DELAY_MS = 220;
+
 function formatPhone(raw: string): string {
   const digits = raw.replace(/\D/g, "").slice(0, 11);
   if (digits.length === 0) return "";
@@ -68,61 +68,48 @@ function isValidPhone(phone: string): boolean {
   return phone.replace(/\D/g, "").length >= 10;
 }
 
-type Step = 1 | 2 | 3;
-
 export function OnboardingForm({ onSubmit }: Props) {
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState(1);
 
-  // Step 1 — Identificação
+  // Identidade
   const [playerName, setPlayerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Step 2 — Quem você é (3 perguntas pontuadas)
+  // Quiz
   const [idade, setIdade] = useState<IdadeAnswer | null>(null);
   const [tempo, setTempo] = useState<TempoAnswer | null>(null);
   const [objetivo, setObjetivo] = useState<ObjetivoAnswer | null>(null);
-
-  // Step 3 — Seus números
   const [abi, setAbi] = useState<AbiAnswer | null>(null);
   const [volume, setVolume] = useState<VolumeAnswer | null>(null);
   const [banca, setBanca] = useState<BancaAnswer | null>(null);
 
-  const step1Valid =
+  const identityValid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone);
 
-  const step2Valid = idade !== null && tempo !== null && objetivo !== null;
-  const step3Valid = abi !== null && volume !== null && banca !== null;
-
-  const finalSubmit = () => {
-    if (!step1Valid || !step2Valid || !step3Valid) return;
-
-    const quizAnswers: QuizAnswers = {
+  const finalSubmit = (bancaValue: BancaAnswer) => {
+    const completeQuiz: QuizAnswers = {
       idade: idade!,
       tempo: tempo!,
       objetivo: objetivo!,
       abi: abi!,
       volume: volume!,
-      banca: banca!,
+      banca: bancaValue,
     };
 
-    const leadScore = computeLeadScore(quizAnswers);
+    const leadScore = computeLeadScore(completeQuiz);
     const leadCategory = computeLeadCategory(leadScore);
-    const stakeGrade = computeStakeGrade(quizAnswers);
-
-    // Email é o canal default — não pergunta mais ao lead. Admin pode
-    // ativar WhatsApp depois conforme preferência manual.
-    const notifyChannels: string[] = ["email"];
+    const stakeGrade = computeStakeGrade(completeQuiz);
 
     onSubmit({
       playerName: playerName.trim(),
       email: email.trim().toLowerCase(),
       phone,
-      notifyChannels,
+      notifyChannels: ["email"],
       whatsappPhone: null,
-      quizAnswers,
+      quizAnswers: completeQuiz,
       leadScore,
       leadCategory,
       stakeGrade,
@@ -132,6 +119,21 @@ export function OnboardingForm({ onSubmit }: Props) {
     });
   };
 
+  /** Cria um onChange que seta o valor e avança pro próximo step
+      (ou chama finalSubmit no último). */
+  function autoAdvance<T extends string>(
+    setter: Dispatch<SetStateAction<T | null>>,
+    next: number | "submit"
+  ) {
+    return (value: T) => {
+      setter(value);
+      setTimeout(() => {
+        if (next === "submit") finalSubmit(value as unknown as BancaAnswer);
+        else setStep(next);
+      }, ADVANCE_DELAY_MS);
+    };
+  }
+
   return (
     <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
       <div className="pointer-events-none absolute inset-0">
@@ -139,26 +141,15 @@ export function OnboardingForm({ onSubmit }: Props) {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-16">
-        <Logo size="lg" className="mb-8" />
+        <Logo size="md" className="mb-6" />
 
-        <ProgressDots current={step} />
+        <ProgressBar current={step} total={TOTAL_STEPS} />
 
         <AnimatePresence mode="wait">
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.2 }}
-              className="w-full"
-            >
-              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
-                Antes de começar
-              </h1>
-              <p className="mt-3 text-center text-sm text-neutral-400">
-                Personalizamos sua experiência. Leva 2 minutos.
-              </p>
+            <StepWrapper key="identidade">
+              <Title>Antes de começar</Title>
+              <Sub>Personalizamos sua experiência. Leva 2 minutos.</Sub>
 
               <div className="mt-10 space-y-6">
                 <Field label="Seu nome">
@@ -171,7 +162,6 @@ export function OnboardingForm({ onSubmit }: Props) {
                     autoFocus
                   />
                 </Field>
-
                 <Field label="E-mail">
                   <input
                     type="email"
@@ -184,7 +174,6 @@ export function OnboardingForm({ onSubmit }: Props) {
                     required
                   />
                 </Field>
-
                 <Field label="WhatsApp">
                   <input
                     type="tel"
@@ -196,114 +185,94 @@ export function OnboardingForm({ onSubmit }: Props) {
                     autoComplete="tel"
                   />
                 </Field>
-
               </div>
 
               <div className="mt-10 flex justify-end">
                 <NextButton
-                  disabled={!step1Valid}
+                  disabled={!identityValid}
                   onClick={() => setStep(2)}
                   label="Continuar →"
                 />
               </div>
-            </motion.div>
+            </StepWrapper>
           )}
 
           {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.2 }}
-              className="w-full"
-            >
-              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
-                Sobre você
-              </h1>
-              <p className="mt-3 text-center text-sm text-neutral-400">
-                3 perguntas rápidas pra entender seu perfil.
-              </p>
-
-              <div className="mt-10 space-y-8">
-                <QuizQuestion
-                  question="Qual é a sua idade?"
-                  options={IDADE_OPTIONS}
-                  value={idade}
-                  onChange={setIdade}
-                />
-                <QuizQuestion
-                  question="Há quanto tempo você joga poker?"
-                  options={TEMPO_OPTIONS}
-                  value={tempo}
-                  onChange={setTempo}
-                />
-                <QuizQuestion
-                  question="Qual é o seu objetivo no poker?"
-                  options={OBJETIVO_OPTIONS}
-                  value={objetivo}
-                  onChange={setObjetivo}
-                />
-              </div>
-
-              <div className="mt-10 flex items-center justify-between">
-                <BackButton onClick={() => setStep(1)} />
-                <NextButton
-                  disabled={!step2Valid}
-                  onClick={() => setStep(3)}
-                  label="Continuar →"
-                />
-              </div>
-            </motion.div>
+            <StepWrapper key="idade">
+              <Title>Qual é a sua idade?</Title>
+              <QuestionOptions
+                options={IDADE_OPTIONS}
+                value={idade}
+                onChange={autoAdvance(setIdade, 3)}
+              />
+              <BackBar onBack={() => setStep(1)} />
+            </StepWrapper>
           )}
 
           {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.2 }}
-              className="w-full"
-            >
-              <h1 className="font-display mt-8 text-center text-4xl leading-tight text-neutral-50 sm:text-5xl">
-                Seus números
-              </h1>
-              <p className="mt-3 text-center text-sm text-neutral-400">
-                Últimas 3 perguntas. Tudo conforme o seu SharkScope dos últimos 6 meses.
-              </p>
+            <StepWrapper key="tempo">
+              <Title>Há quanto tempo você joga poker?</Title>
+              <QuestionOptions
+                options={TEMPO_OPTIONS}
+                value={tempo}
+                onChange={autoAdvance(setTempo, 4)}
+              />
+              <BackBar onBack={() => setStep(2)} />
+            </StepWrapper>
+          )}
 
-              <div className="mt-10 space-y-8">
-                <QuizQuestion
-                  question="Qual é o seu ABI (buy-in médio) em dólares?"
-                  options={ABI_OPTIONS}
-                  value={abi}
-                  onChange={setAbi}
-                />
-                <QuizQuestion
-                  question="Quantos torneios você joga por mês?"
-                  options={VOLUME_OPTIONS}
-                  value={volume}
-                  onChange={setVolume}
-                />
-                <QuizQuestion
-                  question="Qual é a sua banca total (em dólares) agora?"
-                  hint="Não é só o que tem na sala — é todo o dinheiro disponível pra dar buy-ins, incluindo o que você consegue depositar."
-                  options={BANCA_OPTIONS}
-                  value={banca}
-                  onChange={setBanca}
-                />
-              </div>
+          {step === 4 && (
+            <StepWrapper key="objetivo">
+              <Title>Qual é o seu objetivo no poker?</Title>
+              <QuestionOptions
+                options={OBJETIVO_OPTIONS}
+                value={objetivo}
+                onChange={autoAdvance(setObjetivo, 5)}
+              />
+              <BackBar onBack={() => setStep(3)} />
+            </StepWrapper>
+          )}
 
-              <div className="mt-10 flex items-center justify-between">
-                <BackButton onClick={() => setStep(2)} />
-                <NextButton
-                  disabled={!step3Valid}
-                  onClick={finalSubmit}
-                  label="Começar o teste →"
-                />
-              </div>
-            </motion.div>
+          {step === 5 && (
+            <StepWrapper key="abi">
+              <Title>Qual é o seu ABI em dólares?</Title>
+              <Sub>Buy-in médio nos últimos 6 meses (SharkScope).</Sub>
+              <QuestionOptions
+                options={ABI_OPTIONS}
+                value={abi}
+                onChange={autoAdvance(setAbi, 6)}
+              />
+              <BackBar onBack={() => setStep(4)} />
+            </StepWrapper>
+          )}
+
+          {step === 6 && (
+            <StepWrapper key="volume">
+              <Title>Quantos torneios você joga por mês?</Title>
+              <Sub>Média dos últimos 6 meses no SharkScope.</Sub>
+              <QuestionOptions
+                options={VOLUME_OPTIONS}
+                value={volume}
+                onChange={autoAdvance(setVolume, 7)}
+              />
+              <BackBar onBack={() => setStep(5)} />
+            </StepWrapper>
+          )}
+
+          {step === 7 && (
+            <StepWrapper key="banca">
+              <Title>Qual é a sua banca total (USD)?</Title>
+              <Sub>
+                Não é só o que tem na sala — é todo o dinheiro disponível pra
+                dar buy-ins, incluindo o que você pode depositar.
+              </Sub>
+              <QuestionOptions
+                options={BANCA_OPTIONS}
+                value={banca}
+                onChange={autoAdvance(setBanca, "submit")}
+              />
+              <BackBar onBack={() => setStep(6)} />
+            </StepWrapper>
           )}
         </AnimatePresence>
       </div>
@@ -315,17 +284,58 @@ export function OnboardingForm({ onSubmit }: Props) {
 // Subcomponentes
 // ---------------------------------------------------------------------------
 
-function ProgressDots({ current }: { current: Step }) {
+function StepWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-2">
-      {[1, 2, 3].map((n) => (
-        <span
-          key={n}
-          className={`h-1.5 w-8 rounded-full transition-colors ${
-            n <= current ? "bg-amber-400" : "bg-neutral-800"
-          }`}
+    <motion.div
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -16 }}
+      transition={{ duration: 0.18 }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Title({ children }: { children: React.ReactNode }) {
+  return (
+    <h1 className="font-display mt-8 text-center text-3xl leading-tight text-neutral-50 sm:text-4xl">
+      {children}
+    </h1>
+  );
+}
+
+function Sub({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-3 text-center text-sm text-neutral-400">{children}</p>
+  );
+}
+
+function ProgressBar({
+  current,
+  total,
+}: {
+  current: number;
+  total: number;
+}) {
+  const pct = Math.round((current / total) * 100);
+  return (
+    <div className="w-full max-w-xs">
+      <div className="mb-1.5 flex items-center justify-between text-[11px] text-neutral-500">
+        <span>
+          Passo {current} de {total}
+        </span>
+        <span className="tabular-nums">{pct}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-neutral-800">
+        <motion.div
+          className="h-full rounded-full bg-amber-400"
+          initial={false}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.3 }}
         />
-      ))}
+      </div>
     </div>
   );
 }
@@ -333,7 +343,13 @@ function ProgressDots({ current }: { current: Step }) {
 const inputClass =
   "w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/30";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
@@ -344,50 +360,40 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function QuizQuestion<T extends string>({
-  question,
-  hint,
+function QuestionOptions<T extends string>({
   options,
   value,
   onChange,
 }: {
-  question: string;
-  hint?: string;
   options: QuizOption<T>[];
   value: T | null;
   onChange: (v: T) => void;
 }) {
-  // useMemo só pra evitar reordenação inesperada
   const opts = useMemo(() => options, [options]);
-
   return (
-    <div>
-      <p className="text-sm font-semibold text-neutral-200">{question}</p>
-      {hint && <p className="mt-1 text-xs text-neutral-500">{hint}</p>}
-      <div className="mt-3 space-y-2">
-        {opts.map((o) => {
-          const selected = value === o.value;
-          return (
-            <button
-              type="button"
-              key={o.value}
-              onClick={() => onChange(o.value)}
-              className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition ${
-                selected
-                  ? "border-amber-400/60 bg-amber-400/10 text-amber-100"
-                  : "border-neutral-800 bg-neutral-900/50 text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900"
+    <div className="mt-8 space-y-2">
+      {opts.map((o) => {
+        const selected = value === o.value;
+        return (
+          <button
+            type="button"
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
+              selected
+                ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
+                : "border-neutral-800 bg-neutral-900/50 text-neutral-200 hover:border-neutral-700 hover:bg-neutral-900"
+            }`}
+          >
+            <span>{o.label}</span>
+            <span
+              className={`h-4 w-4 shrink-0 rounded-full border-2 ${
+                selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
               }`}
-            >
-              <span>{o.label}</span>
-              <span
-                className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
-                  selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
-                }`}
-              />
-            </button>
-          );
-        })}
-      </div>
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -401,7 +407,6 @@ function NextButton({
   onClick: () => void;
   disabled: boolean;
 }) {
-  // Remove a seta do label, ela vira o ícone circular
   const cleanLabel = label.replace(/→\s*$/, "").trim();
   return (
     <button
@@ -438,14 +443,16 @@ function NextButton({
   );
 }
 
-function BackButton({ onClick }: { onClick: () => void }) {
+function BackBar({ onBack }: { onBack: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-sm text-neutral-400 transition hover:text-neutral-200"
-    >
-      ← Voltar
-    </button>
+    <div className="mt-8 flex justify-start">
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-sm text-neutral-500 transition hover:text-neutral-200"
+      >
+        ← Voltar
+      </button>
+    </div>
   );
 }
