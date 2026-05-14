@@ -30,6 +30,60 @@ export function PlanScreen({ plan }: Props) {
   const weaknesses = useMemo(() => topWeaknesses(plan, 3), [plan]);
   const createdAtLabel = new Date(plan.createdAt).toLocaleDateString("pt-BR");
 
+  const [tab, setTab] = useState<"resumo" | "plano">("resumo");
+
+  // PDF download card — usado em ambas as tabs (entrega principal)
+  const pdfCard = plan.diagnosticId ? (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 }}
+      className="relative overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-400/20 via-amber-400/5 to-transparent p-6 shadow-2xl shadow-amber-500/10 print:hidden sm:p-8"
+    >
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-400/15 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-24 -left-12 h-48 w-48 rounded-full bg-amber-300/10 blur-[90px]" />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300">
+            Seu relatório está pronto
+          </div>
+          <h2 className="mt-2 text-xl font-bold text-neutral-50 sm:text-2xl">
+            Baixe o PDF com seu plano completo
+          </h2>
+          <p className="mt-2 max-w-md text-sm text-neutral-300">
+            Tudo que você precisa pros próximos 30 dias num único arquivo —
+            revise no celular, imprima, compartilhe com seu coach.
+          </p>
+        </div>
+        <a
+          href={`/r/${plan.diagnosticId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative inline-flex shrink-0 items-center gap-3 self-start rounded-full bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-neutral-900 shadow-xl shadow-amber-500/30 transition hover:bg-neutral-100 hover:shadow-amber-500/50 sm:self-auto"
+        >
+          <span className="pointer-events-none absolute -inset-1 rounded-full bg-amber-400/40 opacity-0 blur-md transition group-hover:opacity-100" />
+          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-neutral-900">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4 transition group-hover:translate-y-0.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </span>
+          <span className="relative">Baixar meu plano</span>
+        </a>
+      </div>
+    </motion.div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 print:bg-white print:text-black">
       <div className="mx-auto max-w-3xl px-6 py-10">
@@ -64,6 +118,32 @@ export function PlanScreen({ plan }: Props) {
           </p>
         </motion.div>
 
+        {/* Tabs — Resumo / Seu Plano Personalizado */}
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/40 p-1 print:hidden">
+          {[
+            { key: "resumo" as const, label: "Resumo" },
+            { key: "plano" as const, label: "Seu plano personalizado" },
+          ].map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "bg-amber-400 text-neutral-900"
+                    : "text-neutral-400 hover:text-neutral-100"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {tab === "resumo" && (
+        <>
         {/* Sua Avaliação — tier + accuracy */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -215,61 +295,15 @@ export function PlanScreen({ plan }: Props) {
           </motion.div>
         )}
 
-        {/* Card de destaque do PDF — entrega principal do desafio */}
-        {plan.diagnosticId && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="relative mb-10 overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-400/20 via-amber-400/5 to-transparent p-6 shadow-2xl shadow-amber-500/10 print:hidden sm:p-8"
-          >
-            {/* Glow decorativo no fundo */}
-            <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-400/15 blur-[100px]" />
-            <div className="pointer-events-none absolute -bottom-24 -left-12 h-48 w-48 rounded-full bg-amber-300/10 blur-[90px]" />
-
-            <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300">
-                  Seu relatório está pronto
-                </div>
-                <h2 className="mt-2 text-xl font-bold text-neutral-50 sm:text-2xl">
-                  Baixe o PDF com seu plano completo
-                </h2>
-                <p className="mt-2 max-w-md text-sm text-neutral-300">
-                  Tudo que você precisa pros próximos 30 dias num único arquivo —
-                  revise no celular, imprima, compartilhe com seu coach.
-                </p>
-              </div>
-
-              <a
-                href={`/r/${plan.diagnosticId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative inline-flex shrink-0 items-center gap-3 self-start rounded-full bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-neutral-900 shadow-xl shadow-amber-500/30 transition hover:bg-neutral-100 hover:shadow-amber-500/50 sm:self-auto"
-              >
-                {/* Anel pulsante âmbar pra chamar atenção */}
-                <span className="pointer-events-none absolute -inset-1 rounded-full bg-amber-400/40 opacity-0 blur-md transition group-hover:opacity-100" />
-                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-neutral-900">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 transition group-hover:translate-y-0.5"
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                </span>
-                <span className="relative">Baixar meu plano</span>
-              </a>
-            </div>
-          </motion.div>
+        {/* PDF download — fim da tab Resumo */}
+        {pdfCard}
+        </>
         )}
+
+        {tab === "plano" && (
+        <>
+        {/* PDF download — começo da tab Plano Personalizado */}
+        {pdfCard}
 
         {/* Plano de Ação — 6 itens (3 fixos + 3 spots dos top leaks) */}
         <motion.div
@@ -319,6 +353,8 @@ export function PlanScreen({ plan }: Props) {
             </li>
           ))}
         </motion.ul>
+        </>
+        )}
 
         {/* Footer actions */}
         <div className="mt-12 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800 pt-6 print:hidden">
