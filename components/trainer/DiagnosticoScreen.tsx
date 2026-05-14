@@ -251,7 +251,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-400">
           {stoppedEarly
             ? "Identificamos suas principais dificuldades. Preparando seu plano personalizado."
-            : "Analisando seu desempenho e selecionando as aulas certas pra você."}
+            : "Analisando seu desempenho. Preparando seu plano personalizado."}
         </p>
       </div>
     );
