@@ -31,7 +31,7 @@
           {"street":"RIVER","actions":[{"position":"BB","action":"Check"}]}
         ]
       },
-      "expectedAnswers": [{ "combos": ["AdJc"], "answer": ["CHECK"] }]
+      "expectedAnswers": [{ "combos": ["AdJc"], "answer": ["ALL-IN"] }]
     },
     {
       "position": "BTN", "stackSize": 30, "villainPosition": "BB",
