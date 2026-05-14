@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@import "./reglife.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--rg-bg);
+  --foreground: var(--rg-fg);
 }
 
 @theme inline {
@@ -13,7 +14,13 @@
   --font-display: var(--font-display);
 }
 
-/* Tipografia display (Anton) — usada em headlines tipo "DESAFIO PROFISSÃO POKER" */
+body {
+  background: var(--rg-bg);
+  color: var(--rg-fg);
+  font-family: var(--font-geist-sans), var(--rg-font-sans);
+}
+
+/* Tipografia display (Anton) — usada em headlines de Landing/Onboarding */
 .font-display {
   font-family: var(--font-display), Impact, "Arial Narrow Bold", sans-serif;
   font-weight: 400;
@@ -21,7 +28,8 @@
   text-transform: uppercase;
 }
 
-/* Fundo "starfield" sutil pra hero / onboarding — matches reg.life/desafio */
+/* Fundo "starfield" sutil — só nas telas de entrada (Landing/Onboarding/TestIntro).
+   NUNCA no plano (per README do design system v1). */
 .bg-starfield {
   background-color: #0a0a0a;
   background-image:
@@ -35,7 +43,7 @@
   background-repeat: repeat;
 }
 
-/* Glow âmbar sutil que aparece nas bordas inferiores das seções do desafio */
+/* Glow âmbar inferior — só nas telas de entrada. */
 .glow-amber-bottom {
   position: relative;
 }
@@ -52,15 +60,4 @@
     rgba(251, 191, 36, 0) 60%
   );
   pointer-events: none;
-}
-
-:root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }

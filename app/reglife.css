@@ -1,0 +1,285 @@
+/* ============================================================
+   reglife — Design System v1
+   Modo: dark editorial, premium, com âmbar como cor de marca.
+   Tipografia: Geist Sans (Geist Mono para números).
+   Tom: coach direto, segunda pessoa.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* --- SURFACES -------------------------------------------- */
+  --rg-bg:            #0a0a0a;   /* page background (neutral-950) */
+  --rg-surface-1:     #111111;   /* card background */
+  --rg-surface-2:     #171717;   /* raised card / row */
+  --rg-surface-3:     #1f1f1f;   /* chips / dot bg */
+  --rg-overlay:       rgba(23,23,23,0.6); /* glass card */
+
+  /* --- BORDERS --------------------------------------------- */
+  --rg-line:          #1d1d1d;   /* subtle hairline */
+  --rg-border:        #262626;   /* default border (neutral-800) */
+  --rg-border-strong: #404040;   /* hover / focus border */
+
+  /* --- TEXT ------------------------------------------------ */
+  --rg-fg:            #f5f5f5;   /* primary text (neutral-100) */
+  --rg-fg-soft:       #d4d4d4;   /* secondary text (neutral-300) */
+  --rg-fg-muted:      #a3a3a3;   /* tertiary / body (neutral-400) */
+  --rg-fg-subtle:     #737373;   /* meta / labels (neutral-500) */
+  --rg-fg-faint:      #525252;   /* faint / dividers text (neutral-600) */
+
+  /* --- BRAND ACCENT (âmbar) -------------------------------- */
+  --rg-accent:        #fbbf24;   /* primary action (amber-400) */
+  --rg-accent-bright: #fcd34d;   /* CTA fill (amber-300) */
+  --rg-accent-soft:   #fde68a;   /* hover light (amber-200) */
+  --rg-accent-hue:    rgba(251,191,36,1);
+
+  --rg-accent-bg-5:   rgba(251,191,36,0.05);   /* card glow */
+  --rg-accent-bg-8:   rgba(251,191,36,0.08);   /* card hover */
+  --rg-accent-bg-12:  rgba(251,191,36,0.12);   /* selected */
+  --rg-accent-bd-20:  rgba(251,191,36,0.20);   /* default accent border */
+  --rg-accent-bd-30:  rgba(251,191,36,0.30);   /* eyebrow border */
+  --rg-accent-bd-40:  rgba(251,191,36,0.40);   /* hover border */
+  --rg-accent-fg:     #fcd34d;                 /* text on dark */
+  --rg-accent-fg-soft:#fde68a;
+  --rg-accent-on:     #0a0a0a;                 /* text on CTA */
+  --rg-accent-glow:   rgba(120,53,15,0.30);    /* shadow under CTA (amber-900/30) */
+
+  /* --- STATUS ---------------------------------------------- */
+  --rg-success:       #22c55e;
+  --rg-success-soft:  rgba(34,197,94,0.12);
+  --rg-danger:        #ef4444;   /* leak / erro */
+  --rg-danger-soft:   rgba(239,68,68,0.10);
+  --rg-warn:          #f59e0b;
+
+  /* --- TYPE ------------------------------------------------ */
+  --rg-font-sans:  "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --rg-font-mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --rg-tracking-tight: -0.025em;
+  --rg-tracking-eyebrow: 0.25em;
+  --rg-tracking-wide: 0.05em;
+
+  /* --- RADII ----------------------------------------------- */
+  --rg-r-sm: 6px;     /* button */
+  --rg-r-md: 8px;     /* small card */
+  --rg-r-lg: 12px;    /* card */
+  --rg-r-xl: 16px;    /* hero card */
+  --rg-r-pill: 999px;
+
+  /* --- SHADOWS --------------------------------------------- */
+  --rg-shadow-cta:  0 12px 32px -8px rgba(120,53,15,0.40);
+  --rg-shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px -16px rgba(0,0,0,0.6);
+  --rg-shadow-pop:  0 24px 60px -20px rgba(0,0,0,0.7);
+
+  /* --- MOTION ---------------------------------------------- */
+  --rg-ease: cubic-bezier(.2,.7,.3,1);
+  --rg-dur-fast: .14s;
+  --rg-dur:      .22s;
+  --rg-dur-slow: .42s;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+.rg-root {
+  background: var(--rg-bg);
+  color: var(--rg-fg);
+  font-family: var(--rg-font-sans);
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.rg-root * { box-sizing: border-box; }
+
+/* Ambient glow used on home / onboarding hero — never on the plan page. */
+.rg-glow-stage { position: relative; overflow: hidden; }
+.rg-glow-stage::before,
+.rg-glow-stage::after {
+  content: ""; position: absolute; pointer-events: none; border-radius: 999px;
+  filter: blur(140px); opacity: .8;
+}
+.rg-glow-stage::before {
+  top: -120px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 500px;
+  background: rgba(251,191,36,0.08);
+}
+.rg-glow-stage::after {
+  top: 22%; right: 6%;
+  width: 280px; height: 280px;
+  background: rgba(252,211,77,0.06);
+}
+
+/* ============================================================
+   TYPE
+   ============================================================ */
+
+.rg-display    { font-size: 36px; font-weight: 700; line-height: 1.05; letter-spacing: var(--rg-tracking-tight); }
+.rg-h1         { font-size: 30px; font-weight: 700; line-height: 1.1;  letter-spacing: var(--rg-tracking-tight); }
+.rg-h2         { font-size: 24px; font-weight: 700; line-height: 1.15; letter-spacing: var(--rg-tracking-tight); }
+.rg-h3         { font-size: 18px; font-weight: 600; line-height: 1.25; }
+.rg-body       { font-size: 15px; font-weight: 400; line-height: 1.55; color: var(--rg-fg-soft); }
+.rg-body-sm    { font-size: 13px; font-weight: 400; line-height: 1.55; color: var(--rg-fg-muted); }
+.rg-caption    { font-size: 12px; font-weight: 400; line-height: 1.5;  color: var(--rg-fg-subtle); }
+.rg-meta       { font-size: 11px; font-weight: 500; line-height: 1.4;  color: var(--rg-fg-subtle); }
+
+.rg-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--rg-tracking-eyebrow);
+  color: var(--rg-accent-fg);
+}
+.rg-eyebrow--pill {
+  padding: 4px 10px; border-radius: var(--rg-r-pill);
+  border: 1px solid var(--rg-accent-bd-30);
+  background: var(--rg-accent-bg-5);
+}
+
+.rg-mono { font-family: var(--rg-font-mono); font-feature-settings: "tnum" 1; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.rg-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: var(--rg-r-sm);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--rg-dur) var(--rg-ease),
+              border-color var(--rg-dur) var(--rg-ease),
+              color var(--rg-dur) var(--rg-ease),
+              transform var(--rg-dur) var(--rg-ease);
+  text-decoration: none;
+}
+.rg-btn--primary {
+  background: var(--rg-accent-bright);
+  color: var(--rg-accent-on);
+  font-weight: 700;
+  box-shadow: var(--rg-shadow-cta);
+}
+.rg-btn--primary:hover { background: var(--rg-accent-soft); }
+
+.rg-btn--ghost {
+  background: transparent;
+  color: var(--rg-fg-soft);
+  border-color: var(--rg-border);
+}
+.rg-btn--ghost:hover {
+  border-color: var(--rg-accent-bd-40);
+  color: var(--rg-accent-fg);
+}
+
+.rg-btn--lg { padding: 14px 28px; font-size: 16px; }
+.rg-btn--sm { padding: 8px 14px;  font-size: 13px; }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+
+.rg-card {
+  background: var(--rg-overlay);
+  border: 1px solid var(--rg-border);
+  border-radius: var(--rg-r-lg);
+  padding: 20px;
+  transition: border-color var(--rg-dur) var(--rg-ease),
+              background var(--rg-dur) var(--rg-ease),
+              transform var(--rg-dur) var(--rg-ease);
+}
+.rg-card--hover:hover { border-color: var(--rg-border-strong); }
+
+.rg-card--accent {
+  background: var(--rg-accent-bg-5);
+  border-color: var(--rg-accent-bd-20);
+}
+.rg-card--accent.rg-card--hover:hover {
+  background: var(--rg-accent-bg-8);
+  border-color: var(--rg-accent-bd-40);
+}
+
+.rg-card--locked { opacity: .55; background: rgba(23,23,23,0.3); border-color: rgba(38,38,38,0.5); }
+
+/* List row used in the Plano de 30 Dias and similar lists. */
+.rg-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--rg-r-lg);
+  background: rgba(23,23,23,0.4);
+  border: 1px solid var(--rg-border);
+  color: var(--rg-fg);
+  text-decoration: none;
+  transition: border-color var(--rg-dur) var(--rg-ease),
+              background var(--rg-dur) var(--rg-ease);
+}
+.rg-row:hover {
+  border-color: var(--rg-accent-bd-40);
+  background: var(--rg-accent-bg-5);
+}
+.rg-row__arrow { color: var(--rg-fg-subtle); transition: color var(--rg-dur), transform var(--rg-dur); }
+.rg-row:hover .rg-row__arrow { color: var(--rg-accent-fg); transform: translateX(3px); }
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+
+.rg-progress {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: var(--rg-surface-3);
+  border-radius: var(--rg-r-pill);
+  overflow: hidden;
+}
+.rg-progress__bar {
+  position: absolute; inset: 0 auto 0 0;
+  background: var(--rg-accent);
+  border-radius: var(--rg-r-pill);
+}
+
+/* ============================================================
+   AVATAR / TOKEN
+   ============================================================ */
+
+.rg-token {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--rg-r-pill);
+  background: var(--rg-accent);
+  color: var(--rg-accent-on);
+  font-weight: 700;
+  font-size: 14px;
+}
+.rg-token--ghost { background: var(--rg-surface-3); color: var(--rg-fg-soft); }
+
+/* ============================================================
+   STATUS DOT
+   ============================================================ */
+
+.rg-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 99px;
+  background: var(--rg-fg-subtle);
+}
+.rg-dot--online { background: var(--rg-success); box-shadow: 0 0 8px rgba(34,197,94,0.6); }
+.rg-dot--danger { background: var(--rg-danger); }
+
+/* ============================================================
+   DIVIDERS
+   ============================================================ */
+
+.rg-rule { height: 1px; background: var(--rg-border); border: 0; }
+.rg-rule--strong { background: var(--rg-border-strong); }
+
+/* ============================================================
+   PRINT RESET (used by Plano de 30 dias)
+   ============================================================ */
+
+@media print {
+  .rg-root { background: #fff; color: #000; }
+}

@@ -29,28 +29,34 @@ export function PlanScreen({ plan }: Props) {
   const strengths = useMemo(() => topStrengths(plan, 3), [plan]);
   const weaknesses = useMemo(() => topWeaknesses(plan, 3), [plan]);
   const createdAtLabel = new Date(plan.createdAt).toLocaleDateString("pt-BR");
-
   const [tab, setTab] = useState<"resumo" | "plano">("resumo");
 
-  // PDF download card — usado em ambas as tabs (entrega principal)
+  // PDF hero card — usado em ambas as tabs (entrega principal)
   const pdfCard = plan.diagnosticId ? (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 }}
-      className="relative overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-400/20 via-amber-400/5 to-transparent p-6 shadow-2xl shadow-amber-500/10 print:hidden sm:p-8"
+      transition={{ delay: 0.05, duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
+      className="rg-card rg-card--accent relative overflow-hidden print:hidden"
+      style={{ borderRadius: "var(--rg-r-xl)", padding: 28 }}
     >
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-400/15 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-12 h-48 w-48 rounded-full bg-amber-300/10 blur-[90px]" />
+      <div
+        className="pointer-events-none absolute -right-20 -top-20 rounded-full"
+        style={{
+          width: 256,
+          height: 256,
+          background: "var(--rg-accent-bg-12)",
+          filter: "blur(100px)",
+        }}
+      />
+
       <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300">
-            Seu relatório está pronto
-          </div>
-          <h2 className="mt-2 text-xl font-bold text-neutral-50 sm:text-2xl">
-            Baixe o PDF com seu plano completo
+          <span className="rg-eyebrow">Seu relatório está pronto</span>
+          <h2 className="rg-h2" style={{ marginTop: 10 }}>
+            Baixe o PDF com seu plano completo.
           </h2>
-          <p className="mt-2 max-w-md text-sm text-neutral-300">
+          <p className="rg-body-sm" style={{ marginTop: 10, maxWidth: 460 }}>
             Tudo que você precisa pros próximos 30 dias num único arquivo —
             revise no celular, imprima, compartilhe com seu coach.
           </p>
@@ -59,44 +65,48 @@ export function PlanScreen({ plan }: Props) {
           href={`/r/${plan.diagnosticId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative inline-flex shrink-0 items-center gap-3 self-start rounded-full bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-neutral-900 shadow-xl shadow-amber-500/30 transition hover:bg-neutral-100 hover:shadow-amber-500/50 sm:self-auto"
+          className="rg-btn rg-btn--primary rg-btn--lg shrink-0"
+          style={{ borderRadius: "var(--rg-r-pill)" }}
         >
-          <span className="pointer-events-none absolute -inset-1 rounded-full bg-amber-400/40 opacity-0 blur-md transition group-hover:opacity-100" />
-          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-neutral-900">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 transition group-hover:translate-y-0.5"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          </span>
-          <span className="relative">Baixar meu plano</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Baixar meu plano
         </a>
       </div>
     </motion.div>
   ) : null;
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 print:bg-white print:text-black">
-      <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="rg-root min-h-screen print:bg-white print:text-black">
+      <div
+        className="mx-auto"
+        style={{ maxWidth: 720, padding: "40px 24px 56px" }}
+      >
         {/* Top bar */}
-        <div className="mb-2 flex items-center justify-between gap-4 print:mb-4">
+        <div className="flex items-center justify-between gap-4 print:hidden">
           <Link
             href="/"
-            className="text-xs text-neutral-500 transition hover:text-neutral-200 print:hidden"
+            className="rg-meta"
+            style={{ color: "var(--rg-fg-subtle)", textDecoration: "none" }}
           >
             ← Início
           </Link>
-          <span className="rounded-full border border-amber-400/30 bg-amber-400/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-            Dia {day} de 30
+          <span className="rg-eyebrow rg-eyebrow--pill">
+            <span className="rg-mono">
+              Dia {day} de 30
+            </span>
           </span>
         </div>
 
@@ -104,22 +114,36 @@ export function PlanScreen({ plan }: Props) {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
+          style={{ marginTop: 28, marginBottom: 32 }}
         >
-          <Logo size="lg" />
-          <div className="mt-8 text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300">
+          <Logo size="md" />
+          <p className="rg-eyebrow" style={{ marginTop: 24 }}>
             Desafio Profissão Poker
-          </div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Plano de 30 Dias — {plan.playerName}
+          </p>
+          <h1
+            className="rg-display"
+            style={{ marginTop: 10, color: "var(--rg-fg)" }}
+          >
+            Plano de 30 dias — {plan.playerName}.
           </h1>
-          <p className="mt-3 text-sm text-neutral-500">
-            Criado em {createdAtLabel}
+          <p className="rg-meta" style={{ marginTop: 10 }}>
+            Criado em <span className="rg-mono">{createdAtLabel}</span>
+            {plan.playerTierLabel ? <> · {plan.playerTierLabel}</> : null}
           </p>
         </motion.div>
 
-        {/* Tabs — Resumo / Seu Plano Personalizado */}
-        <div className="mb-6 flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/40 p-1 print:hidden">
+        {/* Tabs */}
+        <div
+          className="flex items-center gap-1 print:hidden"
+          style={{
+            padding: 4,
+            border: "1px solid var(--rg-border)",
+            borderRadius: "var(--rg-r-lg)",
+            background: "var(--rg-overlay)",
+            marginBottom: 24,
+          }}
+        >
           {[
             { key: "resumo" as const, label: "Resumo" },
             { key: "plano" as const, label: "Seu plano personalizado" },
@@ -130,11 +154,19 @@ export function PlanScreen({ plan }: Props) {
                 key={t.key}
                 type="button"
                 onClick={() => setTab(t.key)}
-                className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-amber-400 text-neutral-900"
-                    : "text-neutral-400 hover:text-neutral-100"
-                }`}
+                className="flex-1 transition"
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "var(--rg-r-md)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  background: active ? "var(--rg-accent)" : "transparent",
+                  color: active
+                    ? "var(--rg-accent-on)"
+                    : "var(--rg-fg-muted)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
                 {t.label}
               </button>
@@ -143,230 +175,360 @@ export function PlanScreen({ plan }: Props) {
         </div>
 
         {tab === "resumo" && (
-        <>
-        {/* Sua Avaliação — tier + accuracy */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.04 }}
-          className="mb-6 overflow-hidden rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-400/15 via-amber-400/5 to-transparent p-6"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300/80">
-                Sua avaliação
-              </div>
-              <div className="font-display mt-2 text-3xl text-neutral-50 sm:text-4xl">
-                {plan.playerTierLabel}
-              </div>
-              <div className="mt-1 text-xs text-neutral-400">
-                Tier {plan.playerTier} · {plan.totalCorrect} de {plan.totalDrills} spots corretos
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                Accuracy
-              </div>
-              <div className="font-display mt-1 text-3xl text-amber-300 sm:text-4xl">
-                {plan.accuracyPct}%
-              </div>
-            </div>
-          </div>
-          {/* Barra de progresso geral */}
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-800">
-            <div
-              className="h-full rounded-full bg-amber-400"
-              style={{ width: `${plan.accuracyPct}%` }}
-            />
-          </div>
-        </motion.div>
-
-        {/* Performance por Categoria */}
-        {categories.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mb-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6"
-          >
-            <div className="mb-5 flex items-center gap-2">
-              <span className="text-base">🎯</span>
-              <h2 className="text-base font-bold text-neutral-100">
-                Performance por categoria
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {categories.map((c) => {
-                const color =
-                  c.pct >= 70
-                    ? "bg-emerald-400"
-                    : c.pct >= 50
-                      ? "bg-amber-400"
-                      : "bg-red-400";
-                return (
-                  <div key={c.category}>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm text-neutral-200">{c.category}</span>
-                      <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-[11px] font-semibold text-neutral-300 tabular-nums">
-                        {c.pct}% · {c.correct}/{c.total}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-neutral-800">
-                      <div
-                        className={`h-full rounded-full ${color}`}
-                        style={{ width: `${Math.max(c.pct, 3)}%` }}
-                      />
-                    </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Sua Avaliação */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.04,
+                duration: 0.22,
+                ease: [0.2, 0.7, 0.3, 1],
+              }}
+              className="rg-card rg-card--accent"
+              style={{ padding: 24 }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <span className="rg-eyebrow">Sua avaliação</span>
+                  <h2 className="rg-h2" style={{ marginTop: 10 }}>
+                    {plan.playerTierLabel}
+                  </h2>
+                  <p className="rg-meta" style={{ marginTop: 6 }}>
+                    Tier{" "}
+                    <span className="rg-mono">{plan.playerTier}</span> ·{" "}
+                    <span className="rg-mono">{plan.totalCorrect}</span> de{" "}
+                    <span className="rg-mono">{plan.totalDrills}</span> spots
+                    corretos
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <span className="rg-meta">Accuracy</span>
+                  <div
+                    className="rg-mono"
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 700,
+                      color: "var(--rg-accent-fg)",
+                      marginTop: 4,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {plan.accuracyPct}%
                   </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Pontos Fortes + Áreas para Melhorar */}
-        {(strengths.length > 0 || weaknesses.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.06 }}
-            className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2"
-          >
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="text-base">📈</span>
-                <h3 className="text-sm font-bold text-emerald-300">
-                  Pontos fortes
-                </h3>
+                </div>
               </div>
-              {strengths.length === 0 ? (
-                <p className="text-xs text-neutral-500">
-                  Ainda não tem nenhum spot acima de 70%. Foque em consolidar
-                  fundamentos.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {strengths.map((s, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <span className="truncate text-sm text-neutral-200">
-                        {s.label}
-                      </span>
-                      <span className="shrink-0 text-xs font-semibold text-emerald-300 tabular-nums">
-                        {s.pct}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="text-base">⚠️</span>
-                <h3 className="text-sm font-bold text-amber-300">
-                  Áreas para melhorar
-                </h3>
+              <div className="rg-progress" style={{ marginTop: 18 }}>
+                <div
+                  className="rg-progress__bar"
+                  style={{ width: `${plan.accuracyPct}%` }}
+                />
               </div>
-              {weaknesses.length === 0 ? (
-                <p className="text-xs text-neutral-500">
-                  Mandou bem — não identificamos pontos fracos críticos.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {weaknesses.map((w, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <span className="truncate text-sm text-neutral-200">
-                        {w.label}
-                      </span>
-                      <span className="shrink-0 text-xs font-semibold text-amber-300 tabular-nums">
-                        {w.pct}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
 
-        {/* PDF download — fim da tab Resumo */}
-        {pdfCard}
-        </>
+            {/* Performance por Categoria */}
+            {categories.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.06,
+                  duration: 0.22,
+                  ease: [0.2, 0.7, 0.3, 1],
+                }}
+                className="rg-card"
+                style={{ padding: 24 }}
+              >
+                <h3 className="rg-h3" style={{ marginBottom: 18 }}>
+                  Performance por categoria
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {categories.map((c) => {
+                    const accentColor =
+                      c.pct >= 70
+                        ? "var(--rg-success)"
+                        : c.pct >= 50
+                          ? "var(--rg-warn)"
+                          : "var(--rg-danger)";
+                    return (
+                      <div key={c.category}>
+                        <div
+                          className="flex items-center justify-between"
+                          style={{ marginBottom: 6 }}
+                        >
+                          <span style={{ fontSize: 14, color: "var(--rg-fg-soft)" }}>
+                            {c.category}
+                          </span>
+                          <span
+                            className="rg-mono"
+                            style={{
+                              fontSize: 12,
+                              color: "var(--rg-fg-subtle)",
+                            }}
+                          >
+                            {c.pct}% · {c.correct}/{c.total}
+                          </span>
+                        </div>
+                        <div className="rg-progress">
+                          <div
+                            className="rg-progress__bar"
+                            style={{
+                              width: `${Math.max(c.pct, 3)}%`,
+                              background: accentColor,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Pontos Fortes + Áreas para Melhorar */}
+            {(strengths.length > 0 || weaknesses.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.08,
+                  duration: 0.22,
+                  ease: [0.2, 0.7, 0.3, 1],
+                }}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+              >
+                <div className="rg-card" style={{ padding: 22 }}>
+                  <h3
+                    className="rg-h3"
+                    style={{
+                      marginBottom: 14,
+                      color: "var(--rg-success)",
+                      fontSize: 14,
+                    }}
+                  >
+                    Pontos fortes
+                  </h3>
+                  {strengths.length === 0 ? (
+                    <p className="rg-caption">
+                      Ainda não tem nenhum spot acima de 70%. Foque em
+                      consolidar fundamentos.
+                    </p>
+                  ) : (
+                    <ul
+                      style={{
+                        margin: 0,
+                        padding: 0,
+                        listStyle: "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      {strengths.map((s, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between gap-3"
+                        >
+                          <span
+                            style={{
+                              fontSize: 14,
+                              color: "var(--rg-fg-soft)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {s.label}
+                          </span>
+                          <span
+                            className="rg-mono shrink-0"
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "var(--rg-success)",
+                            }}
+                          >
+                            {s.pct}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="rg-card" style={{ padding: 22 }}>
+                  <h3
+                    className="rg-h3"
+                    style={{
+                      marginBottom: 14,
+                      color: "var(--rg-accent-fg)",
+                      fontSize: 14,
+                    }}
+                  >
+                    Áreas para melhorar
+                  </h3>
+                  {weaknesses.length === 0 ? (
+                    <p className="rg-caption">
+                      Mandou bem — não identificamos pontos fracos críticos.
+                    </p>
+                  ) : (
+                    <ul
+                      style={{
+                        margin: 0,
+                        padding: 0,
+                        listStyle: "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      {weaknesses.map((w, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between gap-3"
+                        >
+                          <span
+                            style={{
+                              fontSize: 14,
+                              color: "var(--rg-fg-soft)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {w.label}
+                          </span>
+                          <span
+                            className="rg-mono shrink-0"
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "var(--rg-accent-fg)",
+                            }}
+                          >
+                            {w.pct}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* PDF hero — entrega principal */}
+            {pdfCard}
+          </div>
         )}
 
         {tab === "plano" && (
-        <>
-        {/* PDF download — começo da tab Plano Personalizado */}
-        {pdfCard}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {pdfCard}
 
-        {/* Plano de Ação — 6 itens (3 fixos + 3 spots dos top leaks) */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="mt-10 mb-3"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-base">🚀</span>
-            <h2 className="text-base font-bold text-neutral-100">
-              Plano de ação
-            </h2>
-          </div>
-          <p className="mt-1 text-xs text-neutral-500">
-            O que estudar e treinar nos próximos 30 dias
-          </p>
-        </motion.div>
-        <motion.ul
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.09 }}
-          className="space-y-3"
-        >
-          {items.map((item, i) => (
-            <li key={i}>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center justify-between gap-4 rounded-xl border border-neutral-800 bg-neutral-900/40 px-5 py-4 transition hover:border-amber-400/40 hover:bg-amber-400/5"
-              >
-                <div className="min-w-0">
-                  <div className="text-base font-semibold text-neutral-100 group-hover:text-amber-200">
-                    {item.label}
-                  </div>
-                  {item.sublabel && (
-                    <div className="mt-1 truncate text-xs text-neutral-500">
-                      {item.sublabel}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.06,
+                duration: 0.22,
+                ease: [0.2, 0.7, 0.3, 1],
+              }}
+              style={{ marginTop: 8 }}
+            >
+              <p className="rg-eyebrow">Suas 6 frentes</p>
+              <h3 className="rg-h3" style={{ marginTop: 8 }}>
+                Plano de ação
+              </h3>
+              <p className="rg-body-sm" style={{ marginTop: 4 }}>
+                O que estudar e treinar nos próximos 30 dias.
+              </p>
+            </motion.div>
+
+            <motion.ul
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.08,
+                duration: 0.22,
+                ease: [0.2, 0.7, 0.3, 1],
+              }}
+              style={{
+                margin: 0,
+                padding: 0,
+                listStyle: "none",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              {items.map((item, i) => (
+                <li key={i}>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rg-row"
+                    style={{ padding: "18px 22px" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: 16,
+                        minWidth: 0,
+                      }}
+                    >
+                      <span
+                        className="rg-mono"
+                        style={{
+                          fontSize: 13,
+                          color: "var(--rg-fg-faint)",
+                          fontWeight: 500,
+                          width: 24,
+                        }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 16, fontWeight: 600 }}>
+                          {item.label}
+                        </div>
+                        {item.sublabel && (
+                          <div className="rg-caption" style={{ marginTop: 4 }}>
+                            {item.sublabel}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-                <span className="shrink-0 text-neutral-500 transition group-hover:translate-x-1 group-hover:text-amber-300">
-                  →
-                </span>
-              </a>
-            </li>
-          ))}
-        </motion.ul>
-        </>
+                    <span className="rg-row__arrow">→</span>
+                  </a>
+                </li>
+              ))}
+            </motion.ul>
+          </div>
         )}
 
-        {/* Footer actions */}
-        <div className="mt-12 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800 pt-6 print:hidden">
+        {/* Footer */}
+        <div
+          className="print:hidden"
+          style={{
+            marginTop: 48,
+            paddingTop: 24,
+            borderTop: "1px solid var(--rg-border)",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+          }}
+        >
           <button
             onClick={() => window.print()}
-            className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-200 transition hover:border-neutral-500"
+            className="rg-btn rg-btn--ghost rg-btn--sm"
           >
             Imprimir / PDF
           </button>
           <button
             onClick={() => setShowRetake(true)}
-            className="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-300 transition hover:border-amber-400/50 hover:text-amber-300"
+            className="rg-btn rg-btn--ghost rg-btn--sm"
           >
             Refazer nivelamento
           </button>
