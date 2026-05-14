@@ -106,7 +106,7 @@ export function PlanScreen({ plan }: Props) {
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
                 </span>
-                <span className="relative">Baixar relatório (PDF)</span>
+                <span className="relative">Baixar meu plano</span>
               </a>
             </div>
           </motion.div>
