@@ -1,7 +1,7 @@
 // lib/poker/challenge30d.ts — Estrutura do "Desafio Profissão Poker · 30 dias".
 //
-// Substitui o plano de 90 dias (3 fases / tasks / aulas) por uma entrega
-// enxuta de 6 links (3 fixos + 3 spots derivados dos top 3 leaks).
+// Entrega enxuta de 6 links: 3 fixos (carreira, grade de torneios, grupo
+// WhatsApp) + 3 spots derivados dos top 3 leaks do diagnóstico.
 
 import type { SavedPlan } from "./planStorage";
 import { topLeaks } from "@/lib/pdf/utils";
@@ -31,7 +31,7 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
     items.push({
       label: `Spot ${i + 1} — aula + treino`,
       sublabel: leak.label,
-      url: getSpotLink(leakIdFromHighlight(leak.label)),
+      url: getSpotLink(leak.id),
     });
   });
 
@@ -59,34 +59,3 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
 
   return items;
 }
-
-/**
- * Converte o label exibido do leak (ex: "Vs RFI · BB · 25bb") de volta
- * pra um leak_id (ex: "vsOpen-BB-25") pra consultar o SPOT_LINK_MAP.
- *
- * Como `topLeaks()` em lib/pdf/utils só nos devolve o label formatado,
- * precisamos parsear de volta. Se não encontrar correspondência o
- * `getSpotLink` cai no PLACEHOLDER — não quebra.
- */
-function leakIdFromHighlight(label: string): string {
-  // Ex.: "Vs RFI · BB · 25bb"  →  ["Vs RFI", "BB", "25bb"]
-  const parts = label.split("·").map((s) => s.trim());
-  if (parts.length < 3) return label;
-
-  const [actionLabel, position, stackBand] = parts;
-  const action = ACTION_LABEL_TO_ID[actionLabel] ?? actionLabel;
-  const stack = stackBand.replace(/bb$/i, "");
-  return `${action}-${position}-${stack}`;
-}
-
-const ACTION_LABEL_TO_ID: Record<string, string> = {
-  "RFI": "RFI",
-  "Vs RFI": "vsOpen",
-  "C-Bet": "cBet",
-  "Vs C-Bet": "vsCbet",
-  "Blind War": "blindWar",
-  "Vs 3-Bet": "vs3Bet",
-  "Multiway BB": "multiway",
-  "C-Bet Turn": "cbetTurn",
-  "C-Bet River": "cbetRiver",
-};

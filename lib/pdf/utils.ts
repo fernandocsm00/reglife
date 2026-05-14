@@ -9,6 +9,8 @@ export interface SpotAccuracyEntry {
 }
 
 export interface LeakHighlight {
+  /** Leak id no formato `${action}-${position}-${stackSize}` — usado por getSpotLink. */
+  id: string;
   label: string;
   pct: number;
   narrative: string;
@@ -59,6 +61,7 @@ export function topLeaks(plan: SavedPlan, n: number = 3): LeakHighlight[] {
           ? Math.round(((leak.total - leak.errors) / leak.total) * 100)
           : 0;
       return {
+        id: leak.id,
         label: `${leak.actionLabel} · ${leak.position} · ${leak.stackBand}`,
         pct: accuracyPct,
         narrative: leak.recommendation,
