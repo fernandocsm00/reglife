@@ -208,7 +208,7 @@ export function createDrill(
   // Opt-out por spot: quando config.showAllSizes=true, NÃO filtra os
   // botões dimensionados — todos os tamanhos aparecem como distratores
   // (ex.: cbet turn, onde a escolha do sizing é o aprendizado principal).
-  const buttons =
+  let buttons =
     !config.showAllSizes && correctPrefixes.size
       ? allButtons.filter((b) => {
           const prefix = matchedPrefix(b.text);
@@ -217,6 +217,23 @@ export function createDrill(
           return b.isCorrect; // dentro do prefixo correto, só o tamanho certo
         })
       : allButtons;
+
+  // defaultRaiseSize: quando nenhum RAISE é correto, mantém apenas o
+  // tamanho default entre os RAISE — em vez de mostrar todos os 3 sizes
+  // como distratores. Garante UM e apenas um botão de RAISE no spot.
+  if (
+    config.defaultRaiseSize &&
+    !config.showAllSizes &&
+    !correctPrefixes.has("RAISE")
+  ) {
+    const defaultRaiseUpper = config.defaultRaiseSize.toUpperCase();
+    buttons = buttons.filter((b) => {
+      const upper = b.text.toUpperCase();
+      const isRaise = upper === "RAISE" || upper.startsWith("RAISE ");
+      if (!isRaise) return true;
+      return upper === defaultRaiseUpper;
+    });
+  }
 
   // 6. Build the table seats.
   const players = buildTableSeats({

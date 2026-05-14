@@ -92,6 +92,16 @@ export interface SpotConfigFile {
    * Default: false (filtro ativo, como o resto do trainer).
    */
   showAllSizes?: boolean;
+  /**
+   * Quando definido, se NENHUM RAISE for a resposta correta da mão atual,
+   * mostra apenas este botão entre os RAISE — os outros tamanhos somem.
+   * Combina com o filtro normal: se houver RAISE correto, só ele aparece
+   * (comportamento existente). Resultado: o aluno SEMPRE vê 1 e apenas 1
+   * botão de RAISE no spot.
+   *
+   * Valor: o texto exato do botão (ex.: "RAISE 6").
+   */
+  defaultRaiseSize?: string;
   expectedAnswers: ExpectedAnswer[];
   // Optional / legacy fields seen in real config files
   stackSize?: number | number[];
