@@ -3,10 +3,7 @@
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  daysSinceCreation,
-  type SavedPlan,
-} from "@/lib/poker/planStorage";
+import type { SavedPlan } from "@/lib/poker/planStorage";
 import { buildChallenge30d } from "@/lib/poker/challenge30d";
 import { Logo } from "@/components/Logo";
 import { RetakeModal } from "./RetakeModal";
@@ -19,7 +16,6 @@ interface Props {
 export function PlanScreen({ plan }: Props) {
   const [showRetake, setShowRetake] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const day = Math.min(daysSinceCreation(plan), 30);
   const items = useMemo(() => buildChallenge30d(plan), [plan]);
   const createdAtLabel = new Date(plan.createdAt).toLocaleDateString("pt-BR");
 
@@ -85,9 +81,6 @@ export function PlanScreen({ plan }: Props) {
           >
             ← Início
           </Link>
-          <span className="rg-eyebrow rg-eyebrow--pill">
-            <span className="rg-mono">Dia {day} de 30</span>
-          </span>
         </div>
 
         {/* Header */}
@@ -98,14 +91,11 @@ export function PlanScreen({ plan }: Props) {
           style={{ marginTop: 28, marginBottom: 32 }}
         >
           <Logo size="md" />
-          <p className="rg-eyebrow" style={{ marginTop: 24 }}>
-            Desafio Profissão Poker
-          </p>
           <h1
             className="rg-display"
-            style={{ marginTop: 10, color: "var(--rg-fg)" }}
+            style={{ marginTop: 28, color: "var(--rg-fg)" }}
           >
-            Plano de 30 dias — {plan.playerName}.
+            Plano de Progressão Individual — {plan.playerName}.
           </h1>
           <p className="rg-meta" style={{ marginTop: 10 }}>
             Criado em <span className="rg-mono">{createdAtLabel}</span>
