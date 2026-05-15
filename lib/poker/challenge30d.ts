@@ -5,7 +5,7 @@
 
 import type { SavedPlan } from "./planStorage";
 import { topLeaks } from "@/lib/pdf/utils";
-import { FIXED_LINKS, getSpotLink } from "./spotLinks";
+import { FIXED_LINKS, canonicalSlotForLeak, getSpotLink } from "./spotLinks";
 
 export interface ChallengeItem {
   /** Label exibido no card / linha do PDF. */
@@ -17,7 +17,13 @@ export interface ChallengeItem {
 }
 
 export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
-  const leaks = topLeaks(plan, 3);
+  // Top 3 leaks selecionados pela severidade (pior accuracy primeiro)
+  // — mas re-ordenados pela sequência canônica de estudo da Reg Life
+  // (RFI antes de Cbet flop antes de Cbet turn etc.) pra o aluno
+  // estudar na ordem certa, não na ordem do erro.
+  const leaks = [...topLeaks(plan, 3)].sort(
+    (a, b) => canonicalSlotForLeak(a.id) - canonicalSlotForLeak(b.id)
+  );
 
   const items: ChallengeItem[] = [
     {

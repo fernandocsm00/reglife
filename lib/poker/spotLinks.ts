@@ -111,3 +111,51 @@ export function getSpotLink(leakId: string): string {
       return PLACEHOLDER;
   }
 }
+
+/**
+ * Ordem canônica de ESTUDO dos spots, conforme a sequência da Comunidade
+ * Reg Life. Usada pra ordenar os 3 spots no Plano de Ação independente de
+ * quais leaks o aluno teve. Quanto menor o número, mais cedo o spot
+ * aparece no plano (mesmo que outro tenha sido leak pior).
+ *
+ *  1  RFI
+ *  2  Cbet em posição vs BB (cbet flop IP)
+ *  3  Cbet Turn e River em Posição vs BB
+ *  4  Vs RFI
+ *  5  Jogando do BB (defesa do BB pré-flop)
+ *  6  Blind War Pré-Flop
+ *  7  Jogando vs Cbet do BB
+ *  8  Defesa de BB Multiway
+ *  9  Enfrentando uma 3-bet
+ *  10 Cbet Fora de Posição
+ *  11 Jogando em Posição (vs cbet IP + bet vs missed)
+ *  99 fallback — spot que não bate em nenhum tema
+ */
+export function canonicalSlotForLeak(leakId: string): number {
+  const parts = leakId.split("-");
+  if (parts.length < 2) return 99;
+  const [action, position] = parts;
+
+  switch (action) {
+    case "RFI":
+      return 1;
+    case "cBet":
+      return position === "BTN" || position === "UTG1" ? 2 : 10;
+    case "cbetTurn":
+    case "cbetRiver":
+      return 3;
+    case "vsOpen":
+      return position === "BB" ? 5 : 4;
+    case "vsBBISO":
+    case "blindWar":
+      return 6;
+    case "vsCbet":
+      return position === "BB" ? 7 : 11;
+    case "multiway":
+      return 8;
+    case "vs3Bet":
+      return 9;
+    default:
+      return 99;
+  }
+}
