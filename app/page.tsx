@@ -222,13 +222,12 @@ function FirstTime() {
       </div>
 
       <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
-        Pesquisa Inicial
+        Receba seu plano individual
       </h1>
 
       <p className="mt-6 max-w-2xl text-base leading-snug text-neutral-200 sm:text-xl">
-        Antes do teste técnico, queremos te conhecer melhor com{" "}
-        <span className="text-amber-300">algumas perguntas rápidas</span> sobre
-        seu perfil de jogador.
+        Faça o teste e receba seu{" "}
+        <span className="text-amber-300">plano de progressão</span> na hora.
       </p>
 
       <Link
@@ -250,7 +249,7 @@ function FirstTime() {
             <path d="M13 5l7 7-7 7" />
           </svg>
         </span>
-        Eu encaro!
+        Começar agora
       </Link>
     </motion.div>
   );
