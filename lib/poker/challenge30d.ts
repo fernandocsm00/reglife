@@ -28,7 +28,7 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
   const items: ChallengeItem[] = [
     {
       label: "Aula construção de carreira",
-      sublabel: "Como pensar a carreira no poker hoje",
+      sublabel: "Como o Yuri começaria hoje",
       url: FIXED_LINKS.careerLesson,
     },
   ];
@@ -53,7 +53,7 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
 
   items.push({
     label: "Grade de torneios",
-    sublabel: "Quais torneios jogar e em qual horário",
+    sublabel: "Não precisa pensar, é só registrar",
     url: FIXED_LINKS.tournamentGrid,
   });
 
