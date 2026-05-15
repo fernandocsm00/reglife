@@ -264,10 +264,11 @@ export function OnboardingForm({ onSubmit }: Props) {
 
           {step === 7 && (
             <StepWrapper key="banca">
-              <Title>Qual é a sua banca total (USD)?</Title>
+              <Title>Qual é a sua banca total para poker online (em dólares)?</Title>
               <Sub>
-                Não é só o que tem na sala — é todo o dinheiro disponível pra
-                dar buy-ins, incluindo o que você pode depositar.
+                Não é só a soma do que você tem nas salas, é todo o dinheiro
+                que você tem disponível para dar buy-ins, incluindo o que
+                ainda pode depositar.
               </Sub>
               <QuestionOptions
                 options={BANCA_OPTIONS}
