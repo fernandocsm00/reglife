@@ -89,7 +89,7 @@ export function PlanScreen({ plan }: Props) {
             />
             <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <span className="rg-eyebrow">Seu relatório está pronto</span>
+                <span className="rg-eyebrow">Seu plano está pronto</span>
                 <h2 className="rg-h2" style={{ marginTop: 10 }}>
                   Baixe o PDF com seu plano completo.
                 </h2>
