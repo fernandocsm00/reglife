@@ -509,20 +509,16 @@ function TestIntro({ onStart }: { onStart: () => void }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
-            PASSO 2 DE 2
-          </div>
-
-          <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
+          <h1 className="font-display text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
             Teste Técnico
           </h1>
 
           <p className="mt-6 max-w-xl text-base leading-snug text-neutral-200 sm:text-xl">
             Agora começa o teste com{" "}
-            <span className="text-amber-300">simulação de mãos reais</span> de
-            poker. Separe{" "}
-            <span className="text-amber-300">10 minutos</span> e faça com calma —
-            responda como faria numa sessão de verdade.
+            <span className="text-amber-300">simulações de mãos</span>. Separe{" "}
+            <span className="text-amber-300">10 minutos</span> para fazer com
+            foco total e responda como se estivesse em uma sessão real de
+            poker online.
           </p>
 
           <button
