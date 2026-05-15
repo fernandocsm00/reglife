@@ -1,5 +1,5 @@
-// reg.life wordmark — uses /public/reglife-logo.svg so the artwork stays
-// pixel-identical to the brand asset across all surfaces.
+// reg.life mark — diamante âmbar (símbolo standalone, sem wordmark).
+// Asset em /public/reglife-diamond.svg.
 
 import Link from "next/link";
 
@@ -14,7 +14,7 @@ interface Props {
   href?: string | null;
 }
 
-const HEIGHT: Record<NonNullable<Props["size"]>, number> = {
+const SIZE: Record<NonNullable<Props["size"]>, number> = {
   sm: 20,
   md: 36,
   lg: 64,
@@ -22,14 +22,15 @@ const HEIGHT: Record<NonNullable<Props["size"]>, number> = {
 };
 
 export function Logo({ size = "md", className = "", href = "/" }: Props) {
-  const h = HEIGHT[size];
+  const s = SIZE[size];
   const img = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/reglife-logo.png"
+      src="/reglife-diamond.svg"
       alt="reg.life"
-      height={h}
-      style={{ height: h, width: "auto" }}
+      width={s}
+      height={s}
+      style={{ width: s, height: s }}
       className={className}
     />
   );
