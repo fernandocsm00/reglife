@@ -16,19 +16,6 @@ interface Props {
   onContinue: () => void;
 }
 
-const STUDY_LABELS: Record<string, string> = {
-  ate15: "Até 15h/sem",
-  ate40: "Até 40h/sem",
-  mais40: "Mais de 40h/sem",
-};
-
-const PROFIT_LABELS: Record<string, string> = {
-  usd1k: "U$ 1.000",
-  usd10k: "U$ 10.000",
-  usd50k: "U$ 50.000",
-  usd100k: "U$ 100.000",
-};
-
 export function ResultsScreen({ plan, onContinue }: Props) {
   const categories = useMemo(() => performanceByCategory(plan), [plan]);
   const strengths = useMemo(() => topStrengths(plan, 3), [plan]);
@@ -58,17 +45,22 @@ export function ResultsScreen({ plan, onContinue }: Props) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
+          className="text-center"
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         >
           <Logo size="md" />
-          <p className="rg-eyebrow" style={{ marginTop: 24 }}>
+          <h1
+            className="rg-display"
+            style={{ marginTop: 28, fontSize: 44 }}
+          >
             Resultado do teste técnico
-          </p>
-          <h1 className="rg-display" style={{ marginTop: 10 }}>
-            Aqui está o que vimos, {firstName}.
           </h1>
-          <p className="rg-body" style={{ marginTop: 12, maxWidth: 540 }}>
-            Antes do seu plano personalizado, dá uma olhada no resultado. Esse
-            é o ponto de partida.
+          <p
+            className="rg-body"
+            style={{ marginTop: 14, maxWidth: 540 }}
+          >
+            Aqui está o que vimos, {firstName}. Esse é seu ponto de partida —
+            antes do plano personalizado.
           </p>
         </motion.div>
 
@@ -99,18 +91,6 @@ export function ResultsScreen({ plan, onContinue }: Props) {
                 {plan.email}
               </div>
             )}
-          </div>
-          <div>
-            <div className="rg-meta">META</div>
-            <div style={{ marginTop: 6, fontSize: 15, fontWeight: 600 }}>
-              {PROFIT_LABELS[plan.profitGoal] ?? plan.profitGoal}
-            </div>
-            <div
-              className="rg-caption"
-              style={{ marginTop: 2, color: "var(--rg-fg-muted)" }}
-            >
-              {STUDY_LABELS[plan.studyTime] ?? plan.studyTime}
-            </div>
           </div>
           <div>
             <div className="rg-meta">RESULTADO</div>
