@@ -10,6 +10,7 @@ import { PokerTable } from "./PokerTable";
 import { ActionButtonsBar } from "./ActionButtonsBar";
 import { ActionHistoryPanel } from "./ActionHistoryPanel";
 import { OnboardingForm, type OnboardingData } from "./OnboardingForm";
+import { ResultsScreen } from "./ResultsScreen";
 import { Logo } from "@/components/Logo";
 import { sounds } from "@/lib/audio/sounds";
 import { analyzeResults } from "@/lib/poker/leakAnalysis";
@@ -71,6 +72,16 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
    * → clica "Quero começar!" → entra no drill. Reseta a cada refresh.
    */
   const [testStarted, setTestStarted] = useState(false);
+  /**
+   * Plano construído ao final do teste. Renderiza a ResultsScreen
+   * passando esse plan. Antes de existir, a useEffect ainda não rodou.
+   */
+  const [builtPlan, setBuiltPlan] = useState<SavedPlan | null>(null);
+  /**
+   * Aluno clicou "Quero meu plano" na ResultsScreen → ativa a tela de
+   * loading "Montando seu plano…" e dispara o redirect pra /meu-plano.
+   */
+  const [goingToPlan, setGoingToPlan] = useState(false);
   const builtRef = useRef(false);
 
   useEffect(() => {
@@ -146,18 +157,28 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       .then(async (r) => {
         if (!r.ok) return;
         const data = await r.json().catch(() => null);
-        if (data?.id) savePlan({ ...planForServer, diagnosticId: data.id });
+        if (data?.id) {
+          const withId = { ...planForServer, diagnosticId: data.id };
+          savePlan(withId);
+          setBuiltPlan(withId);
+        }
       })
       .catch(() => { /* silently ignore */ });
 
-    // 5s de tela "Montando seu plano…" antes de redirecionar — dá uma
-    // sensação de processamento e evita o flash brusco pra /meu-plano.
-    const t = setTimeout(() => router.push("/meu-plano"), 5000);
-    return () => clearTimeout(t);
-  }, [completed, results, playerName, email, phone, studyTime, profitGoal, router,
+    // O plano fica disponível pra ResultsScreen renderizar.
+    // Sem auto-redirect: o aluno clica "Quero meu plano" pra avançar.
+    setBuiltPlan(planForServer);
+  }, [completed, results, playerName, email, phone, studyTime, profitGoal,
       stoppedEarly, spotSummaries, failedSpotCount,
       volumeTargetWeekly, notifyChannels, whatsappPhone,
       quizAnswers, leadScore, leadCategory, stakeGrade, leadId]);
+
+  // Quando aluno clica "Quero meu plano" → 5s de loading → redirect
+  useEffect(() => {
+    if (!goingToPlan) return;
+    const t = setTimeout(() => router.push("/meu-plano"), 5000);
+    return () => clearTimeout(t);
+  }, [goingToPlan, router]);
 
   const handlePick = (text: string) => {
     pickAnswer(text);
@@ -224,7 +245,16 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     return <TestIntro onStart={() => setTestStarted(true)} />;
   }
 
-  // "Montando seu plano…" screen — fica 5s antes de cair em /meu-plano
+  // Aluno terminou o teste e ainda não pediu pra ver o plano →
+  // mostra a tela de resultados com os dados do diagnóstico.
+  if (completed && builtPlan && !goingToPlan) {
+    return (
+      <ResultsScreen plan={builtPlan} onContinue={() => setGoingToPlan(true)} />
+    );
+  }
+
+  // "Montando seu plano…" — só quando aluno clicou "Quero meu plano"
+  // OU enquanto o useEffect ainda não setou builtPlan (caso raro de race).
   if (completed) {
     return (
       <div className="bg-starfield glow-amber-bottom relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center text-neutral-100">

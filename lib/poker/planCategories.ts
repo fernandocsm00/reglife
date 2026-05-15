@@ -7,6 +7,31 @@
 
 import type { SavedPlan } from "./planStorage";
 
+/** Tier de cada spot por nome (config.name do JSON). Usado no grid de resultado. */
+const TIER_BY_SPOT_LABEL: Record<string, 1 | 2 | 3> = {
+  "RFI Prioridades — reg.life": 1,
+  "Vs RFI — reg.life": 1,
+  "Defesa de Big Blind — reg.life": 1,
+  "Blind War — SB GAP — reg.life": 1,
+  "Blind War — SB vs ISO — reg.life": 1,
+  "Blind War — BB vs Limp — reg.life": 1,
+  "Blind War — BB vs Raise — reg.life": 1,
+  "C-Bet Flop vs BB — reg.life": 1,
+  "C-Bet Turn vs BB — reg.life": 1,
+  "C-Bet River vs BB — reg.life": 1,
+  "Vs C-Bet Flop do BB — reg.life": 1,
+  "Defesa de BB Multiway — reg.life": 2,
+  "Vs 3-Bet EP/MP — reg.life": 2,
+  "Vs 3-Bet BTN vs SB — reg.life": 2,
+  "Cbet vs BTN — reg.life": 2,
+  "Vs C-Bet Flop do BTN — reg.life": 2,
+  "Bet vs Missed Cbet (BTN vs CO) — reg.life": 2,
+};
+
+export function tierForSpotLabel(label: string): 1 | 2 | 3 | null {
+  return TIER_BY_SPOT_LABEL[label] ?? null;
+}
+
 /** Categorias na ordem em que devem ser exibidas. */
 export const CATEGORY_ORDER = [
   "Pré-flop Open",
