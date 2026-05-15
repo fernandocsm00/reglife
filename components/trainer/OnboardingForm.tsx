@@ -248,8 +248,11 @@ export function OnboardingForm({ onSubmit }: Props) {
 
           {step === 6 && (
             <StepWrapper key="volume">
-              <Title>Quantos torneios você joga por mês?</Title>
-              <Sub>Média dos últimos 6 meses no SharkScope.</Sub>
+              <Title>Quantos torneios online você joga por mês?</Title>
+              <Sub>
+                Responda com uma média aproximada dos últimos 6 meses segundo
+                o SharkScope.
+              </Sub>
               <QuestionOptions
                 options={VOLUME_OPTIONS}
                 value={volume}
