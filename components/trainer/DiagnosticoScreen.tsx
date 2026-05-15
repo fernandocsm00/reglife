@@ -311,7 +311,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
             <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
               Spot concluído
             </p>
-            <p className="mt-1 text-lg font-bold">{lastSpotSummary.label}</p>
+            <p className="mt-1 text-lg font-bold">
+              {lastSpotSummary.label.replace(/ — reg\.life$/, "")}
+            </p>
             <div className="mt-4 flex items-center justify-center gap-3">
               <div
                 className={`flex h-16 w-16 items-center justify-center rounded-full text-2xl font-black ${
@@ -365,7 +367,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
             <p className="text-sm text-neutral-400">
               Próximo:{" "}
               <span className="font-semibold text-neutral-200">
-                {sessions[contextIdx]?.label ?? ""}
+                {(sessions[contextIdx]?.label ?? "").replace(/ — reg\.life$/, "")}
               </span>{" "}
               <span className="text-neutral-500">
                 ({currentSpotDrills} mãos)
