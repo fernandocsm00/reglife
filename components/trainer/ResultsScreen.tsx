@@ -53,7 +53,7 @@ export function ResultsScreen({ plan, onContinue }: Props) {
             className="rg-display"
             style={{ marginTop: 28, fontSize: 44 }}
           >
-            Resultado do teste técnico
+            Seu resultado
           </h1>
           <p
             className="rg-body"
@@ -106,13 +106,6 @@ export function ResultsScreen({ plan, onContinue }: Props) {
             >
               {plan.accuracyPct}%
             </div>
-            <div
-              className="rg-caption"
-              style={{ marginTop: 4, color: "var(--rg-fg-muted)" }}
-            >
-              <span className="rg-mono">{plan.totalCorrect}</span> de{" "}
-              <span className="rg-mono">{plan.totalDrills}</span> corretos
-            </div>
           </div>
           <div>
             <div className="rg-meta">STATUS</div>
@@ -140,12 +133,6 @@ export function ResultsScreen({ plan, onContinue }: Props) {
                   Completo
                 </span>
               )}
-            </div>
-            <div
-              className="rg-caption"
-              style={{ marginTop: 4, color: "var(--rg-fg-muted)" }}
-            >
-              Tier {plan.playerTier} · {plan.playerTierLabel}
             </div>
           </div>
         </motion.div>
