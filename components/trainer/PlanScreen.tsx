@@ -17,7 +17,6 @@ export function PlanScreen({ plan }: Props) {
   const [showRetake, setShowRetake] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const items = useMemo(() => buildChallenge30d(plan), [plan]);
-  const createdAtLabel = new Date(plan.createdAt).toLocaleDateString("pt-BR");
 
   /**
    * Abre o PDF do plano em nova aba.
@@ -97,10 +96,6 @@ export function PlanScreen({ plan }: Props) {
           >
             Plano de Progressão Individual — {plan.playerName}.
           </h1>
-          <p className="rg-meta" style={{ marginTop: 10 }}>
-            Criado em <span className="rg-mono">{createdAtLabel}</span>
-            {plan.playerTierLabel ? <> · {plan.playerTierLabel}</> : null}
-          </p>
         </motion.div>
 
         {/* PDF hero — entrega principal */}
