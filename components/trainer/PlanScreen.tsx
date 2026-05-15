@@ -18,9 +18,57 @@ interface Props {
 
 export function PlanScreen({ plan }: Props) {
   const [showRetake, setShowRetake] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const day = Math.min(daysSinceCreation(plan), 30);
   const items = useMemo(() => buildChallenge30d(plan), [plan]);
   const createdAtLabel = new Date(plan.createdAt).toLocaleDateString("pt-BR");
+
+  /**
+   * Abre o PDF do plano em nova aba.
+   *
+   * Estratégia em 2 passos:
+   * 1. Tenta /r/{id} via GET — caminho stateless, funciona se saved_plan
+   *    estiver na DB ou se o PDF já existir no Storage.
+   * 2. Se falhar (saved_plan null + PDF não existe), faz POST direto pra
+   *    /api/plan/pdf mandando o savedPlan do localStorage. Esse path
+   *    regenera o PDF E atualiza saved_plan na DB pra próximos acessos.
+   */
+  async function handleDownloadPdf() {
+    if (!plan.diagnosticId) return;
+    if (pdfLoading) return;
+
+    setPdfLoading(true);
+    // Abre uma janela em branco já no clique (evita popup blocker)
+    const popup = window.open("about:blank", "_blank");
+
+    try {
+      const res = await fetch("/api/plan/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          diagnosticId: plan.diagnosticId,
+          savedPlan: plan,
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as
+        | { url?: string; error?: string }
+        | null;
+      if (!res.ok || !data?.url) {
+        const errMsg = data?.error ?? `Erro ${res.status}`;
+        if (popup) popup.close();
+        alert(`Não consegui gerar o PDF: ${errMsg}. Tenta refazer em alguns minutos.`);
+        return;
+      }
+      if (popup) popup.location.href = data.url;
+      else window.open(data.url, "_blank");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (popup) popup.close();
+      alert(`Não consegui gerar o PDF: ${msg}`);
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   return (
     <div className="rg-root min-h-screen print:bg-white print:text-black">
@@ -101,29 +149,40 @@ export function PlanScreen({ plan }: Props) {
                   — revise no celular, imprima, compartilhe com seu coach.
                 </p>
               </div>
-              <a
-                href={`/r/${plan.diagnosticId}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
                 className="rg-btn rg-btn--primary rg-btn--lg shrink-0"
-                style={{ borderRadius: "var(--rg-r-pill)" }}
+                style={{
+                  borderRadius: "var(--rg-r-pill)",
+                  opacity: pdfLoading ? 0.7 : 1,
+                  cursor: pdfLoading ? "wait" : "pointer",
+                }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Baixar meu plano
-              </a>
+                {pdfLoading ? (
+                  <span
+                    className="inline-block animate-spin rounded-full border-2 border-current border-r-transparent"
+                    style={{ width: 14, height: 14 }}
+                  />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                )}
+                {pdfLoading ? "Gerando…" : "Baixar meu plano"}
+              </button>
             </div>
           </motion.div>
         )}
