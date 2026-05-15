@@ -115,36 +115,7 @@ function Dashboard({ plan }: { plan: SavedPlan }) {
       </motion.div>
 
       {/* Cards principais */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {/* EV — Manager.IA */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Link
-            href="/manager"
-            className="group flex h-full flex-col rounded-xl border border-amber-400/20 bg-amber-400/5 p-5 transition hover:border-amber-400/40 hover:bg-amber-400/8"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-neutral-950">
-                R
-              </div>
-              <span className="flex items-center gap-1 text-[10px] text-green-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                online
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-amber-300">EV</p>
-            <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-              Seu Manager de Evolução. Acompanha seu plano, analisa suas sessões e te cobra quando precisa.
-            </p>
-            <span className="mt-4 text-xs text-neutral-500 transition group-hover:text-amber-300">
-              Abrir chat →
-            </span>
-          </Link>
-        </motion.div>
-
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* Meu Plano */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
