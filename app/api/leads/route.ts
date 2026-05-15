@@ -86,7 +86,11 @@ interface WebhookPayload {
 
 async function fireLeadWebhook(payload: WebhookPayload): Promise<void> {
   const url = process.env.LEAD_WEBHOOK_URL ?? DEFAULT_WEBHOOK_URL;
-  if (!url) return;
+  if (!url) {
+    console.warn("[leads] webhook desabilitado (sem LEAD_WEBHOOK_URL e sem default)");
+    return;
+  }
+  const startedAt = Date.now();
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -96,11 +100,23 @@ async function fireLeadWebhook(payload: WebhookPayload): Promise<void> {
       // se demorar pra responder
       signal: AbortSignal.timeout(10_000),
     });
-    if (!res.ok) {
-      console.error(`[leads] webhook returned ${res.status}`, await res.text().catch(() => ""));
+    const elapsed = Date.now() - startedAt;
+    if (res.ok) {
+      console.log(
+        `[leads] webhook OK status=${res.status} elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId}`
+      );
+    } else {
+      const body = await res.text().catch(() => "");
+      console.error(
+        `[leads] webhook FAIL status=${res.status} elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId} body=${body.slice(0, 200)}`
+      );
     }
   } catch (err) {
-    console.error("[leads] webhook fetch failed", err);
+    const elapsed = Date.now() - startedAt;
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error(
+      `[leads] webhook EXCEPTION elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId} error=${msg}`
+    );
   }
 }
 
