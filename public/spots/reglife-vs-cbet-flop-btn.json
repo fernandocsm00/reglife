@@ -3,6 +3,7 @@
   "action": "vsCbet",
   "mode": "sequential",
   "tier": 2,
+  "showAllSizes": true,
   "sessionSize": 11,
   "defaultRaiseSize": "RAISE 33%",
   "potSize": 7,
