@@ -132,14 +132,18 @@ export default function AdminPage() {
 
         {/* Stats bar */}
         {!loading && !error && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
             {[
               { label: "Total de alunos",    value: rows.length },
-              { label: "Concluíram tudo",    value: rows.filter((r) => !r.stopped_early).length },
+              { label: "Concluíram tudo",    value: rows.filter((r) => !r.stopped_early && r.spots_played > 0).length },
               { label: "Early stop",         value: rows.filter((r) => r.stopped_early).length },
-              { label: "Média de acerto",    value: rows.length
-                  ? Math.round(rows.reduce((a, r) => a + avgPct(r), 0) / rows.length) + "%"
-                  : "—" },
+              { label: "Abandonaram",        value: rows.filter((r) => r.spots_played === 0).length },
+              { label: "Média de acerto",    value: (() => {
+                  const played = rows.filter((r) => r.spots_played > 0);
+                  return played.length
+                    ? Math.round(played.reduce((a, r) => a + avgPct(r), 0) / played.length) + "%"
+                    : "—";
+                })() },
             ].map((s) => (
               <div key={s.label} className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 text-center">
                 <div className="text-2xl font-black text-emerald-400">{s.value}</div>
@@ -223,7 +227,15 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {row.stopped_early ? (
+                      {row.spots_played === 0 ? (
+                        // Lead capturado pelo /api/leads no fim do quiz mas o
+                        // /api/results UPDATE nunca rodou — abandono no teste
+                        // técnico (ou falha na rota). Sem isso aparecia como
+                        // "Completo" porque stopped_early default é false.
+                        <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-400">
+                          Abandonou
+                        </span>
+                      ) : row.stopped_early ? (
                         <span className="rounded-full bg-red-900/40 px-2 py-0.5 text-xs text-red-400">
                           Early stop
                         </span>
