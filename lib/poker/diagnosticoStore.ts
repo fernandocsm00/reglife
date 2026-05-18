@@ -91,6 +91,14 @@ interface DiagnosticoState {
    */
   leadId: string | null;
 
+  /**
+   * Quando o aluno refaz o teste, guardamos o leadId da tentativa anterior
+   * aqui e zeramos `leadId`. /api/results recebe esse valor e grava em
+   * previous_diagnostic_id da nova linha — assim o admin liga as tentativas
+   * sem precisar agrupar por email.
+   */
+  previousLeadId: string | null;
+
   // Legacy fields derivados do quiz — alimentam o planBuilder
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
@@ -105,6 +113,13 @@ interface DiagnosticoState {
   nextDrill: () => void;
   dismissSpotTransition: () => void;
   setLeadId: (id: string) => void;
+  /**
+   * Zera o progresso pra começar um retake. Preserva identidade
+   * (playerName, email, quiz, etc), move o leadId atual pra previousLeadId
+   * e limpa leadId — assim /api/results faz INSERT (nova linha no admin)
+   * com previous_diagnostic_id apontando pra tentativa anterior.
+   */
+  resetForRetake: () => void;
   setOnboarding: (data: {
     playerName: string;
     email: string;
@@ -157,6 +172,7 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   leadCategory: null,
   stakeGrade: 0,
   leadId: null,
+  previousLeadId: null,
   studyTime: "ate15",
   profitGoal: "usd1k",
   volumeTargetWeekly: 100,
@@ -373,5 +389,43 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
 
   dismissSpotTransition: () => {
     set({ showSpotTransition: false });
+  },
+
+  resetForRetake: () => {
+    const { leadId, sessions } = get();
+    // Re-shuffle as queues dos spots pro retake variar a ordem das mãos
+    // dentro de cada spot. Sem isso, o aluno veria exatamente os mesmos
+    // combos na mesma ordem que da última vez.
+    const reshuffled = sessions.map((s) => ({
+      ...s,
+      queue: shuffle(s.ctx.expectedAnswers.map((_, i) => i)),
+    }));
+    const first = reshuffled[0];
+    const drill = first
+      ? createDrill(first.ctx, { expectedAnswerIndex: first.queue[0] })
+      : null;
+
+    set({
+      // Move leadId atual pra previousLeadId — /api/results vai gravar isso
+      // em previous_diagnostic_id da nova linha
+      previousLeadId: leadId,
+      leadId: null,
+      sessions: reshuffled,
+      contextIdx: 0,
+      cursorInContext: 0,
+      drill,
+      hasPickedAnswer: false,
+      completed: false,
+      stoppedEarly: false,
+      results: [],
+      spotSummaries: [],
+      failedSpotCount: 0,
+      currentSpotDrills: first?.queue.length ?? 0,
+      currentSpotPlayed: 0,
+      currentSpotCorrect: 0,
+      drillsPlayed: 0,
+      showSpotTransition: false,
+      lastSpotSummary: null,
+    });
   },
 }));
