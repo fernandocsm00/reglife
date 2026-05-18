@@ -77,6 +77,17 @@ export default function ResultDetailPage() {
         </Link>
         <span className="text-neutral-700">/</span>
         <span className="text-neutral-200 text-sm">{row.player_name}</span>
+        {/* Só mostra pra quem completou — abandonado não tem saved_plan, /r daria 404. */}
+        {row.spots_played > 0 && (
+          <a
+            href={`/r/${row.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 transition-colors"
+          >
+            ↓ Baixar PDF
+          </a>
+        )}
       </div>
 
       <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">

@@ -291,12 +291,27 @@ export default function AdminPage() {
                       {formatDate(row.created_at)}
                     </td>
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/resultado/${row.id}`}
-                        className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-300 hover:border-emerald-600 hover:text-emerald-400 transition-colors"
-                      >
-                        Ver detalhe →
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/resultado/${row.id}`}
+                          className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-300 hover:border-emerald-600 hover:text-emerald-400 transition-colors"
+                        >
+                          Ver detalhe →
+                        </Link>
+                        {row.spots_played > 0 && (
+                          // Só pra quem completou (ou early-stop) — abandonado
+                          // não tem saved_plan no banco, /r/[id] daria 404.
+                          <a
+                            href={`/r/${row.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Baixar PDF do plano em nova aba"
+                            className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:border-amber-500 hover:text-amber-300 transition-colors"
+                          >
+                            PDF
+                          </a>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
