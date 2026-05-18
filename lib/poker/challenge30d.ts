@@ -57,11 +57,5 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
     url: FIXED_LINKS.tournamentGrid,
   });
 
-  items.push({
-    label: "Grupo exclusivo no WhatsApp",
-    sublabel: "Receba mais conteúdos e tire dúvidas",
-    url: FIXED_LINKS.whatsappGroup,
-  });
-
   return items;
 }
