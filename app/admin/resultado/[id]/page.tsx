@@ -6,8 +6,6 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
 
-const SECRET = "reglife2024";
-
 const STUDY_LABELS: Record<string, string> = {
   ate15:  "Até 15h/sem",
   ate30:  "Até 30h/sem",
@@ -36,7 +34,7 @@ export default function ResultDetailPage() {
   const [activeSpot, setActiveSpot] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/results?secret=${SECRET}`)
+    fetch(`/api/results`)
       .then((r) => r.json())
       .then((data: DiagnosticRow[]) => {
         const found = data.find((d) => d.id === id);

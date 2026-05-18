@@ -6,8 +6,6 @@ import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
 import { downloadLeadsCsv } from "@/lib/admin/exportCsv";
 
-const SECRET = "reglife2024";
-
 const SS_NETWORKS = [
   "PokerStars",
   "GGPoker",
@@ -347,7 +345,6 @@ function SharkscopeModal({
           username: username.trim(),
           playergroupId: mode === "playergroup" ? playergroupId.trim() : "",
           network,
-          secret: SECRET,
         }),
       });
       const data = await res.json();

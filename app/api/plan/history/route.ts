@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSharkscopeClient, type SharkscopeSubject } from "@/lib/sharkscope";
+import { requireDiagSession } from "@/lib/session";
 
 function service() {
   return createClient(
@@ -78,6 +79,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ rows: [], connected: false });
   }
 
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
+
   const supabase = service();
   const effective = await resolveEffectiveDiagRow(supabase, diagId);
   const effectiveId = effective?.id ?? diagId;
@@ -115,6 +119,10 @@ export async function POST(req: NextRequest) {
   if (!diagId) {
     return NextResponse.json({ error: "userId (diag:<id>) obrigatório" }, { status: 400 });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
+
   if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
     return NextResponse.json({ error: "year/month inválidos" }, { status: 400 });
   }

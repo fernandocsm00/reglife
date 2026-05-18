@@ -18,6 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
+import { requireDiagSession } from "@/lib/session";
 
 const DEFAULT_XP_BY_EVENT: Record<string, number> = {
   task_checked: 10,
@@ -65,6 +66,9 @@ export async function POST(req: NextRequest) {
     // Path com auth ainda não está implementado nessa fase
     return NextResponse.json({ ok: true, skipped: "auth path not wired yet" });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
 
   const baseXp = xpReward ?? DEFAULT_XP_BY_EVENT[eventType] ?? 0;
   const supabase = service();
@@ -163,6 +167,9 @@ export async function GET(req: NextRequest) {
       activeQuest: null,
     });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
 
   const supabase = service();
 

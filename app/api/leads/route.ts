@@ -16,6 +16,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin as supabase } from "@/lib/supabase";
+import { setDiagSessionCookie } from "@/lib/session";
+import { clientIp, hit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   ABI_OPTIONS,
   BANCA_OPTIONS,
@@ -121,6 +123,11 @@ async function fireLeadWebhook(payload: WebhookPayload): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate-limit: 5 leads/h por IP. Lead real submete uma vez — limite é pra
+  // barrar bots/scripts inflando a base e disparando webhook n8n em loop.
+  const limitCheck = hit(`leads:ip:${clientIp(req)}`, 5, 60 * 60 * 1000);
+  if (!limitCheck.ok) return rateLimitResponse(limitCheck);
+
   const body = await req.json();
 
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -195,6 +202,11 @@ export async function POST(req: NextRequest) {
     console.error("[api/leads] insert error", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Cookie HttpOnly ligando o navegador desse lead ao diagnosticId recém-criado.
+  // Tem que rodar ANTES de qualquer NextResponse.json — o Set-Cookie é gravado
+  // no objeto de response que o `cookies()` retorna implicitamente.
+  await setDiagSessionCookie(data.id);
 
   // Dispara webhook pra n8n em background — não bloqueia a resposta
   const payload: WebhookPayload = {

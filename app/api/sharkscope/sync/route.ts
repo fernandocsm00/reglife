@@ -1,13 +1,13 @@
 /**
  * POST /api/sharkscope/sync
  *
- * Sincroniza dados do SharkScope para um aluno.
+ * Sincroniza dados do SharkScope para um aluno (path da Fase 2 com auth.users).
  * Busca o snapshot completo (Overall, PKO, nPKO, por buy-in) e salva no Supabase.
  *
- * Body: { userId: string; username: string; network: string }
+ * Body: { userId: string; username: string; network?: string }
  *
- * Segurança: requer que userId seja o usuário autenticado (verificado via auth header)
- * OU seja chamada via ADMIN_SECRET (para crons).
+ * Auth: gated pelo middleware (HTTP Basic Auth do /admin). Os crons usam o
+ * endpoint dedicado em /api/cron/sharkscope-sync com CRON_SECRET.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,11 +16,10 @@ import { getSharkscopeClient } from "@/lib/sharkscope";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { userId, username, network = "PokerStars", adminSecret } = body as {
+  const { userId, username, network = "PokerStars" } = body as {
     userId: string;
     username: string;
     network?: string;
-    adminSecret?: string;
   };
 
   if (!userId || !username) {
@@ -28,19 +27,6 @@ export async function POST(req: NextRequest) {
       { error: "userId e username são obrigatórios" },
       { status: 400 }
     );
-  }
-
-  // Autorização: admin secret OU verificar que o userId bate com o token
-  const expectedSecret = process.env.ADMIN_SECRET ?? "reglife2024";
-  const isAdmin = adminSecret === expectedSecret;
-
-  if (!isAdmin) {
-    // Em produção, aqui verificaria o JWT do Supabase
-    // Por ora, aceita se vier com o userId correto (implementar auth completo na Fase 1)
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
   }
 
   try {

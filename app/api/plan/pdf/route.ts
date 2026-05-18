@@ -19,6 +19,8 @@ import {
   planPdfExists,
   uploadPlanPdf,
 } from "@/lib/pdf/storage";
+import { requireDiagSession } from "@/lib/session";
+import { hit, rateLimitResponse } from "@/lib/rate-limit";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 
 function service() {
@@ -71,6 +73,8 @@ export async function GET(req: NextRequest) {
 
 // ---------------------------------------------------------------------------
 // POST — fallback que aceita savedPlan no body (caminho do botão do plano)
+// Exige cookie de sessão batendo com o diagnosticId — POST pode SOBRESCREVER
+// o PDF de um lead, então sem session não passa.
 // ---------------------------------------------------------------------------
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -84,12 +88,14 @@ export async function POST(req: NextRequest) {
       : null;
   const savedPlan = body.savedPlan as SavedPlan | undefined;
 
-  if (!diagnosticId) {
-    return NextResponse.json(
-      { error: "diagnosticId é obrigatório" },
-      { status: 400 }
-    );
-  }
+  const session = await requireDiagSession(diagnosticId);
+  if (!session.ok) return session.response;
+
+  // Rate-limit: 10 regenerações/h por diagnóstico. POST gera PDF + faz upload —
+  // operação cara (Puppeteer/pdf-lib + I/O do Storage).
+  const limitCheck = hit(`pdf:diag:${session.diagId}`, 10, 60 * 60 * 1000);
+  if (!limitCheck.ok) return rateLimitResponse(limitCheck);
+
   if (!savedPlan || typeof savedPlan !== "object") {
     return NextResponse.json(
       { error: "savedPlan é obrigatório" },

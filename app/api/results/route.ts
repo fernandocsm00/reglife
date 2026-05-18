@@ -7,6 +7,10 @@ import {
 } from "@/lib/pdf/storage";
 import { sendPlanReportEmail } from "@/lib/email";
 import { sendPlanReportWhatsapp } from "@/lib/notify";
+import {
+  requireDiagSession,
+  setDiagSessionCookie,
+} from "@/lib/session";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 
 export async function POST(req: NextRequest) {
@@ -77,6 +81,11 @@ export async function POST(req: NextRequest) {
   let diagnosticId: string;
 
   if (existingId) {
+    // Path normal: lead já chamou /api/leads no fim do quiz e tem cookie.
+    // Cookie tem que bater com o diagnosticId do body — protege contra IDOR.
+    const session = await requireDiagSession(existingId);
+    if (!session.ok) return session.response;
+
     const { data: updated, error: updErr } = await supabase
       .from("reglife_diagnostic_results")
       .update({
@@ -140,6 +149,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     diagnosticId = data.id;
+    // Path legado (sem /api/leads anterior) — emite o cookie agora pra que
+    // /api/plan/pdf POST e demais rotas funcionem nessa mesma sessão.
+    await setDiagSessionCookie(diagnosticId);
   }
   let pdfUrl: string | null = null;
 

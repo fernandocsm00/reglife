@@ -4,11 +4,12 @@
  * Variante do /api/sharkscope/sync que NÃO depende de auth.users.
  * Usa o id da linha em reglife_diagnostic_results pra identificar o aluno.
  *
- * Body: { diagnosticId: string; username?: string; network?: string; secret: string }
+ * Body: { diagnosticId: string; username?: string; network?: string }
  *  - Se username/network vierem, atualizam a linha antes de sincronizar.
  *  - Se vierem vazios, usa os já gravados na linha.
  *
- * Sempre exige `secret` igual a ADMIN_SECRET (rota usada pelo /admin).
+ * Auth: gated pelo middleware (HTTP Basic Auth do /admin) — quem chega aqui
+ * já passou pelas credenciais ADMIN_USER/ADMIN_PASSWORD. Sem secret no body.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -28,18 +29,13 @@ function getSupabase() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { diagnosticId, username, network, playergroupId, secret } = body as {
+  const { diagnosticId, username, network, playergroupId } = body as {
     diagnosticId?: string;
     username?: string;
     network?: string;
     playergroupId?: string;
-    secret?: string;
   };
 
-  const expected = process.env.ADMIN_SECRET ?? "reglife2024";
-  if (secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
   if (!diagnosticId) {
     return NextResponse.json({ error: "diagnosticId obrigatório" }, { status: 400 });
   }

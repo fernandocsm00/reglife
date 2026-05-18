@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireDiagSession } from "@/lib/session";
 
 function service() {
   return createClient(
@@ -33,6 +34,10 @@ export async function GET(req: NextRequest) {
   if (!diagId) {
     return NextResponse.json({ notifications: [], settings: null });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
+
   const supabase = service();
 
   const [notifsRes, settingsRes] = await Promise.allSettled([
@@ -69,6 +74,9 @@ export async function POST(req: NextRequest) {
   if (!diagId) {
     return NextResponse.json({ error: "userId obrigatório (diag:<id>)" }, { status: 400 });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
 
   const settings = body.settings as {
     discord_webhook_url?: string | null;
@@ -135,6 +143,9 @@ export async function PATCH(req: NextRequest) {
   if (!diagId) {
     return NextResponse.json({ error: "userId obrigatório" }, { status: 400 });
   }
+
+  const session = await requireDiagSession(diagId);
+  if (!session.ok) return session.response;
 
   const supabase = service();
   const ids = Array.isArray(body.ids) ? body.ids : null;

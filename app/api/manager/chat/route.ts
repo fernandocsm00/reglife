@@ -18,7 +18,12 @@ import {
   type RecentMessage,
 } from "@/lib/manager/context";
 import { buildSystemPrompt, type ManagerTrigger } from "@/lib/manager/persona";
+import { requireDiagSession } from "@/lib/session";
+import { clientIp, hit, rateLimitResponse } from "@/lib/rate-limit";
 import type { SavedPlan } from "@/lib/poker/planStorage";
+
+const MAX_MESSAGE_LENGTH = 2000; // ~500 tokens — chat humano, não copy/paste de planilha
+const HOUR = 60 * 60 * 1000;
 
 // Lazy init: o construtor da OpenAI joga erro se OPENAI_API_KEY não estiver
 // definida, e durante `next build` o módulo é importado pra coletar metadata —
@@ -33,6 +38,12 @@ function getOpenAI(): OpenAI {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate-limit por IP ANTES de parsear/validar — defesa contra flood antes de
+    // gastar CPU. 60 req/h por IP é defesa em profundidade; o limite real
+    // (30/h por diag) roda depois que sabemos o diagnosticId.
+    const ipCheck = hit(`chat:ip:${clientIp(req)}`, 60, HOUR);
+    if (!ipCheck.ok) return rateLimitResponse(ipCheck);
+
     const body = await req.json();
     const {
       userId,
@@ -55,9 +66,29 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Mensagem maior que ${MAX_MESSAGE_LENGTH} chars` }),
+        { status: 413, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Modo sem-auth: usa diagnostic id em vez de auth.users.id
     const isDiagMode = userId.startsWith("diag:");
     const diagnosticId = isDiagMode ? userId.slice("diag:".length) : null;
+
+    // Sem cookie batendo com o diagId, recusa — sem isso a OpenAI key vira
+    // boca de mangueira pra qualquer um.
+    if (isDiagMode) {
+      const session = await requireDiagSession(diagnosticId);
+      if (!session.ok) return session.response;
+    }
+
+    // Rate-limit por diagnóstico depois da auth — protege a OpenAI key
+    // de um lead único spammando.
+    const limitKey = isDiagMode ? `chat:diag:${diagnosticId}` : `chat:user:${userId}`;
+    const diagCheck = hit(limitKey, 30, HOUR);
+    if (!diagCheck.ok) return rateLimitResponse(diagCheck);
 
     // 1. Monta contexto completo do aluno
     const ctx = isDiagMode
@@ -153,6 +184,14 @@ export async function GET(req: NextRequest) {
   // (que carregam `payload.message` quando geradas via sendEvNotification).
   if (userId.startsWith("diag:")) {
     const diagId = userId.slice("diag:".length);
+
+    const session = await requireDiagSession(diagId);
+    if (!session.ok) return session.response;
+
+    // Rate-limit do GET (leitura de histórico): 60/h por diag.
+    const histCheck = hit(`chat:hist:diag:${diagId}`, 60, 60 * 60 * 1000);
+    if (!histCheck.ok) return rateLimitResponse(histCheck);
+
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
