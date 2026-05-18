@@ -67,6 +67,13 @@ export async function POST(req: NextRequest) {
       ? body.diagnosticId.trim()
       : null;
 
+  // Em retake o frontend manda o id da tentativa anterior aqui pra ligar
+  // as linhas. Só faz sentido no INSERT — ignorado no UPDATE.
+  const previousDiagnosticId =
+    typeof body.previousDiagnosticId === "string" && body.previousDiagnosticId.trim()
+      ? body.previousDiagnosticId.trim()
+      : null;
+
   let diagnosticId: string;
 
   if (existingId) {
@@ -122,6 +129,7 @@ export async function POST(req: NextRequest) {
           lead_score: leadScore,
           lead_category: leadCategory,
           stake_grade: stakeGrade,
+          previous_diagnostic_id: previousDiagnosticId,
         },
       ])
       .select("id")

@@ -48,6 +48,8 @@ export interface ExpectedAnswerSpotConfig {
   currentPotSize?: number;
   actionHistory?: ActionHistoryStreet[];
   tableConfiguration?: TableConfigOverride[];
+  /** Override por cenário: força mostrar todos os tamanhos só neste expectedAnswer. */
+  showAllSizes?: boolean;
 }
 
 export interface ExpectedAnswer {

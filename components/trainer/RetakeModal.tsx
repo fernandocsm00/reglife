@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import { useDiagnosticoStore } from "@/lib/poker/diagnosticoStore";
 
 interface Props {
   open: boolean;
@@ -10,8 +11,12 @@ interface Props {
 
 export function RetakeModal({ open, onClose }: Props) {
   const router = useRouter();
+  const resetForRetake = useDiagnosticoStore((s) => s.resetForRetake);
 
   const handleConfirm = () => {
+    // Zera progresso + leadId em memória ANTES de navegar. A próxima
+    // submissão de /api/results vai cair no INSERT (nova linha no admin).
+    resetForRetake();
     router.push("/diagnostico?retake=1");
   };
 

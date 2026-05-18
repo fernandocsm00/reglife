@@ -205,11 +205,13 @@ export function createDrill(
       .map((b) => matchedPrefix(b.text))
       .filter((p): p is string => Boolean(p))
   );
-  // Opt-out por spot: quando config.showAllSizes=true, NÃO filtra os
-  // botões dimensionados — todos os tamanhos aparecem como distratores
-  // (ex.: cbet turn, onde a escolha do sizing é o aprendizado principal).
+  // Opt-out: quando showAllSizes=true (no config OU no spotConfig deste
+  // cenário), NÃO filtra os botões dimensionados — todos os tamanhos
+  // aparecem como distratores (ex.: cbet turn, onde a escolha do sizing é
+  // o aprendizado principal). spotConfig vence o config global.
+  const showAllSizes = ea.spotConfig?.showAllSizes ?? config.showAllSizes ?? false;
   let buttons =
-    !config.showAllSizes && correctPrefixes.size
+    !showAllSizes && correctPrefixes.size
       ? allButtons.filter((b) => {
           const prefix = matchedPrefix(b.text);
           if (!prefix) return true; // FOLD, CALL, CHECK, LIMP, ALL-IN — sempre presentes
@@ -223,7 +225,7 @@ export function createDrill(
   // como distratores. Garante UM e apenas um botão de RAISE no spot.
   if (
     config.defaultRaiseSize &&
-    !config.showAllSizes &&
+    !showAllSizes &&
     !correctPrefixes.has("RAISE")
   ) {
     const defaultRaiseUpper = config.defaultRaiseSize.toUpperCase();
