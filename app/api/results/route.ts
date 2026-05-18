@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { generatePlanPdf } from "@/lib/pdf/generatePlanPdf";
 import {
   getPlanPdfPublicUrl,

@@ -24,6 +24,31 @@ export const supabase = new Proxy({} as SupabaseClient, {
   },
 });
 
+/**
+ * Cliente Supabase com SERVICE ROLE KEY — bypassa RLS.
+ * Use SOMENTE em rotas server-side (API routes, cron, etc). Nunca expõe
+ * pro browser. Mesmo padrão Proxy/lazy do anon client.
+ */
+let _admin: SupabaseClient | null = null;
+function realAdmin(): SupabaseClient {
+  if (!_admin) {
+    const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)!;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    _admin = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return _admin;
+}
+
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, prop: keyof SupabaseClient) {
+    const c = realAdmin();
+    const v = c[prop];
+    return typeof v === "function" ? v.bind(c) : v;
+  },
+});
+
 // ---- Types ----------------------------------------------------------------
 
 export interface SharkscopeSummary {
