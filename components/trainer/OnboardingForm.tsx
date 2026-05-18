@@ -148,7 +148,7 @@ export function OnboardingForm({ onSubmit }: Props) {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <StepWrapper key="identidade">
-              <Title>Antes de começar</Title>
+              <Title>Preencha suas informações</Title>
               <Sub>Personalizamos sua experiência. Leva 2 minutos.</Sub>
 
               <div className="mt-10 space-y-6">
