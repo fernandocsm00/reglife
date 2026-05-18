@@ -55,7 +55,7 @@ const ACTION_LABELS: Record<string, string> = {
   vs3Bet: "Enfrentando uma 3bet",
   vsBBISO: "Blind War Pré Flop",
   blindWar: "Blind War Pré Flop",
-  multiway: "Defesa de BB Multiway",
+  multiway: "Defesa de BB Multway",
   squeeze: "Squeeze",
   probeTurn: "Probe Turn",
   probeRiver: "Probe River",

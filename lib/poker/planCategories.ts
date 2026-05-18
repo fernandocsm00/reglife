@@ -9,23 +9,18 @@ import type { SavedPlan } from "./planStorage";
 
 /** Tier de cada spot por nome (config.name do JSON). Usado no grid de resultado. */
 const TIER_BY_SPOT_LABEL: Record<string, 1 | 2 | 3> = {
-  "RFI Prioridades — reg.life": 1,
-  "Vs RFI — reg.life": 1,
-  "Defesa de Big Blind — reg.life": 1,
-  "Blind War — SB GAP — reg.life": 1,
-  "Blind War — SB vs ISO — reg.life": 1,
-  "Blind War — BB vs Limp — reg.life": 1,
-  "Blind War — BB vs Raise — reg.life": 1,
-  "C-Bet Flop vs BB — reg.life": 1,
-  "C-Bet Turn vs BB — reg.life": 1,
-  "C-Bet River vs BB — reg.life": 1,
-  "Vs C-Bet Flop do BB — reg.life": 1,
-  "Defesa de BB Multiway — reg.life": 2,
-  "Vs 3-Bet EP/MP — reg.life": 2,
-  "Vs 3-Bet BTN vs SB — reg.life": 2,
-  "Cbet vs BTN — reg.life": 2,
-  "Vs C-Bet Flop do BTN — reg.life": 2,
-  "Bet vs Missed Cbet (BTN vs CO) — reg.life": 2,
+  "RFI": 1,
+  "Vs RFI": 1,
+  "Jogando do BB": 1,
+  "Blind War Pré Flop": 1,
+  "Cbet em posição vs BB": 1,
+  "Cbet Turn em posição vs o BB": 1,
+  "Cbet River em posição vs o BB": 1,
+  "Jogando vs Cbet do BB": 1,
+  "Defesa de BB Multway": 2,
+  "Enfrentando uma 3bet": 2,
+  "Cbet Fora de Posição": 2,
+  "Jogando em Posição": 2,
 };
 
 export function tierForSpotLabel(label: string): 1 | 2 | 3 | null {
@@ -47,35 +42,30 @@ export const CATEGORY_ORDER = [
 
 const CATEGORY_BY_SPOT_LABEL: Record<string, string> = {
   // Pré-flop opening
-  "RFI Prioridades — reg.life": "Pré-flop Open",
+  "RFI": "Pré-flop Open",
 
   // Pré-flop defesa
-  "Vs RFI — reg.life": "Vs RFI",
-  "Defesa de Big Blind — reg.life": "Defesa de BB",
+  "Vs RFI": "Vs RFI",
+  "Jogando do BB": "Defesa de BB",
 
   // Blind war pré-flop
-  "Blind War — SB GAP — reg.life": "Blind War",
-  "Blind War — SB vs ISO — reg.life": "Blind War",
-  "Blind War — BB vs Limp — reg.life": "Blind War",
-  "Blind War — BB vs Raise — reg.life": "Blind War",
+  "Blind War Pré Flop": "Blind War",
 
   // Pots 3-betados
-  "Vs 3-Bet EP/MP — reg.life": "Pots 3-betados",
-  "Vs 3-Bet BTN vs SB — reg.life": "Pots 3-betados",
+  "Enfrentando uma 3bet": "Pots 3-betados",
 
   // Pós-flop como agressor
-  "C-Bet Flop vs BB — reg.life": "Cbet Pós-flop",
-  "C-Bet Turn vs BB — reg.life": "Cbet Pós-flop",
-  "C-Bet River vs BB — reg.life": "Cbet Pós-flop",
-  "Cbet vs BTN — reg.life": "Cbet Pós-flop",
-  "Bet vs Missed Cbet (BTN vs CO) — reg.life": "Cbet Pós-flop",
+  "Cbet em posição vs BB": "Cbet Pós-flop",
+  "Cbet Turn em posição vs o BB": "Cbet Pós-flop",
+  "Cbet River em posição vs o BB": "Cbet Pós-flop",
+  "Cbet Fora de Posição": "Cbet Pós-flop",
 
-  // Pós-flop como defensor
-  "Vs C-Bet Flop do BB — reg.life": "Vs Cbet",
-  "Vs C-Bet Flop do BTN — reg.life": "Vs Cbet",
+  // Pós-flop como defensor (e bet vs missed)
+  "Jogando vs Cbet do BB": "Vs Cbet",
+  "Jogando em Posição": "Vs Cbet",
 
   // Multiway
-  "Defesa de BB Multiway — reg.life": "Multiway",
+  "Defesa de BB Multway": "Multiway",
 };
 
 export interface CategoryPerformance {
