@@ -46,21 +46,54 @@ export interface DiagnosticSummary {
 // Display helpers
 // ---------------------------------------------------------------------------
 
+// Labels que não dependem de posição. Para os que dependem (vsOpen, cBet,
+// vsCbet), use `spotDisplayLabel(action, position)` abaixo.
 const ACTION_LABELS: Record<string, string> = {
   RFI: "RFI",
-  vsOpen: "Vs RFI",
-  cBet: "C-Bet Flop",
-  vs3Bet: "Vs 3-Bet",
-  vsBBISO: "Vs BB ISO",
-  blindWar: "Blind War",
-  vsCbet: "Vs C-Bet",
-  multiway: "Multiway",
-  cbetTurn: "C-Bet Turn",
-  cbetRiver: "C-Bet River",
+  cbetTurn: "Cbet Turn e River em Posição vs BB",
+  cbetRiver: "Cbet Turn e River em Posição vs BB",
+  vs3Bet: "Enfrentando uma 3bet",
+  vsBBISO: "Blind War Pré Flop",
+  blindWar: "Blind War Pré Flop",
+  multiway: "Defesa de BB Multiway",
+  squeeze: "Squeeze",
+  probeTurn: "Probe Turn",
+  probeRiver: "Probe River",
+  vsCheckRaise: "Enfrentando um Check-Raise",
+  delayCbet: "Delay Cbet",
+  pote3bet: "Pote 3betado",
+  cbetVsSB: "Cbet vs SB",
 };
 
 export function actionDisplayLabel(action: string): string {
   return ACTION_LABELS[action] ?? action;
+}
+
+/**
+ * Label do spot considerando posição. Necessário porque a mesma action pode
+ * representar spots diferentes dependendo da posição do hero:
+ *  - vsOpen + BB    → "Jogando do BB"   (vsOpen em outras posições → "Vs RFI")
+ *  - cBet  + BTN/UTG1 → "Cbet em posição vs BB" (cBet em CO/UTG → "Cbet Fora de Posição")
+ *  - vsCbet + BB    → "Jogando vs Cbet do BB" (vsCbet em outras posições → "Jogando em Posição")
+ *
+ * Mantém alinhamento 1:1 com a lista de spots da Comunidade Reg Life
+ * (mesmos nomes usados em spotLinks.ts).
+ */
+export function spotDisplayLabel(action: string, position: string): string {
+  switch (action) {
+    case "vsOpen":
+      return position === "BB" ? "Jogando do BB" : "Vs RFI";
+    case "cBet":
+      return position === "BTN" || position === "UTG1"
+        ? "Cbet em posição vs BB"
+        : "Cbet Fora de Posição";
+    case "vsCbet":
+      return position === "BB"
+        ? "Jogando vs Cbet do BB"
+        : "Jogando em Posição";
+    default:
+      return actionDisplayLabel(action);
+  }
 }
 
 const TIER_LABELS: Record<number, string> = {
@@ -105,7 +138,7 @@ function recommendationFor(
       return `Enfrentando open em ${position} com ${stack}bb a decisão entre call, 3-bet e fold depende da posição do abridor. Estude os ranges de flat vs 3-bet para essa stack.`;
     return `Enfrentando open em ${position} com ${stack}bb (deep) você tem mais flexibilidade para flat e 3-bet. Revise a seleção entre call e 3-bet por posição.`;
   }
-  return `Revise a estratégia para ${actionDisplayLabel(action)} ${position} ${stack}bb.`;
+  return `Revise a estratégia para ${spotDisplayLabel(action, position)} ${position} ${stack}bb.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -254,7 +287,7 @@ export function analyzeResults(results: ResultEntry[]): DiagnosticSummary {
       leakMap.set(id, {
         id,
         action: r.action,
-        actionLabel: actionDisplayLabel(r.action),
+        actionLabel: spotDisplayLabel(r.action, r.position),
         position: r.position,
         stackBand: stackBand(r.stackSize),
         errors: r.isCorrect ? 0 : 1,
