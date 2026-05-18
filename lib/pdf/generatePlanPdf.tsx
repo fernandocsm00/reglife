@@ -128,7 +128,7 @@ function ChallengePage({ plan }: { plan: SavedPlan }) {
       </View>
 
       <Text style={styles.footer}>
-        Reglife · Desafio Profissão Poker · {plan.playerName}
+        Reg Life · Desafio Profissão Poker · {plan.playerName}
       </Text>
     </Page>
   );
@@ -138,7 +138,7 @@ export async function generatePlanPdf(plan: SavedPlan): Promise<Buffer> {
   const doc = (
     <Document
       title={`Desafio Profissão Poker · ${plan.playerName}`}
-      author="Reglife"
+      author="Reg Life"
       subject="Plano de 30 Dias"
     >
       <ChallengePage plan={plan} />
