@@ -3,6 +3,7 @@
   "action": "cbetRiver",
   "mode": "sequential",
   "tier": 1,
+  "showAllSizes": true,
   "sessionSize": 11,
   "potSize": 25,
   "currentPotSize": 25,

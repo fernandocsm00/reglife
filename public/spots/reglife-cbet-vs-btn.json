@@ -3,6 +3,7 @@
   "action": "cBet",
   "mode": "sequential",
   "tier": 2,
+  "showAllSizes": true,
   "sessionSize": 15,
   "potSize": 6.7,
   "currentPotSize": 6.7,
