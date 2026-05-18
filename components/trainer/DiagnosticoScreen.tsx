@@ -126,6 +126,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       spotsPlayed: spotSummaries.length,
       spotsFailed: failedSpotCount,
       volumeTargetWeekly,
+      stakeGrade,
     });
     savePlan(plan);
 

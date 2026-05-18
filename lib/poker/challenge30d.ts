@@ -5,7 +5,12 @@
 
 import type { SavedPlan } from "./planStorage";
 import { topLeaks } from "@/lib/pdf/utils";
-import { FIXED_LINKS, canonicalSlotForLeak, getSpotLink } from "./spotLinks";
+import {
+  FIXED_LINKS,
+  canonicalSlotForLeak,
+  getGradeLink,
+  getSpotLink,
+} from "./spotLinks";
 
 export interface ChallengeItem {
   /** Label exibido no card / linha do PDF. */
@@ -51,10 +56,15 @@ export function buildChallenge30d(plan: SavedPlan): ChallengeItem[] {
     });
   }
 
+  // Grade de torneios é roteada por stake — `stakeGrade` vem da banca
+  // declarada no quiz (BANCA_GRADE em lib/poker/leadScoring.ts). Sem
+  // banca declarada, cai no link genérico.
   items.push({
     label: "Grade de torneios",
-    sublabel: "Não precisa pensar, é só registrar",
-    url: FIXED_LINKS.tournamentGrid,
+    sublabel: plan.stakeGrade
+      ? `Sua grade: ABI $${plan.stakeGrade}`
+      : "Não precisa pensar, é só registrar",
+    url: getGradeLink(plan.stakeGrade),
   });
 
   return items;

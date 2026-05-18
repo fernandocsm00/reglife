@@ -14,9 +14,35 @@ const PLACEHOLDER = "https://reglife.com.br/aula-em-breve";
 /** Links fixos do "Desafio Profissão Poker". */
 export const FIXED_LINKS = {
   careerLesson: PLACEHOLDER,
-  tournamentGrid: PLACEHOLDER,
+  tournamentGrid: PLACEHOLDER, // default — substituído por GRADE_LINKS quando há banca declarada
   whatsappGroup: PLACEHOLDER,
 };
+
+/**
+ * Link da grade de torneios por stake (ABI USD). A grade é definida pelo
+ * `stakeGrade` derivado da banca declarada no quiz (BANCA_GRADE em
+ * lib/poker/leadScoring.ts). Quando o aluno não tem banca declarada,
+ * cai no FIXED_LINKS.tournamentGrid (placeholder neutro).
+ */
+export const GRADE_LINKS: Record<number, string> = {
+  1:    "https://reglife.com.br/abi-1",
+  2.5:  "https://reglife.com.br/abi-2",
+  4:    "https://reglife.com.br/abi-4",
+  7:    "https://reglife.com.br/abi-7",
+  10:   "https://reglife.com.br/abi-10",
+  13:   "https://reglife.com.br/abi-13",
+  19:   "https://reglife.com.br/abi-19",
+  28:   "https://reglife.com.br/abi-28",
+};
+
+/**
+ * Retorna a URL da grade pra um stakeGrade específico. Se o grade não
+ * existir no mapa (raro), cai no link genérico.
+ */
+export function getGradeLink(stakeGrade: number | null | undefined): string {
+  if (stakeGrade == null) return FIXED_LINKS.tournamentGrid;
+  return GRADE_LINKS[stakeGrade] ?? FIXED_LINKS.tournamentGrid;
+}
 
 /** URLs canônicas por tema de spot. */
 const THEME = {

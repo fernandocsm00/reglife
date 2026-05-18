@@ -38,6 +38,12 @@ export interface SavedPlan {
   profitGoal: ProfitGoal;
   /** Meta semanal de torneios (EV usa pra cobrar volume). */
   volumeTargetWeekly?: number;
+  /**
+   * Stake recomendada (ABI USD) derivada da banca declarada no quiz.
+   * Determina o link da grade de torneios mostrada no Plano de Progressão.
+   * Valores possíveis: 1 | 2.5 | 4 | 7 | 10 | 13 | 19 | 28.
+   */
+  stakeGrade?: number;
 
   // Tier assessment
   playerTier: number;
