@@ -454,16 +454,14 @@ export function ResultsScreen({ plan, onContinue }: Props) {
           />
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="rg-eyebrow">Próximo passo</span>
-              <h2 className="rg-h2" style={{ marginTop: 10 }}>
-                Agora monta o seu plano de 30 dias.
+              <h2 className="rg-h2">
+                Agora receba seu plano individual.
               </h2>
               <p
                 className="rg-body-sm"
                 style={{ marginTop: 10, maxWidth: 440 }}
               >
-                Transforma esse resultado em um caminho prático: aulas,
-                treinos e a grade de torneios certa pro seu momento.
+                Você terá as aulas, os treinos e a grade certa para o seu ABI atual.
               </p>
             </div>
             <button
