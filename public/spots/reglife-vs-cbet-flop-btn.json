@@ -3,7 +3,7 @@
   "action": "vsCbet",
   "mode": "sequential",
   "tier": 2,
-  "sessionSize": 12,
+  "sessionSize": 11,
   "defaultRaiseSize": "RAISE 33%",
   "potSize": 7,
   "currentPotSize": 9.5,
@@ -54,18 +54,6 @@
         ]
       },
       "expectedAnswers": [{ "combos": ["3d3c"], "answer": ["CALL"] }]
-    },
-    {
-      "position": "BTN", "stackSize": 30, "villainPosition": "UTG",
-      "board": "Tc-7d-6s",
-      "spotConfig": {
-        "heroStackSize": 28, "villainStackSize": 25.5,
-        "actionHistory": [
-          {"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"BTN","action":"Call"}]},
-          {"street":"FLOP","actions":[{"position":"UTG","action":"Cbet 2.5"}]}
-        ]
-      },
-      "expectedAnswers": [{ "combos": ["AcTd"], "answer": ["CALL"] }]
     },
     {
       "position": "BTN", "stackSize": 30, "villainPosition": "CO",
