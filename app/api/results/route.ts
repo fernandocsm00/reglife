@@ -151,7 +151,16 @@ export async function POST(req: NextRequest) {
     diagnosticId = data.id;
     // Path legado (sem /api/leads anterior) — emite o cookie agora pra que
     // /api/plan/pdf POST e demais rotas funcionem nessa mesma sessão.
-    await setDiagSessionCookie(diagnosticId);
+    // Se SESSION_SECRET estiver mal configurado, isso throwa: NÃO derruba
+    // o response. A linha já foi inserida e o frontend precisa do id pra
+    // o card de PDF aparecer. O usuário perde a sessão (PDF não baixa) mas
+    // pelo menos vê o estado correto.
+    try {
+      await setDiagSessionCookie(diagnosticId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[api/results] setDiagSessionCookie falhou: ${msg}`);
+    }
   }
   let pdfUrl: string | null = null;
 

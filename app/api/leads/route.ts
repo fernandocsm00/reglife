@@ -206,7 +206,16 @@ export async function POST(req: NextRequest) {
   // Cookie HttpOnly ligando o navegador desse lead ao diagnosticId recém-criado.
   // Tem que rodar ANTES de qualquer NextResponse.json — o Set-Cookie é gravado
   // no objeto de response que o `cookies()` retorna implicitamente.
-  await setDiagSessionCookie(data.id);
+  // Se SESSION_SECRET estiver mal configurado, isso throwa: NÃO derruba o
+  // response. O lead já foi inserido e o frontend precisa do id pra
+  // ligar ao plano (UPDATE no fim do teste). Sem cookie, o lead vai
+  // tomar 401 em /api/plan/* depois — mas o admin enxerga a linha certo.
+  try {
+    await setDiagSessionCookie(data.id);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[api/leads] setDiagSessionCookie falhou: ${msg}`);
+  }
 
   // Dispara webhook pra n8n em background — não bloqueia a resposta
   const payload: WebhookPayload = {

@@ -169,15 +169,28 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       }),
     })
       .then(async (r) => {
-        if (!r.ok) return;
+        if (!r.ok) {
+          // Antes era silent return — agora loga pra debug. Sem isso o
+          // plano renderiza sem diagnosticId e o card do PDF some sem
+          // ninguém saber por quê.
+          const detail = await r.text().catch(() => "");
+          console.error(
+            `[diagnostico] POST /api/results falhou status=${r.status} body=${detail.slice(0, 200)}`
+          );
+          return;
+        }
         const data = await r.json().catch(() => null);
         if (data?.id) {
           const withId = { ...planForServer, diagnosticId: data.id };
           savePlan(withId);
           setBuiltPlan(withId);
+        } else {
+          console.error("[diagnostico] /api/results respondeu OK mas sem id", data);
         }
       })
-      .catch(() => { /* silently ignore */ });
+      .catch((err) => {
+        console.error("[diagnostico] POST /api/results threw", err);
+      });
 
     // O plano fica disponível pra ResultsScreen renderizar.
     // Sem auto-redirect: o aluno clica "Quero meu plano" pra avançar.
@@ -243,11 +256,20 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
             }),
           })
             .then(async (r) => {
-              if (!r.ok) return;
+              if (!r.ok) {
+                const detail = await r.text().catch(() => "");
+                console.error(
+                  `[onboarding] POST /api/leads falhou status=${r.status} body=${detail.slice(0, 200)}`
+                );
+                return;
+              }
               const json = await r.json().catch(() => null);
               if (json?.id) setLeadId(json.id);
+              else console.error("[onboarding] /api/leads OK mas sem id", json);
             })
-            .catch(() => { /* silently ignore */ });
+            .catch((err) => {
+              console.error("[onboarding] POST /api/leads threw", err);
+            });
         }}
       />
     );
