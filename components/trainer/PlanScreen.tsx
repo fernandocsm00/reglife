@@ -258,12 +258,22 @@ export function PlanScreen({ plan }: Props) {
             gap: 10,
           }}
         >
-          <button
-            onClick={() => window.print()}
-            className="rg-btn rg-btn--ghost rg-btn--sm"
-          >
-            Imprimir / PDF
-          </button>
+          {/* Mesmo PDF do card destacado em cima — chama o mesmo handler
+              em vez de window.print(). Some quando não tem diagnosticId
+              (lead em estado quebrado) — sem id não dá pra gerar/baixar. */}
+          {plan.diagnosticId && (
+            <button
+              onClick={handleDownloadPdf}
+              disabled={pdfLoading}
+              className="rg-btn rg-btn--ghost rg-btn--sm"
+              style={{
+                opacity: pdfLoading ? 0.7 : 1,
+                cursor: pdfLoading ? "wait" : "pointer",
+              }}
+            >
+              {pdfLoading ? "Gerando…" : "Baixar PDF"}
+            </button>
+          )}
           <button
             onClick={() => setShowRetake(true)}
             className="rg-btn rg-btn--ghost rg-btn--sm"
