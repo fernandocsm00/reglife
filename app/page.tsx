@@ -217,11 +217,7 @@ function FirstTime() {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center text-center"
     >
-      <div className="text-[11px] font-semibold tracking-[0.3em] text-amber-300">
-        PASSO 1 DE 2
-      </div>
-
-      <h1 className="font-display mt-4 text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
+      <h1 className="font-display text-5xl leading-[0.95] text-neutral-50 sm:text-7xl">
         Receba seu plano individual
       </h1>
 
