@@ -122,17 +122,9 @@ export function PlanScreen({ plan }: Props) {
             />
             <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <span className="rg-eyebrow">Seu plano está pronto</span>
-                <h2 className="rg-h2" style={{ marginTop: 10 }}>
-                  Baixe o PDF com seu plano completo.
+                <h2 className="rg-h2">
+                  Baixe seu plano em PDF
                 </h2>
-                <p
-                  className="rg-body-sm"
-                  style={{ marginTop: 10, maxWidth: 460 }}
-                >
-                  Tudo que você precisa pros próximos 30 dias num único arquivo
-                  — revise no celular, imprima, compartilhe com seu coach.
-                </p>
               </div>
               <button
                 type="button"
@@ -183,12 +175,12 @@ export function PlanScreen({ plan }: Props) {
           }}
           style={{ marginTop: 32 }}
         >
-          <p className="rg-eyebrow">Suas 6 frentes</p>
+          <p className="rg-eyebrow">Seus links</p>
           <h3 className="rg-h3" style={{ marginTop: 8 }}>
-            Plano de ação
+            Plano de Progressão
           </h3>
           <p className="rg-body-sm" style={{ marginTop: 4 }}>
-            O que estudar e treinar nos próximos 30 dias.
+            O que estudar, treinar e jogar.
           </p>
         </motion.div>
 
