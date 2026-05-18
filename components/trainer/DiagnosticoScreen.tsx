@@ -57,6 +57,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const leadCategory = useDiagnosticoStore((s) => s.leadCategory);
   const stakeGrade = useDiagnosticoStore((s) => s.stakeGrade);
   const leadId = useDiagnosticoStore((s) => s.leadId);
+  const previousLeadId = useDiagnosticoStore((s) => s.previousLeadId);
 
   const loadConfigs = useDiagnosticoStore((s) => s.loadConfigs);
   const pickAnswer = useDiagnosticoStore((s) => s.pickAnswer);
@@ -87,6 +88,17 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   useEffect(() => {
     loadConfigs(initialConfigs);
   }, [initialConfigs, loadConfigs]);
+
+  // Em retake (resetForRetake) a navegação é soft e este componente não
+  // remonta — `builtRef` ficaria true do teste anterior e o useEffect de
+  // completion seria pulado. Resetamos quando `completed` volta pra false.
+  useEffect(() => {
+    if (!completed) {
+      builtRef.current = false;
+      setBuiltPlan(null);
+      setGoingToPlan(false);
+    }
+  }, [completed]);
 
   // Deal sound on each new drill
   useEffect(() => {
@@ -132,6 +144,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         diagnosticId: leadId, // UPDATE quando presente, INSERT quando null
+        previousDiagnosticId: previousLeadId, // só no INSERT — liga retake à tentativa anterior
         playerName: playerName || "Jogador",
         email,
         phone,
@@ -171,7 +184,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   }, [completed, results, playerName, email, phone, studyTime, profitGoal,
       stoppedEarly, spotSummaries, failedSpotCount,
       volumeTargetWeekly, notifyChannels, whatsappPhone,
-      quizAnswers, leadScore, leadCategory, stakeGrade, leadId]);
+      quizAnswers, leadScore, leadCategory, stakeGrade, leadId, previousLeadId]);
 
   // Quando aluno clica "Quero meu plano" → 5s de loading → redirect
   useEffect(() => {
@@ -521,6 +534,12 @@ function TestIntro({ onStart }: { onStart: () => void }) {
             <span className="text-amber-300">10 minutos</span> para fazer com
             foco total e responda como se estivesse em uma sessão real de
             poker online.
+          </p>
+
+          <p className="mt-4 max-w-xl text-sm leading-snug text-neutral-400 sm:text-base">
+            Todas as mãos são baseadas em{" "}
+            <span className="text-amber-300">cEV</span> (chip equity value),
+            sem ajuste de ICM.
           </p>
 
           <button
