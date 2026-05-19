@@ -18,11 +18,15 @@ const SEAT_COORDS_8: [number, number][] = [
   [25, 82], // seat 8 – bottom left
 ];
 
-/** Return the chip-indicator position: 28% of the way from the seat towards the table center. */
+/** Return the chip-indicator position: way from the seat towards the table center. */
 function chipOverlayPos(seatIndex: number, totalSeats: number): [number, number] {
   if (totalSeats === 8 && seatIndex >= 1 && seatIndex <= 8) {
     const [sx, sy] = SEAT_COORDS_8[seatIndex - 1];
-    return [sx + (50 - sx) * 0.28, sy + (50 - sy) * 0.28];
+    // Hero (seat 1, bottom-center) tem cards estendendo pra cima do
+    // seat center — com 0.28 o chip fica atrás das cartas. Aumentar
+    // pra 0.45 empurra o chip pra cima das cartas e deixa visível.
+    const factor = seatIndex === 1 ? 0.45 : 0.28;
+    return [sx + (50 - sx) * factor, sy + (50 - sy) * factor];
   }
   // Fallback: no meaningful offset
   return [50, 50];
