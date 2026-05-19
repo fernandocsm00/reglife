@@ -22,7 +22,7 @@
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","BTN"],
       "spotConfig": { "potSize": 6.7, "currentPotSize": 6.7, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"BTN","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["J7o"], "answer": ["FOLD"] }]
+      "expectedAnswers": [{ "combos": ["J7o"], "answer": ["CALL"] }]
     },
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","BTN"],
@@ -62,7 +62,7 @@
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","SB"],
       "spotConfig": { "potSize": 6.7, "currentPotSize": 6.7, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"SB","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["T4o"], "answer": ["FOLD"] }]
+      "expectedAnswers": [{ "combos": ["T4o"], "answer": ["CALL"] }]
     },
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","SB"],
@@ -77,7 +77,7 @@
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","SB"],
       "spotConfig": { "potSize": 6.7, "currentPotSize": 6.7, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"},{"position":"SB","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["Q2o"], "answer": ["FOLD"] }]
+      "expectedAnswers": [{ "combos": ["Q4o"], "answer": ["CALL"] }]
     },
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["CO","SB"],
@@ -97,7 +97,7 @@
     {
       "position": "BB", "stackSize": 100, "villainPositions": ["UTG","LJ"],
       "spotConfig": { "potSize": 7.1, "currentPotSize": 7.1, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"LJ","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["T3s"], "answer": ["FOLD"] }]
+      "expectedAnswers": [{ "combos": ["T5s"], "answer": ["CALL"] }]
     },
     {
       "position": "BB", "stackSize": 100, "villainPositions": ["UTG","LJ"],
