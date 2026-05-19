@@ -77,8 +77,9 @@ export default function ResultDetailPage() {
         </Link>
         <span className="text-neutral-700">/</span>
         <span className="text-neutral-200 text-sm">{row.player_name}</span>
-        {/* Só mostra pra quem completou — abandonado não tem saved_plan, /r daria 404. */}
-        {row.spots_played > 0 && (
+        {/* Só mostra pra quem completou e tem plano — abandonado e elite
+            (passou em todos) não têm saved_plan, /r daria 404. */}
+        {row.spots_played > 0 && !row.spot_summaries.every((s) => s.passed) && (
           <a
             href={`/r/${row.id}`}
             target="_blank"
@@ -114,9 +115,17 @@ export default function ResultDetailPage() {
           </div>
           <div>
             <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Status</p>
-            {row.stopped_early ? (
+            {row.spots_played === 0 ? (
+              <span className="inline-block rounded-full bg-neutral-800 px-3 py-1 text-sm text-neutral-400">
+                Abandonou
+              </span>
+            ) : row.stopped_early ? (
               <span className="inline-block rounded-full bg-red-900/40 px-3 py-1 text-sm text-red-400">
                 Early stop ({row.spots_failed} falhas)
+              </span>
+            ) : row.spot_summaries.every((s) => s.passed) ? (
+              <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-sm font-semibold text-amber-300">
+                Elite — passou em tudo
               </span>
             ) : (
               <span className="inline-block rounded-full bg-emerald-900/40 px-3 py-1 text-sm text-emerald-400">

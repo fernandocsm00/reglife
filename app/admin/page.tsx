@@ -239,6 +239,12 @@ export default function AdminPage() {
                         <span className="rounded-full bg-red-900/40 px-2 py-0.5 text-xs text-red-400">
                           Early stop
                         </span>
+                      ) : row.spot_summaries.every((s) => s.passed) ? (
+                        // Passou em TODOS os spots — foi roteado pra
+                        // /reg-life-team em vez do plano. saved_plan é null.
+                        <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-300">
+                          Elite
+                        </span>
                       ) : (
                         <span className="rounded-full bg-emerald-900/40 px-2 py-0.5 text-xs text-emerald-400">
                           Completo
@@ -298,19 +304,20 @@ export default function AdminPage() {
                         >
                           Ver detalhe →
                         </Link>
-                        {row.spots_played > 0 && (
-                          // Só pra quem completou (ou early-stop) — abandonado
-                          // não tem saved_plan no banco, /r/[id] daria 404.
-                          <a
-                            href={`/r/${row.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Baixar PDF do plano em nova aba"
-                            className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:border-amber-500 hover:text-amber-300 transition-colors"
-                          >
-                            PDF
-                          </a>
-                        )}
+                        {row.spots_played > 0 &&
+                          !row.spot_summaries.every((s) => s.passed) && (
+                            // Só pra quem completou (ou early-stop) — abandonado
+                            // e elite não tem saved_plan no banco, /r/[id] daria 404.
+                            <a
+                              href={`/r/${row.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Baixar PDF do plano em nova aba"
+                              className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:border-amber-500 hover:text-amber-300 transition-colors"
+                            >
+                              PDF
+                            </a>
+                          )}
                       </div>
                     </td>
                   </tr>

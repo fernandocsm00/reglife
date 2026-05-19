@@ -112,6 +112,64 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
     if (results.length === 0) return;
 
     builtRef.current = true;
+
+    // Caso "elite": passou em TODOS os spots (>=70% em cada um, sem early
+    // stop). Bypassa a entrega de plano — não interessa pro aluno que já
+    // tá batendo mid stakes. Roteia direto pra /reg-life-team com o CTA
+    // de aplicação pro time. Resultado ainda é gravado no admin pra
+    // acompanhar quem vai pra aplicação.
+    const allPassed =
+      spotSummaries.length > 0 &&
+      !stoppedEarly &&
+      spotSummaries.every((s) => s.passed);
+
+    if (allPassed) {
+      fetch("/api/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          diagnosticId: leadId,
+          previousDiagnosticId: previousLeadId,
+          playerName: playerName || "Jogador",
+          email,
+          phone,
+          studyTime,
+          profitGoal,
+          stoppedEarly: false,
+          spotsPlayed: spotSummaries.length,
+          spotsFailed: 0,
+          spotSummaries,
+          results,
+          volumeTargetWeekly,
+          // Preferências do lead preservadas pra contato futuro. Notificação
+          // de plano não dispara porque o bloco `if (savedPlan)` em
+          // /api/results não roda quando savedPlan=null.
+          notifyChannels,
+          whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
+          quizAnswers,
+          leadScore,
+          leadCategory,
+          stakeGrade,
+          // Sem savedPlan: aluno não vai pro /meu-plano, vai pro /reg-life-team
+          savedPlan: null,
+        }),
+      })
+        .then(async (r) => {
+          if (!r.ok) {
+            const detail = await r.text().catch(() => "");
+            console.error(
+              `[diagnostico] elite POST /api/results falhou status=${r.status} body=${detail.slice(0, 200)}`
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("[diagnostico] elite POST /api/results threw", err);
+        });
+
+      router.push("/reg-life-team");
+      return;
+    }
+
     const summary = analyzeResults(results);
     const previous = getStoredPlan();
     const plan = buildPlan({
