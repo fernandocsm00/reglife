@@ -13,8 +13,7 @@ const PLACEHOLDER = "https://reglife.com.br/aula-em-breve";
 
 /** Links fixos do "Desafio Profissão Poker". */
 export const FIXED_LINKS = {
-  careerLesson:
-    "https://reglife.com.br/wbn-cp-aula/?utm_campaign=wbn&utm_medium=teste-diagnostico&utm_source=com19-org&utm_content=teste-com19&utm_term=com19",
+  careerLesson: "https://social.reglife.com.br/com19-wbn",
   tournamentGrid: PLACEHOLDER, // default — substituído por GRADE_LINKS quando há banca declarada
   whatsappGroup: PLACEHOLDER,
 };
