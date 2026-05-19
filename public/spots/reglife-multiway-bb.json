@@ -3,7 +3,7 @@
   "action": "multiway",
   "mode": "sequential",
   "tier": 2,
-  "sessionSize": 22,
+  "sessionSize": 21,
   "defaultRaiseSize": "RAISE 7.6",
   "potSize": 6.7,
   "currentPotSize": 6.7,
@@ -112,12 +112,7 @@
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["UTG","LJ"],
       "spotConfig": { "potSize": 6.7, "currentPotSize": 6.7, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"LJ","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["A7o"], "answer": ["FOLD"] }]
-    },
-    {
-      "position": "BB", "stackSize": 25, "villainPositions": ["UTG","LJ"],
-      "spotConfig": { "potSize": 6.7, "currentPotSize": 6.7, "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"},{"position":"LJ","action":"Call"}]}] },
-      "expectedAnswers": [{ "combos": ["K8o"], "answer": ["FOLD"] }]
+      "expectedAnswers": [{ "combos": ["K8o"], "answer": ["CALL"] }]
     },
     {
       "position": "BB", "stackSize": 25, "villainPositions": ["UTG","LJ"],
