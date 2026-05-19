@@ -5,19 +5,18 @@ import { loadSpotConfig } from "@/lib/poker/listSpots";
 // Ordem do percurso. Com early stop (3 spots reprovados) a maioria
 // termina muito antes do final.
 //
-// Tier 1 (sequência Cbet segue Flop → Turn → River):
-//   RFI(19) → Cbet Flop vs BB(11) → Cbet Turn vs BB(11) → Cbet River vs BB(11)
+// Tier 1 (sequência Cbet segue Flop → Turn+River):
+//   RFI(19) → Cbet Flop vs BB(11) → Cbet Turn+River vs BB(22)
 //   → Vs RFI(27) → Defesa de BB(14) → BW SB GAP(7) → BW SB vs ISO(6)
 //   → BW BB vs Limp(15) → BW BB vs Raise(9) → Vs Cbet Flop BB(15)
 // Tier 2:
-//   Multiway(22) → Vs 3bet EP(16) → Vs 3bet BTN(10)
+//   Multiway(22) → Vs 3bet EP(15) → Vs 3bet BTN(10)
 //   → Cbet vs BTN(15) → Vs Cbet Flop BTN(12) → Bet vs Missed BTN(6)
 const TRAINER_SEQUENCE = [
   // Tier 1
   "reglife-rfi-prioridades",
   "reglife-cbet-flop-vs-bb",
-  "reglife-cbet-turn-vs-bb",
-  "reglife-cbet-river-vs-bb",
+  "reglife-cbet-turn-river-vs-bb",
   "reglife-vs-rfi",
   "reglife-defesa-bb",
   "reglife-blind-war-sb-gap",

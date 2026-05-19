@@ -14,8 +14,12 @@ const TIER_BY_SPOT_LABEL: Record<string, 1 | 2 | 3> = {
   "Jogando do BB": 1,
   "Blind War Pré Flop": 1,
   "Cbet em posição vs BB": 1,
+  // Spots antigos (turn e river separados) — mantidos por compatibilidade
+  // com planos antigos no localStorage de alunos que já testaram.
   "Cbet Turn em posição vs o BB": 1,
   "Cbet River em posição vs o BB": 1,
+  // Spot novo merged (turn+river num único bloco)
+  "Cbet Turn e River em Posição vs BB": 1,
   "Jogando vs Cbet do BB": 1,
   "Defesa de BB Multway": 2,
   "Enfrentando uma 3bet": 2,
@@ -58,6 +62,7 @@ const CATEGORY_BY_SPOT_LABEL: Record<string, string> = {
   "Cbet em posição vs BB": "Cbet Pós-flop",
   "Cbet Turn em posição vs o BB": "Cbet Pós-flop",
   "Cbet River em posição vs o BB": "Cbet Pós-flop",
+  "Cbet Turn e River em Posição vs BB": "Cbet Pós-flop",
   "Cbet Fora de Posição": "Cbet Pós-flop",
 
   // Pós-flop como defensor (e bet vs missed)

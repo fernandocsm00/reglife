@@ -1,12 +1,12 @@
 {
-  "name": "Cbet River em posição vs o BB",
-  "action": "cbetRiver",
-  "mode": "sequential",
+  "name": "Cbet Turn e River em Posição vs BB",
+  "action": "cbetTurn",
+  "mode": "ordered",
   "tier": 1,
   "showAllSizes": true,
-  "sessionSize": 11,
-  "potSize": 25,
-  "currentPotSize": 25,
+  "sessionSize": 22,
+  "potSize": 10,
+  "currentPotSize": 10,
   "tableSize": 8,
   "heroPositions": ["BTN"],
   "villainPositions": ["BB"],
@@ -17,10 +17,78 @@
     { "text": "BET 25%",  "color": "#E53030" },
     { "text": "BET 40%",  "color": "#D32121" },
     { "text": "BET 67%",  "color": "#C72222" },
-    { "text": "BET 100%", "color": "#B01E1E" },
+    { "text": "BET 72%",  "color": "#B81E1E" },
+    { "text": "BET 100%", "color": "#991A1A" },
+    { "text": "BET 165%", "color": "#781414" },
     { "text": "ALL-IN",   "color": "#6C0A0A" }
   ],
   "expectedAnswers": [
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Jd-6d-2c-4h",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["Qd4d"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Jd-6d-2c-4h",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["TsTd"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Ad-Jh-Th-3h",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["6d4d"], "answer": ["BET 40%", "BET 72%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "6d-4h-3c-9d",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["Qs2s"], "answer": ["BET 72%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Jd-6d-2c-4h",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["QsQh"], "answer": ["BET 100%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Ah-9d-3c-9s",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["KsTd"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 30, "villainPosition": "BB",
+      "board": "Ah-9d-3c-9s",
+      "spotConfig": { "heroStackSize": 25, "villainStackSize": 25, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["6d7d"], "answer": ["BET 40%", "BET 72%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Tc-7d-6s-Qd",
+      "spotConfig": { "heroStackSize": 93, "villainStackSize": 93, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["Ac2h"], "answer": ["BET 72%", "BET 100%", "BET 165%"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Ad-Jh-Th-8s",
+      "spotConfig": { "heroStackSize": 93, "villainStackSize": 93, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["QhJc"], "answer": ["CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "6d-4h-3c-Ks",
+      "spotConfig": { "heroStackSize": 93, "villainStackSize": 93, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["5s5c"], "answer": ["BET 40%", "CHECK"] }]
+    },
+    {
+      "position": "BTN", "stackSize": 100, "villainPosition": "BB",
+      "board": "Jd-6d-2c-2d",
+      "spotConfig": { "heroStackSize": 93, "villainStackSize": 93, "actionHistory": [{"street":"FLOP","actions":[{"position":"BB","action":"Check"},{"position":"BTN","action":"Cbet 1/3"},{"position":"BB","action":"Call"}]},{"street":"TURN","actions":[{"position":"BB","action":"Check"}]}] },
+      "expectedAnswers": [{ "combos": ["Jc7s"], "answer": ["CHECK"] }]
+    },
     {
       "position": "BTN", "stackSize": 30, "villainPosition": "BB",
       "board": "Qh-Qd-8h-As-7c",

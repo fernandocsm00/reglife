@@ -219,7 +219,10 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
       }
       const config = raw as SpotConfigFile;
       const ctx = initializeDrillContext(config);
-      const queue = shuffle(ctx.expectedAnswers.map((_, i) => i));
+      // mode "ordered" preserva a ordem do JSON (ex.: spots multi-street
+      // onde precisamos turn antes de river). Outros modos embaralham.
+      const indices = ctx.expectedAnswers.map((_, i) => i);
+      const queue = config.mode === "ordered" ? indices : shuffle(indices);
       sessions.push({
         ctx,
         label: config.name ?? config.action,
@@ -395,11 +398,15 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
     const { leadId, sessions } = get();
     // Re-shuffle as queues dos spots pro retake variar a ordem das mãos
     // dentro de cada spot. Sem isso, o aluno veria exatamente os mesmos
-    // combos na mesma ordem que da última vez.
-    const reshuffled = sessions.map((s) => ({
-      ...s,
-      queue: shuffle(s.ctx.expectedAnswers.map((_, i) => i)),
-    }));
+    // combos na mesma ordem que da última vez. Spots com mode "ordered"
+    // mantêm a ordem (ex.: multi-street turn→river).
+    const reshuffled = sessions.map((s) => {
+      const indices = s.ctx.expectedAnswers.map((_, i) => i);
+      return {
+        ...s,
+        queue: s.ctx.config.mode === "ordered" ? indices : shuffle(indices),
+      };
+    });
     const first = reshuffled[0];
     const drill = first
       ? createDrill(first.ctx, { expectedAnswerIndex: first.queue[0] })

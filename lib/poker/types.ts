@@ -72,8 +72,11 @@ export interface SpotConfigFile {
    * - "random" (default): each drill picks a random expectedAnswer (may repeat).
    * - "sequential": expectedAnswers are shuffled once at session start and then
    *   presented in order, each exactly once. Session ends when all are consumed.
+   * - "ordered": exactly como "sequential" porém SEM embaralhar — apresenta na
+   *   ordem em que estão no JSON. Útil pra spots multi-street onde queremos
+   *   garantir progressão (ex.: cbet turn antes de cbet river).
    */
-  mode?: "random" | "sequential";
+  mode?: "random" | "sequential" | "ordered";
   /** Tier de treinamento (1, 2 ou 3). Usado no nivelamento pra classificar o aluno. */
   tier?: number;
   sessionSize?: number;
