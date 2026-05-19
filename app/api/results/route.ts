@@ -11,7 +11,85 @@ import {
   requireDiagSession,
   setDiagSessionCookie,
 } from "@/lib/session";
+import { LEAD_CATEGORY_LABELS } from "@/lib/poker/leadScoring";
 import type { SavedPlan } from "@/lib/poker/planStorage";
+
+const DEFAULT_RESULTS_WEBHOOK_URL =
+  "https://webhook-n8n.reglife.com.br/webhook/a0c6f323-a9af-4e32-84a2-6f5b997d671d";
+
+interface ResultsWebhookSpotSummary {
+  label: string;
+  action: string;
+  tier: number;
+  correct: number;
+  total: number;
+  pct: number;
+  passed: boolean;
+}
+
+interface ResultsWebhookPayload {
+  event: "diagnostic.completed";
+  diagnosticId: string;
+  previousDiagnosticId: string | null;
+  completedAt: string;
+  player: {
+    name: string;
+    email: string | null;
+    phone: string | null;
+  };
+  result: {
+    overallPct: number;
+    spotsPlayed: number;
+    spotsFailed: number;
+    totalDrills: number;
+    totalCorrect: number;
+    stoppedEarly: boolean;
+    isElite: boolean;
+    spotSummaries: ResultsWebhookSpotSummary[];
+  };
+  leadScoring: {
+    score: number | null;
+    category: string | null;
+    categoryLabel: string | null;
+    stakeGrade: number | null;
+    quiz: Record<string, string> | null;
+  };
+  pdfUrl: string | null;
+}
+
+async function fireResultsWebhook(payload: ResultsWebhookPayload): Promise<void> {
+  const url = process.env.RESULTS_WEBHOOK_URL ?? DEFAULT_RESULTS_WEBHOOK_URL;
+  if (!url) {
+    console.warn("[results] webhook desabilitado (sem RESULTS_WEBHOOK_URL e sem default)");
+    return;
+  }
+  const startedAt = Date.now();
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10_000),
+    });
+    const elapsed = Date.now() - startedAt;
+    if (res.ok) {
+      console.log(
+        `[results] webhook OK status=${res.status} elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId}`
+      );
+    } else {
+      const respBody = await res.text().catch(() => "");
+      console.error(
+        `[results] webhook FAIL status=${res.status} elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId} body=${respBody.slice(0, 200)}`
+      );
+    }
+  } catch (err) {
+    const elapsed = Date.now() - startedAt;
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error(
+      `[results] webhook EXCEPTION elapsed=${elapsed}ms diagnosticId=${payload.diagnosticId} error=${msg}`
+    );
+  }
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -217,6 +295,63 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[api/results] PDF generation failed:", err);
     }
+  }
+
+  // Webhook do score técnico: dispara fire-and-forget pra n8n quando há
+  // dados de spots reais (não quando alguém envia /api/results sem ter
+  // jogado nenhuma mão). Inclui o score por spot, overall, status
+  // (elite/early-stop/completo) e cross-reference com o lead scoring
+  // do quiz pra n8n cruzar com a entrega do plano.
+  const spotSummaries = Array.isArray(body.spotSummaries) ? body.spotSummaries : [];
+  if (spotSummaries.length > 0) {
+    const totalDrills = spotSummaries.reduce(
+      (a: number, s: { total?: number }) => a + (s.total ?? 0),
+      0
+    );
+    const totalCorrect = spotSummaries.reduce(
+      (a: number, s: { correct?: number }) => a + (s.correct ?? 0),
+      0
+    );
+    const overallPct =
+      totalDrills > 0 ? Math.round((totalCorrect / totalDrills) * 100) : 0;
+    const isElite =
+      !body.stoppedEarly &&
+      spotSummaries.every((s: { passed?: boolean }) => s.passed === true);
+    const origin = req.nextUrl.origin;
+    const webhookPayload: ResultsWebhookPayload = {
+      event: "diagnostic.completed",
+      diagnosticId,
+      previousDiagnosticId,
+      completedAt: new Date().toISOString(),
+      player: {
+        name: body.playerName ?? "Jogador",
+        email: body.email ?? null,
+        phone: body.phone ?? null,
+      },
+      result: {
+        overallPct,
+        spotsPlayed: body.spotsPlayed ?? spotSummaries.length,
+        spotsFailed: body.spotsFailed ?? 0,
+        totalDrills,
+        totalCorrect,
+        stoppedEarly: body.stoppedEarly ?? false,
+        isElite,
+        spotSummaries,
+      },
+      leadScoring: {
+        score: leadScore,
+        category: leadCategory,
+        categoryLabel:
+          leadCategory && leadCategory in LEAD_CATEGORY_LABELS
+            ? LEAD_CATEGORY_LABELS[leadCategory as keyof typeof LEAD_CATEGORY_LABELS]
+            : null,
+        stakeGrade,
+        quiz: quizAnswers as Record<string, string> | null,
+      },
+      // Aluno elite e abandono não têm PDF — null nesses casos.
+      pdfUrl: pdfUrl ? `${origin}/r/${diagnosticId}` : null,
+    };
+    void fireResultsWebhook(webhookPayload);
   }
 
   return NextResponse.json({ id: diagnosticId, pdfUrl }, { status: 201 });
