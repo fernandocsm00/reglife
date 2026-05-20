@@ -115,7 +115,10 @@ export function groupLeaksByTheme(leaks: LeakBucket[]): LeakTheme[] {
         .map((l) => {
           const acc = l.total > 0 ? ((l.total - l.errors) / l.total) * 100 : 0;
           return {
-            label: `${l.actionLabel} · ${l.position} · ${l.stackBand}`,
+            // 1 leak = 1 treino — label simplificado pra topic, sem
+            // posição/stack (ambos são representativos, não definem
+            // bucketing). Ver leakAnalysis.topicKey.
+            label: l.actionLabel,
             accuracyPct: Math.round(acc),
             errors: l.errors,
             total: l.total,

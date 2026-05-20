@@ -161,7 +161,7 @@ export function buildPlan({
       title: "Fundamentos",
       rangeLabel: "Dias 1-30",
       focus: sortedLeaks[0]
-        ? `Corrigir o leak nº1: ${sortedLeaks[0].action} ${sortedLeaks[0].position} ${sortedLeaks[0].stackBand}. Esse é o ponto que mais te custa fichas hoje.`
+        ? `Corrigir o leak nº1: ${sortedLeaks[0].actionLabel}. Esse é o ponto que mais te custa fichas hoje.`
         : "Reforçar fundamentos de RFI e C-Bet com as aulas base da reglife.",
       tasks: studyTasks(studyTime, "fase1"),
       lessons: phase1Lessons,

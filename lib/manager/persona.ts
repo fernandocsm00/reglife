@@ -86,7 +86,7 @@ export function buildContextBlock(ctx: PlayerContext): string {
   if (ctx.topLeaks.length > 0) {
     lines.push("\nLeaks identificados (por ordem de severidade):");
     ctx.topLeaks.slice(0, 3).forEach((leak, i) => {
-      lines.push(`  ${i + 1}. ${leak.actionLabel} ${leak.position} ${leak.stackBand} — ${leak.errors}/${leak.total} erros`);
+      lines.push(`  ${i + 1}. ${leak.actionLabel} — ${leak.errors}/${leak.total} erros`);
     });
   }
 

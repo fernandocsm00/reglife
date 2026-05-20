@@ -114,6 +114,47 @@ function stackBand(stack: number): string {
   return `${stack}bb`;
 }
 
+/**
+ * Chave canônica do leak — agrupa todos os erros de um MESMO tópico de
+ * estudo numa única bucket. Antes a bucket era `action-position-stack`,
+ * o que duplicava entradas como "Cbet Turn e River · BTN · 30bb" e
+ * "... · BTN · 100bb" quando o lesson é o mesmo. Agora colapsa pra
+ * "1 leak = 1 treino completo": RFI é RFI, Cbet Turn e River é Cbet
+ * Turn e River.
+ *
+ * O id resultante ainda é parseável por `getSpotLink` e
+ * `canonicalSlotForLeak` (que dão split("-")[0] = action), então URLs e
+ * ordem canônica continuam funcionando sem mudanças nesses módulos.
+ */
+function topicKey(action: string, position: string): string {
+  switch (action) {
+    case "vsOpen":
+      // BB → "Jogando do BB" (defesa de BB);
+      // não-BB (CO/UTG/HJ/etc) → "Vs RFI"
+      return position === "BB" ? "vsOpen-BB" : "vsOpen-CO";
+    case "cBet":
+      // BTN/UTG1 → "Cbet em posição vs BB" (IP)
+      // resto → "Cbet Fora de Posição" (OOP)
+      return position === "BTN" || position === "UTG1" ? "cBet-BTN" : "cBet-CO";
+    case "vsCbet":
+      // BB → "Jogando vs Cbet do BB"; não-BB → "Jogando em Posição"
+      return position === "BB" ? "vsCbet-BB" : "vsCbet-BTN";
+    case "cbetTurn":
+    case "cbetRiver":
+      // Ambas as actions caem no mesmo treino multi-street; canonicaliza
+      // pra cbetTurn-BTN evitando duplicata Cbet Turn e River BTN 30bb
+      // vs BTN 100bb (mesmo treino).
+      return "cbetTurn-BTN";
+    default:
+      // Topics que não variam por posição (RFI, blindWar, multiway,
+      // vs3Bet, vsBBISO, squeeze, probeTurn, probeRiver, vsCheckRaise,
+      // delayCbet, pote3bet, cbetVsSB). Usa "-X" pra manter o formato
+      // parseável (split("-")[0] = action) sem revelar uma posição
+      // específica.
+      return `${action}-X`;
+  }
+}
+
 function recommendationFor(
   action: string,
   position: string,
@@ -272,10 +313,13 @@ export function analyzeResults(results: ResultEntry[]): DiagnosticSummary {
 
   const playerTier = assessTier(byTier);
 
-  // leak buckets only for errors, grouped by (action, position, stack)
+  // leak buckets agrupados por TÓPICO de estudo (1 leak = 1 treino).
+  // Antes era (action, position, stack), que duplicava o mesmo treino em
+  // entradas separadas por stack (ex.: "Cbet Turn+River · BTN · 30bb" e
+  // "...100bb"). Ver `topicKey` pra como cada topic é canonicalizado.
   const leakMap = new Map<string, LeakBucket>();
   for (const r of results) {
-    const id = `${r.action}-${r.position}-${r.stackSize}`;
+    const id = topicKey(r.action, r.position);
     const existing = leakMap.get(id);
     if (existing) {
       existing.total += 1;
@@ -288,8 +332,8 @@ export function analyzeResults(results: ResultEntry[]): DiagnosticSummary {
         id,
         action: r.action,
         actionLabel: spotDisplayLabel(r.action, r.position),
-        position: r.position,
-        stackBand: stackBand(r.stackSize),
+        position: r.position, // primeira posição vista (representativo)
+        stackBand: stackBand(r.stackSize), // primeira stack vista (representativo)
         errors: r.isCorrect ? 0 : 1,
         total: 1,
         examples: r.isCorrect ? [] : [r],

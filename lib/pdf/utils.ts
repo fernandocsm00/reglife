@@ -62,7 +62,10 @@ export function topLeaks(plan: SavedPlan, n: number = 3): LeakHighlight[] {
           : 0;
       return {
         id: leak.id,
-        label: `${leak.actionLabel} · ${leak.position} · ${leak.stackBand}`,
+        // 1 leak = 1 treino (action label já inclui contexto de
+        // posição quando relevante). Stack e posição específica não
+        // entram no label porque o lesson é o mesmo independente.
+        label: leak.actionLabel,
         pct: accuracyPct,
         narrative: leak.recommendation,
       };
