@@ -179,10 +179,13 @@ export function createDrill(
     perSceneVillains ??
     (villainPosition ? [villainPosition] : config.villainPositions ?? []);
 
-  // 5. Build action buttons (each marked correct or wrong for this combo)
+  // 5. Build action buttons (each marked correct or wrong for this combo).
+  // spotConfig.actionButtons sobrescreve o set default do config — usado em
+  // spots multi-street/multi-stack onde os sizes válidos variam por cenário.
   const key = answerKey(heroPosition, board, stackSize, villainInAnswer, answerId);
   const buttonMap = correctAnswers.get(key);
-  const allButtons: ActionButtonState[] = config.actionButtons.map((btn) => ({
+  const buttonsForThisDrill = ea.spotConfig?.actionButtons ?? config.actionButtons;
+  const allButtons: ActionButtonState[] = buttonsForThisDrill.map((btn) => ({
     text: btn.text,
     color: btn.color,
     isCorrect: buttonMap?.get(btn.text.toUpperCase())?.has(cardsOnHand) ?? false,

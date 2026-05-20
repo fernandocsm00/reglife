@@ -50,6 +50,13 @@ export interface ExpectedAnswerSpotConfig {
   tableConfiguration?: TableConfigOverride[];
   /** Override por cenário: força mostrar todos os tamanhos só neste expectedAnswer. */
   showAllSizes?: boolean;
+  /**
+   * Override do conjunto de botões pra este combo específico. Útil em spots
+   * multi-street/multi-stack onde os sizes válidos variam por cenário
+   * (ex.: Cbet Turn usa sizes diferentes do Cbet River 30bb e do 100bb).
+   * Quando ausente, usa config.actionButtons (default do spot).
+   */
+  actionButtons?: ActionButtonConfig[];
 }
 
 export interface ExpectedAnswer {
