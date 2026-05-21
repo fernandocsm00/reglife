@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 import { buildChallenge30d } from "@/lib/poker/challenge30d";
 import { Logo } from "@/components/Logo";
+import { EvHud } from "./EvHud";
 import { RetakeModal } from "./RetakeModal";
 
 interface Props {
@@ -97,6 +98,51 @@ export function PlanScreen({ plan }: Props) {
             Plano de Progressão Individual — {plan.playerName}.
           </h1>
         </motion.div>
+
+        {/* EV — Manager de Evolução (chat IA com contexto de Sharkscope) */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: 0.03,
+            duration: 0.22,
+            ease: [0.2, 0.7, 0.3, 1],
+          }}
+          style={{ marginBottom: 16 }}
+        >
+          <Link
+            href="/manager"
+            className="group flex flex-col rounded-xl border border-amber-400/20 bg-amber-400/5 p-5 transition hover:border-amber-400/40 hover:bg-amber-400/8 print:hidden"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-neutral-950">
+                R
+              </div>
+              <span className="flex items-center gap-1 text-[10px] text-green-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                online
+              </span>
+            </div>
+            <p className="text-sm font-semibold text-amber-300">EV — Manager de Evolução</p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+              Acompanha seu plano, lê seus resultados do SharkScope e te
+              cobra quando precisa. Bate um papo, tira dúvida, ajusta rota.
+            </p>
+            <span className="mt-4 text-xs text-neutral-500 transition group-hover:text-amber-300">
+              Abrir chat →
+            </span>
+          </Link>
+        </motion.div>
+
+        {/* EvHud — Streak / XP / Volume / Quest */}
+        {plan.diagnosticId && (
+          <div style={{ marginBottom: 24 }}>
+            <EvHud
+              diagnosticId={plan.diagnosticId}
+              fallbackVolumeTarget={plan.volumeTargetWeekly ?? null}
+            />
+          </div>
+        )}
 
         {/* PDF hero — entrega principal */}
         {plan.diagnosticId && (
