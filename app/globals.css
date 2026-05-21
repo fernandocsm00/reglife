@@ -72,6 +72,19 @@ body {
   border-style: solid;
   border-color: currentColor;
 }
+.phone-input-reglife .PhoneInputCountrySelect {
+  background-color: rgb(23 23 23);
+  color: rgb(245 245 245);
+}
+.phone-input-reglife .PhoneInputCountrySelect option {
+  background-color: rgb(23 23 23);
+  color: rgb(245 245 245);
+}
+.phone-input-reglife .PhoneInputCountrySelect option:checked,
+.phone-input-reglife .PhoneInputCountrySelect option:hover {
+  background-color: rgb(38 38 38);
+  color: rgb(251 191 36);
+}
 .phone-input-reglife .PhoneInputInput {
   background-color: rgb(23 23 23);
   color: rgb(245 245 245);
