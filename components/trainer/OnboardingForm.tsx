@@ -2,6 +2,8 @@
 
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 import {
@@ -50,22 +52,12 @@ interface Props {
 const TOTAL_STEPS = 7; // 1 identidade + 6 perguntas
 const ADVANCE_DELAY_MS = 220;
 
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 11);
-  if (digits.length === 0) return "";
-  if (digits.length <= 2) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10)
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isValidPhone(phone: string): boolean {
-  return phone.replace(/\D/g, "").length >= 10;
+  return phone.length > 0 && isValidPhoneNumber(phone);
 }
 
 export function OnboardingForm({ onSubmit }: Props) {
@@ -175,13 +167,15 @@ export function OnboardingForm({ onSubmit }: Props) {
                   />
                 </Field>
                 <Field label="WhatsApp">
-                  <input
-                    type="tel"
+                  <PhoneInput
+                    international
+                    defaultCountry="BR"
+                    countryCallingCodeEditable={false}
                     value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    onChange={(value) => setPhone(value ?? "")}
                     placeholder="(11) 99999-9999"
-                    className={inputClass}
-                    inputMode="tel"
+                    className={phoneInputClass}
+                    numberInputProps={{ className: inputClass }}
                     autoComplete="tel"
                   />
                 </Field>
@@ -346,6 +340,8 @@ function ProgressBar({
 
 const inputClass =
   "w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/30";
+
+const phoneInputClass = "phone-input-reglife flex items-center gap-2";
 
 function Field({
   label,

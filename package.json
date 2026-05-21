@@ -17,6 +17,7 @@
     "openai": "^4.100.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-phone-number-input": "^3.4.16",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
