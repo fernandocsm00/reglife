@@ -40,7 +40,7 @@ export function PulseCard({ diagnosticId }: Props) {
   useEffect(() => {
     if (!diagnosticId) return;
     let mounted = true;
-    fetch(`/api/profile/notifications?diagnosticId=${diagnosticId}`)
+    fetch(`/api/profile/notifications?userId=diag:${diagnosticId}`)
       .then((r) => r.json())
       .then((data) => {
         if (!mounted) return;

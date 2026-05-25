@@ -1,32 +1,53 @@
 /**
  * /p/[token] — página pública do pulse semanal.
  *
- * Server Component que faz fetch de /api/pulse?token=... e renderiza
- * 4 botões emoji. Após click, POST → mensagem "Anotado!".
- *
- * NÃO usa session cookie. Toda a auth é o HMAC no token.
+ * Server Component que valida o HMAC do token e busca o estado direto
+ * do Supabase (sem self-fetch em /api/pulse, que é anti-padrão em SSR
+ * no Vercel). O HMAC já autentica o request — não precisa de cookie.
  */
 
+import { createClient } from "@supabase/supabase-js";
+import { verifyPulseToken } from "@/lib/pulse/token";
 import { PulseLinkClient } from "./PulseLinkClient";
 
-interface VerifyResult {
+export const metadata = {
+  title: "Pulse · Reglife",
+  robots: "noindex",
+};
+
+interface PageState {
+  ok: boolean;
   diagnosticId?: string;
   weekIso?: string;
   alreadyVoted?: { emoji: string; source: string; at: string } | null;
-  error?: string;
 }
 
-async function verify(token: string): Promise<VerifyResult> {
-  // Em SSR, o fetch precisa de URL absoluta. Usamos NEXT_PUBLIC_SITE_URL ou
-  // VERCEL_URL pra montar. Se nenhum estiver setado, cai pra localhost.
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-  const res = await fetch(`${base}/api/pulse?token=${encodeURIComponent(token)}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return { error: `http_${res.status}` };
-  return (await res.json()) as VerifyResult;
+async function loadState(token: string): Promise<PageState> {
+  const parsed = verifyPulseToken(token);
+  if (!parsed) return { ok: false };
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.error("[p/[token]] SUPABASE env vars missing");
+    return { ok: false };
+  }
+  const supabase = createClient(url, key);
+  const { data } = await supabase
+    .from("pulse_responses")
+    .select("emoji, source, created_at")
+    .eq("diagnostic_id", parsed.diagnosticId)
+    .eq("week_iso", parsed.weekIso)
+    .maybeSingle();
+
+  return {
+    ok: true,
+    diagnosticId: parsed.diagnosticId,
+    weekIso: parsed.weekIso,
+    alreadyVoted: data
+      ? { emoji: data.emoji as string, source: data.source as string, at: data.created_at as string }
+      : null,
+  };
 }
 
 export default async function PulseLinkPage({
@@ -35,9 +56,9 @@ export default async function PulseLinkPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const result = await verify(token);
+  const state = await loadState(token);
 
-  if (result.error || !result.diagnosticId || !result.weekIso) {
+  if (!state.ok || !state.diagnosticId || !state.weekIso) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center text-neutral-100">
         <div className="max-w-md">
@@ -53,8 +74,8 @@ export default async function PulseLinkPage({
   return (
     <PulseLinkClient
       token={token}
-      weekIso={result.weekIso}
-      alreadyVoted={result.alreadyVoted ?? null}
+      weekIso={state.weekIso}
+      alreadyVoted={state.alreadyVoted ?? null}
     />
   );
 }
