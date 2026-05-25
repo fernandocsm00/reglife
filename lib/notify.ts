@@ -21,8 +21,12 @@ export type NotificationKind =
   | "drop_active"
   | "badge_unlocked"
   | "leak_alert"
+  | "leak_closed"
   | "phase_transition"
-  | "plan_delivered";
+  | "plan_delivered"
+  | "daily_checkin"
+  | "weekly_review"
+  | "health_band_change";
 
 export type Channel = "in_app" | "discord" | "whatsapp" | "email";
 

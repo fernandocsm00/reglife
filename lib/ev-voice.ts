@@ -42,8 +42,12 @@ export type EvTrigger =
   | "drop_active"
   | "streak_risk"
   | "leak_alert"
+  | "leak_closed"
   | "phase_transition"
-  | "comeback";
+  | "comeback"
+  | "daily_checkin"
+  | "weekly_review"
+  | "health_band_change";
 
 export interface EvVoiceArgs {
   diagnosticId: string;
@@ -205,8 +209,12 @@ function triggerHumanLabel(t: EvTrigger): string {
     drop_active: "Drop de XP 2x foi agendado.",
     streak_risk: "Streak em risco — aluno sumiu por mais de 36h.",
     leak_alert: "SharkScope mostra padrão consistente com leak do diagnóstico.",
+    leak_closed: "Aluno fechou um leak — retake passou no critério (≥85% acerto, ≥10 mãos).",
     phase_transition: "Aluno mudou de fase do plano.",
     comeback: "Aluno voltou depois de >5 dias offline.",
+    daily_checkin: "Check-in diário do EV (cobrança leve do plano da semana).",
+    weekly_review: "Review de domingo — balanço da semana + foco da próxima.",
+    health_band_change: "Health Score mudou de faixa (ex: amarelo → laranja).",
   };
   return m[t];
 }
