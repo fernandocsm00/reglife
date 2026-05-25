@@ -885,10 +885,14 @@ export interface SnapshotDiff {
 }
 
 function service() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "[health/snapshot] NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios"
+    );
+  }
+  return createClient(url, key);
 }
 
 function today(): string {
@@ -1418,10 +1422,14 @@ import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 
 function service() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "[triggers/dailyCheckin] NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios"
+    );
+  }
+  return createClient(url, key);
 }
 
 /** True se hoje (em UTC, suficiente pra escala atual) é seg-sex. */
@@ -1618,10 +1626,14 @@ import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 
 function service() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "[triggers/weeklyReview] NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios"
+    );
+  }
+  return createClient(url, key);
 }
 
 function isSunday(): boolean {
