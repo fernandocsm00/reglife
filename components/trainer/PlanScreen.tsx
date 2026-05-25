@@ -7,6 +7,7 @@ import type { SavedPlan } from "@/lib/poker/planStorage";
 import { buildChallenge30d } from "@/lib/poker/challenge30d";
 import { Logo } from "@/components/Logo";
 import { EvHud } from "./EvHud";
+import { HealthScoreBlock } from "./HealthScoreBlock";
 import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
 
@@ -134,6 +135,13 @@ export function PlanScreen({ plan }: Props) {
             </span>
           </Link>
         </motion.div>
+
+        {/* HealthScoreBlock — número 0-100 + barra + 3 pílulas */}
+        {plan.diagnosticId && (
+          <div style={{ marginBottom: 24 }}>
+            <HealthScoreBlock diagnosticId={plan.diagnosticId} />
+          </div>
+        )}
 
         {/* EvHud — Streak / XP / Volume / Quest */}
         {plan.diagnosticId && (
