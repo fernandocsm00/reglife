@@ -10,10 +10,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PlayerState, SpotSummary } from "./types";
 
 function service(): SupabaseClient {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "[health/collect] NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios"
+    );
+  }
+  return createClient(url, key);
 }
 
 interface DiagRow {
@@ -77,6 +81,21 @@ export async function collectPlayerState(diagnosticId: string): Promise<PlayerSt
       .limit(4),
   ]);
 
+  // supabase-js não rejeita em erro de PostgREST — resolve com { data: null, error }.
+  // Sem logar o `error` aqui, um RLS/network problem vira "diagnostic não encontrado"
+  // misterioso no log da cron. Logamos uma vez por fonte (sem stack trace).
+  function logIfError(label: string, res: PromiseSettledResult<{ error: { message: string } | null } | unknown>) {
+    if (res.status === "fulfilled" && res.value && typeof res.value === "object" && "error" in res.value) {
+      const err = (res.value as { error: { message: string } | null }).error;
+      if (err) console.warn(`[health/collect] ${label} error: ${err.message}`);
+    } else if (res.status === "rejected") {
+      console.warn(`[health/collect] ${label} rejected: ${String(res.reason)}`);
+    }
+  }
+  logIfError("diag", diagRes);
+  logIfError("taskEvents", taskEventsRes);
+  logIfError("pulses", pulsesRes);
+
   const diag = diagRes.status === "fulfilled" ? diagRes.value.data : null;
   const retakeSpots = retakeRes.status === "fulfilled" ? retakeRes.value : null;
   const tasksChecked =
@@ -103,13 +122,31 @@ export async function collectPlayerState(diagnosticId: string): Promise<PlayerSt
   };
 }
 
-/** Lista todos os alunos ativos (ciclo ≤ 120 dias) — usado pelo cron. */
+/**
+ * Lista todos os alunos ativos (ciclo ≤ 120 dias) — usado pelo cron.
+ *
+ * Pagina explicitamente em páginas de 1000 (default cap do supabase-js)
+ * pra não silenciosamente truncar a turma quando ela passar disso.
+ */
 export async function listActiveStudents(): Promise<string[]> {
   const supabase = service();
   const cutoff = new Date(Date.now() - 120 * 86_400_000).toISOString();
-  const { data } = await supabase
-    .from("reglife_diagnostic_results")
-    .select("id, created_at")
-    .gte("created_at", cutoff);
-  return (data ?? []).map((r) => r.id);
+  const PAGE = 1000;
+  const ids: string[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("reglife_diagnostic_results")
+      .select("id")
+      .gte("created_at", cutoff)
+      .order("created_at", { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.warn(`[health/collect] listActiveStudents page ${from}: ${error.message}`);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    for (const row of data) ids.push(row.id as string);
+    if (data.length < PAGE) break;
+  }
+  return ids;
 }
