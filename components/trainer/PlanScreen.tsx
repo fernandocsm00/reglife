@@ -7,6 +7,7 @@ import type { SavedPlan } from "@/lib/poker/planStorage";
 import { buildChallenge30d } from "@/lib/poker/challenge30d";
 import { Logo } from "@/components/Logo";
 import { EvHud } from "./EvHud";
+import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
 
 interface Props {
@@ -141,6 +142,13 @@ export function PlanScreen({ plan }: Props) {
               diagnosticId={plan.diagnosticId}
               fallbackVolumeTarget={plan.volumeTargetWeekly ?? null}
             />
+          </div>
+        )}
+
+        {/* PulseCard — pulse semanal (4 emojis), some após votar */}
+        {plan.diagnosticId && (
+          <div style={{ marginBottom: 24 }}>
+            <PulseCard diagnosticId={plan.diagnosticId} />
           </div>
         )}
 
