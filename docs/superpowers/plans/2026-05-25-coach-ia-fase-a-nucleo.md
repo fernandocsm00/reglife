@@ -640,7 +640,7 @@ console.log("\n=== Caso 5: conclusão + sentimento com peso redistribuído (sem 
     recentPulses: ["smile", "smile"],
   }));
   assertNear("health", r.health, 58);
-  assertEq("band", r.band, "red"); // 58 < 60 → red
+  assertEq("band", r.band, "orange"); // 40 ≤ 58 < 60 → orange
 }
 
 console.log("\n=== Caso 6: tudo null (não deveria acontecer, mas precisa ser robusto)");
