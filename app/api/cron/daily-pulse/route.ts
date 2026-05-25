@@ -13,8 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 import { fireDailyCheckin } from "@/lib/triggers/dailyCheckin";
-// TODO(T14): uncomment when weeklyReview lands
-// import { fireWeeklyReview } from "@/lib/triggers/weeklyReview";
+import { fireWeeklyReview } from "@/lib/triggers/weeklyReview";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -65,10 +64,10 @@ export async function GET(req: NextRequest) {
     if (checkinHandled === "fired") stats.daily_checkin += 1;
     else if (checkinHandled === "throttled") stats.skipped += 1;
 
-    // TODO(T14): uncomment when weeklyReview lands
-    // const weeklyHandled = await maybeWeeklyReview(row);
-    // if (weeklyHandled === "fired") stats.weekly_review += 1;
-    // else if (weeklyHandled === "throttled") stats.skipped += 1;
+    // ---- Weekly review (domingo) ----------------------------------------
+    const weeklyHandled = await maybeWeeklyReview(row);
+    if (weeklyHandled === "fired") stats.weekly_review += 1;
+    else if (weeklyHandled === "throttled") stats.skipped += 1;
   }
 
   return NextResponse.json({ ok: true, ...stats });
@@ -204,6 +203,27 @@ async function maybeDailyCheckin(
     currentPhase: phase,
     tasksChecked,
     tasksExpected,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Weekly review (domingo)
+// ---------------------------------------------------------------------------
+async function maybeWeeklyReview(
+  row: DiagRow
+): Promise<"fired" | "throttled" | "noop"> {
+  const cycleDay =
+    Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000) + 1;
+  const phase =
+    cycleDay <= 30 ? "Fase 1 — Fundamentos"
+    : cycleDay <= 60 ? "Fase 2 — Aplicação"
+    : "Fase 3 — Integração";
+
+  return fireWeeklyReview({
+    diagnosticId: row.id,
+    playerName: row.player_name,
+    cycleDay,
+    currentPhase: phase,
   });
 }
 
