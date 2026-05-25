@@ -11,6 +11,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { generateEvVoice, type EvTrigger } from "@/lib/ev-voice";
+import { whatsappAllowed, type Cadence } from "@/lib/triggers/cadenceRules";
 
 export type NotificationKind =
   | "post_session"
@@ -49,6 +50,7 @@ interface DiagPrefs {
   notify_quiet_start: number | null;
   notify_quiet_end: number | null;
   timezone: string | null;
+  notify_cadence: string | null;
 }
 
 function service() {
@@ -135,7 +137,7 @@ export async function sendNotification(
   const { data: prefs } = await supabase
     .from("reglife_diagnostic_results")
     .select(
-      "player_name, discord_webhook_url, whatsapp_phone, notify_channels, notify_quiet_start, notify_quiet_end, timezone"
+      "player_name, discord_webhook_url, whatsapp_phone, notify_channels, notify_quiet_start, notify_quiet_end, timezone, notify_cadence"
     )
     .eq("id", args.diagnosticId)
     .single<DiagPrefs>();
@@ -168,7 +170,15 @@ export async function sendNotification(
     if (ok) channelsSent.push("discord");
   }
 
-  if (!inQuiet && enabled.has("whatsapp") && prefs?.whatsapp_phone) {
+  // Cadência do aluno modula WhatsApp por kind. Default = "ritmada" (mesmo
+  // default do banco). Se for um kind/cadência sem WhatsApp permitido, pula.
+  const cadence = ((prefs?.notify_cadence ?? "ritmada") as Cadence);
+  if (
+    !inQuiet &&
+    enabled.has("whatsapp") &&
+    prefs?.whatsapp_phone &&
+    whatsappAllowed(args.kind, cadence)
+  ) {
     const ok = await sendWhatsapp(prefs.whatsapp_phone, args, prefs.player_name);
     if (ok) channelsSent.push("whatsapp");
   }
