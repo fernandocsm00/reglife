@@ -173,36 +173,25 @@ async function maybePhaseTransition(
 async function maybeDailyCheckin(
   row: DiagRow
 ): Promise<"fired" | "throttled" | "noop"> {
-  // Coleta dados mínimos pro check-in (sem health-score; isso é trigger temporal)
+  // Coleta dados mínimos pro check-in (sem health-score; isso é trigger temporal).
+  // tasksChecked/Expected ficam 0 na Fase A — mesma decisão de lib/health/collect.ts:
+  // plans table usa user_id (modo com-auth) e o app sem-auth guarda o plano no
+  // localStorage. Quando auth chegar (Fase C), tasksChecked vem de diagnostic_activity
+  // e tasksExpected vem da fase atravessada.
   const cycleDay =
-    Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000) + 1;
+    Math.max(1, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000) + 1);
   const phase =
     cycleDay <= 30 ? "Fase 1 — Fundamentos"
     : cycleDay <= 60 ? "Fase 2 — Aplicação"
     : "Fase 3 — Integração";
-
-  // Conta tasks marcadas vs esperadas (lookup leve, sem usar collect.ts)
-  const supabase = service();
-  const { data: plan } = await supabase
-    .from("plans")
-    .select("data")
-    .eq("diagnostic_id", row.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const data = (plan?.data as { phases?: Array<{ tasks?: unknown[] }>; progress?: { checkedTaskIds?: string[] } } | null) ?? null;
-  const phasesPassed = cycleDay <= 30 ? 1 : cycleDay <= 60 ? 2 : 3;
-  const tasksExpected = (data?.phases ?? []).slice(0, phasesPassed)
-    .reduce((acc, p) => acc + (p.tasks?.length ?? 0), 0);
-  const tasksChecked = Math.min(tasksExpected, (data?.progress?.checkedTaskIds ?? []).length);
 
   return fireDailyCheckin({
     diagnosticId: row.id,
     playerName: row.player_name,
     cycleDay,
     currentPhase: phase,
-    tasksChecked,
-    tasksExpected,
+    tasksChecked: 0,
+    tasksExpected: 0,
   });
 }
 

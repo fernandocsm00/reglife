@@ -10,19 +10,18 @@
  */
 
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
+import type { HealthBand } from "@/lib/health/types";
 
-type Band = "green" | "yellow" | "orange" | "red";
+const ORDER: HealthBand[] = ["red", "orange", "yellow", "green"];
 
-const ORDER: Band[] = ["red", "orange", "yellow", "green"];
-
-function isImprovement(from: Band, to: Band): boolean {
+function isImprovement(from: HealthBand, to: HealthBand): boolean {
   return ORDER.indexOf(to) > ORDER.indexOf(from);
 }
 
 export async function fireHealthBandChange(args: {
   diagnosticId: string;
-  from: Band;
-  to: Band;
+  from: HealthBand;
+  to: HealthBand;
   health: number;
 }): Promise<"fired" | "throttled" | "noop"> {
   if (args.from === args.to) return "noop";

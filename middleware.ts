@@ -67,6 +67,7 @@ const ADMIN_API_PATHS = new Set([
   "/api/results",
   "/api/sharkscope/sync-diagnostic",
   "/api/sharkscope/sync",
+  "/api/admin/health",
 ]);
 
 export function middleware(req: NextRequest) {
@@ -81,8 +82,9 @@ export function middleware(req: NextRequest) {
   const isAdminSharkscope =
     pathname === "/api/sharkscope/sync-diagnostic" ||
     pathname === "/api/sharkscope/sync";
+  const isAdminHealth = pathname === "/api/admin/health";
 
-  const gated = isAdminPage || isResultsAdminGet || isAdminSharkscope;
+  const gated = isAdminPage || isResultsAdminGet || isAdminSharkscope || isAdminHealth;
   if (!gated) return NextResponse.next();
 
   if (isAuthorized(req.headers.get("authorization"))) {
@@ -111,5 +113,6 @@ export const config = {
     "/api/results",
     "/api/sharkscope/sync-diagnostic",
     "/api/sharkscope/sync",
+    "/api/admin/health",
   ],
 };

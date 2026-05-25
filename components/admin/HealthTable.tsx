@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { HealthBand } from "@/lib/health/types";
 
-type Band = "red" | "orange" | "yellow" | "green";
+type Band = HealthBand;
 
 interface HealthRow {
   diagnosticId: string;

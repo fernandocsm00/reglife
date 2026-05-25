@@ -10,6 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import type { HealthBand } from "@/lib/health/types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ interface Row {
   diagnostic_id: string;
   day: string;
   health: number;
-  band: "green" | "yellow" | "orange" | "red";
+  band: HealthBand;
   breakdown: { leaksClosed?: number; leaksTotal?: number } | null;
   reglife_diagnostic_results: {
     player_name: string;
