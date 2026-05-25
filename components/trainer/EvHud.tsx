@@ -41,6 +41,21 @@ export function EvHud({ diagnosticId, fallbackVolumeTarget }: Props) {
     };
   }, [diagnosticId]);
 
+  const [health, setHealth] = useState<{ value: number; band: "green" | "yellow" | "orange" | "red" } | null>(null);
+
+  useEffect(() => {
+    if (!diagnosticId) return;
+    let mounted = true;
+    fetch(`/api/health/me?diag=${encodeURIComponent(diagnosticId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!mounted || !data?.snapshot) return;
+        setHealth({ value: data.snapshot.health, band: data.snapshot.band });
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [diagnosticId]);
+
   const volumeTarget = data?.volumeTarget ?? fallbackVolumeTarget;
   const weeklyVolume = data?.weeklyVolume ?? 0;
   const volumePct =
@@ -54,7 +69,7 @@ export function EvHud({ diagnosticId, fallbackVolumeTarget }: Props) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-3 sm:p-4 print:hidden"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat
           icon="🔥"
           label="Streak"
@@ -93,6 +108,13 @@ export function EvHud({ diagnosticId, fallbackVolumeTarget }: Props) {
           }
           sub={data?.activeQuest?.title ?? "nenhuma ativa"}
           accent={data?.activeQuest?.completed_at ? "emerald" : "neutral"}
+        />
+        <Stat
+          icon="🩺"
+          label="HS"
+          value={health ? `${Math.round(health.value)}` : "—"}
+          sub={health ? bandLabel(health.band) : undefined}
+          accent={health ? bandAccent(health.band) : "neutral"}
         />
       </div>
 
@@ -204,4 +226,19 @@ function QuestRow({
       </div>
     </div>
   );
+}
+
+function bandLabel(band: "green" | "yellow" | "orange" | "red"): string {
+  switch (band) {
+    case "green":  return "verde";
+    case "yellow": return "amarelo";
+    case "orange": return "laranja";
+    case "red":    return "vermelho";
+  }
+}
+
+function bandAccent(band: "green" | "yellow" | "orange" | "red"): "amber" | "emerald" | "neutral" {
+  if (band === "green") return "emerald";
+  if (band === "yellow") return "amber";
+  return "neutral"; // orange/red ficam neutros no contexto do Hud (vermelho explícito pode espantar)
 }
