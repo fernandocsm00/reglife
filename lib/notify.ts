@@ -26,7 +26,8 @@ export type NotificationKind =
   | "plan_delivered"
   | "daily_checkin"
   | "weekly_review"
-  | "health_band_change";
+  | "health_band_change"
+  | "pulse_request";
 
 export type Channel = "in_app" | "discord" | "whatsapp" | "email";
 

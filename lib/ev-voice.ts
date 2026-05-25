@@ -47,7 +47,8 @@ export type EvTrigger =
   | "comeback"
   | "daily_checkin"
   | "weekly_review"
-  | "health_band_change";
+  | "health_band_change"
+  | "pulse_request";
 
 export interface EvVoiceArgs {
   diagnosticId: string;
@@ -215,6 +216,7 @@ function triggerHumanLabel(t: EvTrigger): string {
     daily_checkin: "Check-in diário do EV (cobrança leve do plano da semana).",
     weekly_review: "Review de domingo — balanço da semana + foco da próxima.",
     health_band_change: "Health Score mudou de faixa (ex: amarelo → laranja).",
+    pulse_request: "Pulse semanal — pergunta de 1-tap sobre como o aluno se sentiu na semana.",
   };
   return m[t];
 }
