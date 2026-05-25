@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
 import { downloadLeadsCsv } from "@/lib/admin/exportCsv";
+import { HealthTable } from "@/components/admin/HealthTable";
 
 const SS_NETWORKS = [
   "PokerStars",
@@ -58,6 +59,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [ssTarget, setSsTarget] = useState<DiagnosticRow | null>(null);
+  const [tab, setTab] = useState<"leads" | "health">("leads");
 
   useEffect(() => {
     fetch(`/api/results`)
@@ -101,6 +103,26 @@ export default function AdminPage() {
       </div>
 
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-zinc-800 mb-6">
+          <button
+            onClick={() => setTab("leads")}
+            className={`px-3 py-2 text-sm ${tab === "leads" ? "border-b-2 border-emerald-400 text-emerald-300" : "text-zinc-400"}`}
+          >
+            Leads
+          </button>
+          <button
+            onClick={() => setTab("health")}
+            className={`px-3 py-2 text-sm ${tab === "health" ? "border-b-2 border-emerald-400 text-emerald-300" : "text-zinc-400"}`}
+          >
+            Saúde da turma
+          </button>
+        </div>
+
+        {tab === "health" ? (
+          <HealthTable />
+        ) : (
+        <>
         {/* Search + actions */}
         <div className="flex items-center gap-3">
           <input
@@ -325,6 +347,8 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        )}
+        </>
         )}
       </div>
 
