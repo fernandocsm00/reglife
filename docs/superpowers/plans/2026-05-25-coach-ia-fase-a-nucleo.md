@@ -89,8 +89,10 @@ create table if not exists public.player_health_snapshots (
   created_at   timestamptz not null default now(),
   primary key (diagnostic_id, day)
 );
-create index if not exists player_health_snapshots_band_idx
-  on public.player_health_snapshots (band, day desc);
+-- Index pensado pra query do admin (Task 15): "últimos 30 dias, latest por aluno".
+-- Day liderando dá range scan eficiente; band é só secondary (tie-breaker raro).
+create index if not exists player_health_snapshots_day_idx
+  on public.player_health_snapshots (day desc, band);
 
 -- 2) Pulse semanal (usado em Fase C — mas a tabela cabe na 012 pra evitar
 --    migração só pra isso depois; nenhuma rota da Fase A grava nela ainda)
@@ -111,6 +113,16 @@ alter table public.reglife_diagnostic_results
     check (notify_cadence in ('leve','ritmada','intensa')),
   add column if not exists roi_baseline numeric(6,2),
   add column if not exists email_for_notify text;
+
+-- 4) Lockdown anon — mesma postura de 010_lock_down_anon.sql.
+--    Todo writer (cron health-score, snapshot.ts, /api/admin/health,
+--    rotas futuras de pulse) usa service_role; anon/authenticated não
+--    deve nunca tocar essas tabelas. RLS sem policy = nega tudo.
+alter table public.player_health_snapshots enable row level security;
+alter table public.pulse_responses          enable row level security;
+
+revoke all on public.player_health_snapshots from anon, authenticated;
+revoke all on public.pulse_responses          from anon, authenticated;
 ```
 
 - [ ] **Step 1.2: Aplicar no Supabase SQL Editor**
