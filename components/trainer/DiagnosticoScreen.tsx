@@ -311,6 +311,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
               leadScore: data.leadScore,
               leadCategory: data.leadCategory,
               stakeGrade: data.stakeGrade,
+              notifyCadence: data.notifyCadence,
             }),
           })
             .then(async (r) => {

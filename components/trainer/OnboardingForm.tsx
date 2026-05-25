@@ -41,13 +41,14 @@ export interface OnboardingData {
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
   volumeTargetWeekly: number;
+  notifyCadence: "leve" | "ritmada" | "intensa";
 }
 
 interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-const TOTAL_STEPS = 7; // 1 identidade + 6 perguntas
+const TOTAL_STEPS = 8; // 1 identidade + 6 perguntas + 1 cadência
 const ADVANCE_DELAY_MS = 220;
 
 function formatPhone(raw: string): string {
@@ -83,20 +84,22 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [abi, setAbi] = useState<AbiAnswer | null>(null);
   const [volume, setVolume] = useState<VolumeAnswer | null>(null);
   const [banca, setBanca] = useState<BancaAnswer | null>(null);
+  const [notifyCadence, setNotifyCadence] = useState<"leve" | "ritmada" | "intensa">("ritmada");
 
   const identityValid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone);
 
-  const finalSubmit = (bancaValue: BancaAnswer) => {
+  const finalSubmit = () => {
+    if (!banca) return;
     const completeQuiz: QuizAnswers = {
       idade: idade!,
       tempo: tempo!,
       objetivo: objetivo!,
       abi: abi!,
       volume: volume!,
-      banca: bancaValue,
+      banca,
     };
 
     const leadScore = computeLeadScore(completeQuiz);
@@ -116,6 +119,7 @@ export function OnboardingForm({ onSubmit }: Props) {
       studyTime: defaultStudyTime(),
       profitGoal: objetivoToProfitGoal(objetivo!),
       volumeTargetWeekly: volumeToWeeklyTarget(volume!),
+      notifyCadence,
     });
   };
 
@@ -128,7 +132,7 @@ export function OnboardingForm({ onSubmit }: Props) {
     return (value: T) => {
       setter(value);
       setTimeout(() => {
-        if (next === "submit") finalSubmit(value as unknown as BancaAnswer);
+        if (next === "submit") finalSubmit();
         else setStep(next);
       }, ADVANCE_DELAY_MS);
     };
@@ -273,9 +277,57 @@ export function OnboardingForm({ onSubmit }: Props) {
               <QuestionOptions
                 options={BANCA_OPTIONS}
                 value={banca}
-                onChange={autoAdvance(setBanca, "submit")}
+                onChange={autoAdvance(setBanca, 8)}
               />
               <BackBar onBack={() => setStep(6)} />
+            </StepWrapper>
+          )}
+
+          {step === 8 && (
+            <StepWrapper key="cadencia">
+              <Title>Quanto o EV deve te cobrar?</Title>
+              <Sub>Você escolhe a frequência. Pode mudar depois com o coach.</Sub>
+
+              <div className="mt-8 space-y-2">
+                {[
+                  { value: "leve" as const,    label: "Pouco — só quando importar",   sub: "Sem check-in diário. EV só fala quando há sinal forte." },
+                  { value: "ritmada" as const, label: "Na medida — recomendado",       sub: "Plano da semana + reviews. Default da maioria." },
+                  { value: "intensa" as const, label: "Sem moleza — me cobra todo dia", sub: "Check-in diário, EV em cima do plano." },
+                ].map((o) => {
+                  const selected = notifyCadence === o.value;
+                  return (
+                    <button
+                      type="button"
+                      key={o.value}
+                      onClick={() => setNotifyCadence(o.value)}
+                      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
+                        selected
+                          ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
+                          : "border-neutral-800 bg-neutral-900/50 text-neutral-200 hover:border-neutral-700 hover:bg-neutral-900"
+                      }`}
+                    >
+                      <span>
+                        <span className="block font-semibold">{o.label}</span>
+                        <span className="block text-xs text-neutral-400">{o.sub}</span>
+                      </span>
+                      <span
+                        className={`h-4 w-4 shrink-0 rounded-full border-2 ${
+                          selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <NextButton
+                  disabled={false}
+                  onClick={() => finalSubmit()}
+                  label="Concluir →"
+                />
+              </div>
+              <BackBar onBack={() => setStep(7)} />
             </StepWrapper>
           )}
         </AnimatePresence>

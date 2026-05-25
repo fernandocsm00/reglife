@@ -170,6 +170,10 @@ export async function POST(req: NextRequest) {
     typeof body.stakeGrade === "number" && Number.isFinite(body.stakeGrade)
       ? body.stakeGrade
       : null;
+  const notifyCadence: "leve" | "ritmada" | "intensa" =
+    body.notifyCadence === "leve" || body.notifyCadence === "intensa"
+      ? body.notifyCadence
+      : "ritmada";
 
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
@@ -187,6 +191,7 @@ export async function POST(req: NextRequest) {
         lead_score: leadScore,
         lead_category: leadCategory,
         stake_grade: stakeGrade,
+        notify_cadence: notifyCadence,
         // Test ainda não rodou — fica vazio
         stopped_early: false,
         spots_played: 0,
