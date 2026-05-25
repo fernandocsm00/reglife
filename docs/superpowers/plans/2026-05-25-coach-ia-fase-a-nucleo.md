@@ -913,8 +913,11 @@ export async function persistSnapshot(
   const supabase = service();
   const day = today();
 
-  // Pega o snapshot mais recente ANTES de inserir o de hoje
-  const { data: prev } = await supabase
+  // Pega o snapshot mais recente ANTES de inserir o de hoje.
+  // IMPORTANTE: tratamos prevErr como fatal — sem isso, um blip de rede vira
+  // "primeiro dia" silencioso e dispara leak_closed espúrio (ver I-2/M-4 do
+  // code review da T8).
+  const { data: prev, error: prevErr } = await supabase
     .from("player_health_snapshots")
     .select("band, breakdown")
     .eq("diagnostic_id", diagnosticId)
@@ -922,6 +925,9 @@ export async function persistSnapshot(
     .order("day", { ascending: false })
     .limit(1)
     .maybeSingle<{ band: HealthScore["band"]; breakdown: HealthScore["breakdown"] }>();
+  if (prevErr) {
+    throw new Error(`[health/snapshot] prev read: ${prevErr.message}`);
+  }
 
   // Upsert do snapshot de hoje
   const row = {
@@ -941,11 +947,17 @@ export async function persistSnapshot(
     .upsert(row, { onConflict: "diagnostic_id,day" });
   if (error) throw new Error(`[health/snapshot] upsert: ${error.message}`);
 
-  // Diff
+  // Diff. NOTA: caller deve dedupar triggers — invocações concorrentes do mesmo
+  // diag verão o mesmo `prev` e podem fire 2x se a cron for chamada duas vezes
+  // no mesmo segundo (notificação tem throttle por kind, mas ainda assim conta).
   const bandChange =
     prev && prev.band !== score.band ? { from: prev.band, to: score.band } : null;
-  const newlyClosedCount =
-    score.breakdown.leaksClosed - (prev?.breakdown?.leaksClosed ?? 0);
+  // Primeiro snapshot do aluno (prev=null) NÃO conta como "fechou leak hoje" —
+  // é baseline. Senão, retake já feito antes da cron começar dispara leak_closed
+  // falso positivo no primeiro tick.
+  const newlyClosedCount = prev
+    ? score.breakdown.leaksClosed - (prev.breakdown?.leaksClosed ?? 0)
+    : 0;
 
   return {
     bandChange,
