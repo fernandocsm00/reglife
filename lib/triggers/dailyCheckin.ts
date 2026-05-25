@@ -10,6 +10,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
+import { type Cadence } from "@/lib/triggers/cadenceRules";
 
 function service() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -49,7 +50,11 @@ export async function fireDailyCheckin(args: {
   currentPhase: string;
   tasksChecked: number;
   tasksExpected: number;
+  cadence: Cadence;
 }): Promise<"fired" | "throttled" | "noop"> {
+  // Leve não recebe daily_checkin (nem in_app). Spec da Fase C decidiu.
+  if (args.cadence === "leve") return "noop";
+
   if (!isWeekday()) return "noop";
 
   const hours = await lastActivityHours(args.diagnosticId);

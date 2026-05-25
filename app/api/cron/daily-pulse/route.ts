@@ -14,6 +14,7 @@ import { createClient } from "@supabase/supabase-js";
 import { hasNotificationRecently, sendEvNotification } from "@/lib/notify";
 import { fireDailyCheckin } from "@/lib/triggers/dailyCheckin";
 import { fireWeeklyReview } from "@/lib/triggers/weeklyReview";
+import { type Cadence } from "@/lib/triggers/cadenceRules";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -22,6 +23,7 @@ interface DiagRow {
   id: string;
   player_name: string;
   created_at: string;
+  notify_cadence: string | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const { data: rows, error } = await supabase
     .from("reglife_diagnostic_results")
-    .select("id, player_name, created_at");
+    .select("id, player_name, created_at, notify_cadence");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -192,6 +194,7 @@ async function maybeDailyCheckin(
     currentPhase: phase,
     tasksChecked: 0,
     tasksExpected: 0,
+    cadence: (row.notify_cadence ?? "ritmada") as Cadence,
   });
 }
 
