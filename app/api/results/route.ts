@@ -361,14 +361,27 @@ export async function POST(req: NextRequest) {
 // Acesso protegido pelo middleware.ts (HTTP Basic Auth com ADMIN_USER /
 // ADMIN_PASSWORD). Quem chega aqui já passou pelo middleware.
 export async function GET() {
-  const { data, error } = await supabase
-    .from("reglife_diagnostic_results")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // PostgREST limita cada request a 1000 linhas por default; pagina em chunks
+  // pra não travar a tabela do admin quando a base passa de 1k registros.
+  const PAGE_SIZE = 1000;
+  const all: unknown[] = [];
+  let from = 0;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  while (true) {
+    const { data, error } = await supabase
+      .from("reglife_diagnostic_results")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(all);
 }
