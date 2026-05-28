@@ -1,15 +1,15 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import type { SavedPlan } from "@/lib/poker/planStorage";
-import { buildChallenge30d } from "@/lib/poker/challenge30d";
 import { Logo } from "@/components/Logo";
 import { EvHud } from "./EvHud";
-import { HealthScoreBlock } from "./HealthScoreBlock";
 import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
+import { SpotTrack } from "./SpotTrack";
+import { ResourcesBlock } from "./ResourcesBlock";
 
 interface Props {
   plan: SavedPlan;
@@ -19,7 +19,6 @@ interface Props {
 export function PlanScreen({ plan }: Props) {
   const [showRetake, setShowRetake] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const items = useMemo(() => buildChallenge30d(plan), [plan]);
 
   /**
    * Abre o PDF do plano em nova aba.
@@ -136,13 +135,6 @@ export function PlanScreen({ plan }: Props) {
           </Link>
         </motion.div>
 
-        {/* HealthScoreBlock — número 0-100 + barra + 3 pílulas */}
-        {plan.diagnosticId && (
-          <div style={{ marginBottom: 24 }}>
-            <HealthScoreBlock diagnosticId={plan.diagnosticId} />
-          </div>
-        )}
-
         {/* EvHud — Streak / XP / Volume / Quest */}
         {plan.diagnosticId && (
           <div style={{ marginBottom: 24 }}>
@@ -226,87 +218,8 @@ export function PlanScreen({ plan }: Props) {
           </motion.div>
         )}
 
-        {/* Plano de Ação — 6 itens */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: 0.07,
-            duration: 0.22,
-            ease: [0.2, 0.7, 0.3, 1],
-          }}
-          style={{ marginTop: 32 }}
-        >
-          <p className="rg-eyebrow">Seus links</p>
-          <h3 className="rg-h3" style={{ marginTop: 8 }}>
-            Plano de Progressão
-          </h3>
-          <p className="rg-body-sm" style={{ marginTop: 4 }}>
-            O que estudar, treinar e jogar.
-          </p>
-        </motion.div>
-
-        <motion.ul
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: 0.09,
-            duration: 0.22,
-            ease: [0.2, 0.7, 0.3, 1],
-          }}
-          style={{
-            margin: "12px 0 0",
-            padding: 0,
-            listStyle: "none",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          {items.map((item, i) => (
-            <li key={i}>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rg-row"
-                style={{ padding: "18px 22px" }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: 16,
-                    minWidth: 0,
-                  }}
-                >
-                  <span
-                    className="rg-mono"
-                    style={{
-                      fontSize: 13,
-                      color: "var(--rg-fg-faint)",
-                      fontWeight: 500,
-                      width: 24,
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 600 }}>
-                      {item.label}
-                    </div>
-                    {item.sublabel && (
-                      <div className="rg-caption" style={{ marginTop: 4 }}>
-                        {item.sublabel}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <span className="rg-row__arrow">→</span>
-              </a>
-            </li>
-          ))}
-        </motion.ul>
+        <SpotTrack plan={plan} />
+        <ResourcesBlock plan={plan} />
 
         {/* Footer */}
         <div
