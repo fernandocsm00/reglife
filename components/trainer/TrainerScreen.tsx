@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useDrillStore } from "@/lib/poker/store";
 import { PokerTable } from "./PokerTable";
@@ -13,9 +14,17 @@ import { sounds } from "@/lib/audio/sounds";
 
 interface Props {
   initialConfig: unknown;
+  /**
+   * Quando presente, ativa modo single-spot: cada mão é reportada pra
+   * /api/spot-training, e ao desbloquear o spot redireciona pra /meu-plano.
+   */
+  singleSpotContext?: {
+    diagnosticId: string;
+    leakId: string;
+  };
 }
 
-export function TrainerScreen({ initialConfig }: Props) {
+export function TrainerScreen({ initialConfig, singleSpotContext }: Props) {
   const drill = useDrillStore((s) => s.drill);
   const errorMessage = useDrillStore((s) => s.errorMessage);
   const hasPicked = useDrillStore((s) => s.hasPickedAnswer);
@@ -29,10 +38,38 @@ export function TrainerScreen({ initialConfig }: Props) {
   const restartStore = useDrillStore((s) => s.restart);
 
   const [muted, setMuted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    loadConfig(initialConfig);
-  }, [initialConfig, loadConfig]);
+    if (!singleSpotContext) {
+      loadConfig(initialConfig);
+      return;
+    }
+    loadConfig(initialConfig, {
+      onHandPlayed: async ({ correct }) => {
+        try {
+          const res = await fetch("/api/spot-training", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              diagnosticId: singleSpotContext.diagnosticId,
+              leakId: singleSpotContext.leakId,
+              correct,
+            }),
+          });
+          const data = (await res.json().catch(() => null)) as
+            | { unlockedNow?: boolean }
+            | null;
+          if (data?.unlockedNow) {
+            // delay pra animação de acerto terminar
+            setTimeout(() => router.push("/meu-plano?unlocked=1"), 1500);
+          }
+        } catch (err) {
+          console.warn("[trainer] spot-training report failed:", err);
+        }
+      },
+    });
+  }, [initialConfig, loadConfig, singleSpotContext, router]);
 
   // Replay deal sound whenever the drill changes
   useEffect(() => {

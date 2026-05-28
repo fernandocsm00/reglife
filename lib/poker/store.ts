@@ -21,11 +21,21 @@ interface DrillState {
   hasPickedAnswer: boolean;
   drillCompleted: boolean;
 
+  /** Optional callback fired once per answered hand. Set via loadConfig. */
+  onHandPlayed?: (args: {
+    correct: boolean;
+    handsPlayed: number;
+    handsCorrect: number;
+  }) => void;
+
   // Sequential mode state. Empty array means random mode.
   sequentialQueue: number[];
   sequentialCursor: number;
 
-  loadConfig: (raw: unknown) => void;
+  loadConfig: (
+    raw: unknown,
+    opts?: { onHandPlayed?: DrillState["onHandPlayed"] }
+  ) => void;
   pickAnswer: (buttonText: string) => void;
   nextDrill: () => void;
   restart: () => void;
@@ -48,10 +58,11 @@ export const useDrillStore = create<DrillState>((set, get) => ({
   correctPlays: 0,
   hasPickedAnswer: false,
   drillCompleted: false,
+  onHandPlayed: undefined,
   sequentialQueue: [],
   sequentialCursor: 0,
 
-  loadConfig: (raw) => {
+  loadConfig: (raw, opts) => {
     if (!validateSpotConfig(raw)) {
       set({ errorMessage: "Invalid Spot configuration file" });
       return;
@@ -75,6 +86,7 @@ export const useDrillStore = create<DrillState>((set, get) => ({
       drillCompleted: false,
       sequentialQueue: queue,
       sequentialCursor: 0,
+      onHandPlayed: opts?.onHandPlayed,
     });
   },
 
@@ -105,6 +117,8 @@ export const useDrillStore = create<DrillState>((set, get) => ({
       hasPickedAnswer: true,
       drillCompleted: sessionLimit > 0 && newTotal >= sessionLimit,
     });
+    const cb = get().onHandPlayed;
+    if (cb) cb({ correct, handsPlayed: newTotal, handsCorrect: newCorrect });
   },
 
   nextDrill: () => {
