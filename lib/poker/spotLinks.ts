@@ -187,49 +187,91 @@ export function canonicalSlotForLeak(leakId: string): number {
 }
 
 /**
- * Mapa de leak action → slug do spot interno em /public/spots/.
- * Quando uma action não tem spot interno (ex.: Tier 3 — squeeze, probeTurn),
- * retorna null. Nesses casos a UI cai num fallback manual.
+ * Mapa de leak action → slug do spot interno em /public/spots/<slug>.json.
+ * Cobertura confirmada por inspeção dos arquivos reais em /public/spots/
+ * (16 arquivos no momento). Actions Tier 3 (squeeze, probeTurn, etc.) não
+ * têm spot interno → slugForLeak devolve null e a UI mostra fallback manual.
  *
- * Os slugs aqui são DEFAULTS por action. Se uma combinação específica precisa
- * cair em outro spot, adicione em LEAK_TO_SLUG_OVERRIDES.
+ * Actions com uma única destinação ficam no mapa simples. Actions com
+ * roteamento por posição (cBet, vsOpen, vsCbet, vs3Bet, blindWar) usam
+ * o switch em slugForLeak abaixo.
  */
 const ACTION_TO_SLUG: Partial<Record<string, string>> = {
-  RFI:        "reglife-rfi",
-  vsOpen:     "reglife-vs-rfi",
-  vsBBISO:    "reglife-blind-war",
-  blindWar:   "reglife-blind-war",
-  cBet:       "reglife-cbet-flop-vs-bb",
-  cbetTurn:   "reglife-cbet-turn",
-  cbetRiver:  "reglife-cbet-river",
-  vsCbet:     "reglife-vs-cbet",
-  multiway:   "reglife-bb-multiway",
-  vs3Bet:     "reglife-vs-3bet",
-  // Tier 3 sem spots internos (intencionalmente ausentes):
-  // squeeze, probeTurn, probeRiver, vsCheckRaise, delayCbet, pot3bet, cbetVsSb
+  RFI:        "reglife-rfi-prioridades",
+  cbetTurn:   "reglife-cbet-turn-river-vs-bb",
+  cbetRiver:  "reglife-cbet-turn-river-vs-bb",
+  multiway:   "reglife-multiway-bb",
 };
 
+/**
+ * Overrides por leakId exato — quando uma combinação específica de
+ * action+position+stack cai num spot diferente do default da action.
+ */
 const LEAK_TO_SLUG_OVERRIDES: Record<string, string> = {
-  // Cbet do BTN em 40bb = Bet vs Missed
+  // Cbet do BTN em 40bb = Bet vs Missed (não cbet vs BB)
   "cBet-BTN-40": "reglife-cbet-flop-btn-missed",
 };
 
 /**
  * Retorna o slug do spot interno pra esse leak, ou null se não houver.
- * O slug aqui é o nome do arquivo em /public/spots/<slug>.json (sem extensão).
+ * O slug é o nome do arquivo em /public/spots/<slug>.json (sem extensão).
  *
- * IMPORTANTE: antes de retornar um slug, verifique se o arquivo existe
- * usando `loadSpotConfig`. Esta função é puramente um lookup — não toca disco.
+ * Esta função é puramente um lookup — não toca disco. A rota de trainer
+ * single-spot (`app/trainer/spot/[leakId]/page.tsx`) deve usar
+ * `loadSpotConfig(slug)` para confirmar que o arquivo existe e tratar 404.
  */
 export function slugForLeak(leakId: string): string | null {
   if (LEAK_TO_SLUG_OVERRIDES[leakId]) return LEAK_TO_SLUG_OVERRIDES[leakId];
-  const action = leakId.split("-")[0];
-  return ACTION_TO_SLUG[action] ?? null;
+
+  const parts = leakId.split("-");
+  if (parts.length < 2) return null;
+  const [action, position] = parts;
+
+  if (ACTION_TO_SLUG[action]) return ACTION_TO_SLUG[action]!;
+
+  switch (action) {
+    case "vsOpen":
+      // BB defesa pré-flop é spot próprio; outras posições caem em vs-rfi.
+      return position === "BB" ? "reglife-defesa-bb" : "reglife-vs-rfi";
+
+    case "cBet":
+      // BTN/UTG1 cbetando vs BB = IP (cbet flop vs BB).
+      // Outras posições cbetam OOP (cbet vs BTN).
+      return position === "BTN" || position === "UTG1"
+        ? "reglife-cbet-flop-vs-bb"
+        : "reglife-cbet-vs-btn";
+
+    case "vsCbet":
+      // BB enfrentando cbet → vs-cbet-flop-bb.
+      // BTN/outros IP → vs-cbet-flop-btn (default IP).
+      return position === "BB"
+        ? "reglife-vs-cbet-flop-bb"
+        : "reglife-vs-cbet-flop-btn";
+
+    case "vs3Bet":
+      // Posições iniciais → vs-3bet-ep; resto (BTN/CO/SB) → vs-3bet-btn.
+      return position === "UTG" || position === "UTG1" || position === "HJ" || position === "LJ"
+        ? "reglife-vs-3bet-ep"
+        : "reglife-vs-3bet-btn";
+
+    case "vsBBISO":
+    case "blindWar":
+      // BB defendendo vs SB → bb-vs-raise (default).
+      // SB jogando blind war → sb-gap.
+      return position === "BB"
+        ? "reglife-blind-war-bb-vs-raise"
+        : "reglife-blind-war-sb-gap";
+
+    default:
+      // Tier 3 (squeeze, probeTurn, probeRiver, vsCheckRaise, delayCbet,
+      // pot3bet, cbetVsSb) intencionalmente cai aqui — sem spot interno.
+      return null;
+  }
 }
 
 /**
  * Quick check — esse leak tem um trainer interno jogável?
- * Pra Tier 3 (squeeze, probeTurn, etc.), false → UI mostra fallback manual.
+ * Pra Tier 3, false → UI mostra fallback manual.
  */
 export function hasInternalTrainer(leakId: string): boolean {
   return slugForLeak(leakId) !== null;
