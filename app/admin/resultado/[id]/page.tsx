@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { HealthScoreBlock } from "@/components/trainer/HealthScoreBlock";
 import type { DiagnosticRow } from "@/lib/supabase";
 
 const STUDY_LABELS: Record<string, string> = {
@@ -89,6 +90,10 @@ export default function ResultDetailPage() {
             ↓ Baixar PDF
           </a>
         )}
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6 pt-6">
+        <HealthScoreBlock diagnosticId={row.id} mode="admin" />
       </div>
 
       <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
