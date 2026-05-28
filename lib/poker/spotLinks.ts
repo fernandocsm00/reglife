@@ -185,3 +185,52 @@ export function canonicalSlotForLeak(leakId: string): number {
       return 99;
   }
 }
+
+/**
+ * Mapa de leak action → slug do spot interno em /public/spots/.
+ * Quando uma action não tem spot interno (ex.: Tier 3 — squeeze, probeTurn),
+ * retorna null. Nesses casos a UI cai num fallback manual.
+ *
+ * Os slugs aqui são DEFAULTS por action. Se uma combinação específica precisa
+ * cair em outro spot, adicione em LEAK_TO_SLUG_OVERRIDES.
+ */
+const ACTION_TO_SLUG: Partial<Record<string, string>> = {
+  RFI:        "reglife-rfi",
+  vsOpen:     "reglife-vs-rfi",
+  vsBBISO:    "reglife-blind-war",
+  blindWar:   "reglife-blind-war",
+  cBet:       "reglife-cbet-flop-vs-bb",
+  cbetTurn:   "reglife-cbet-turn",
+  cbetRiver:  "reglife-cbet-river",
+  vsCbet:     "reglife-vs-cbet",
+  multiway:   "reglife-bb-multiway",
+  vs3Bet:     "reglife-vs-3bet",
+  // Tier 3 sem spots internos (intencionalmente ausentes):
+  // squeeze, probeTurn, probeRiver, vsCheckRaise, delayCbet, pot3bet, cbetVsSb
+};
+
+const LEAK_TO_SLUG_OVERRIDES: Record<string, string> = {
+  // Cbet do BTN em 40bb = Bet vs Missed
+  "cBet-BTN-40": "reglife-cbet-flop-btn-missed",
+};
+
+/**
+ * Retorna o slug do spot interno pra esse leak, ou null se não houver.
+ * O slug aqui é o nome do arquivo em /public/spots/<slug>.json (sem extensão).
+ *
+ * IMPORTANTE: antes de retornar um slug, verifique se o arquivo existe
+ * usando `loadSpotConfig`. Esta função é puramente um lookup — não toca disco.
+ */
+export function slugForLeak(leakId: string): string | null {
+  if (LEAK_TO_SLUG_OVERRIDES[leakId]) return LEAK_TO_SLUG_OVERRIDES[leakId];
+  const action = leakId.split("-")[0];
+  return ACTION_TO_SLUG[action] ?? null;
+}
+
+/**
+ * Quick check — esse leak tem um trainer interno jogável?
+ * Pra Tier 3 (squeeze, probeTurn, etc.), false → UI mostra fallback manual.
+ */
+export function hasInternalTrainer(leakId: string): boolean {
+  return slugForLeak(leakId) !== null;
+}
