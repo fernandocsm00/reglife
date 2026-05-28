@@ -90,30 +90,30 @@ Expected: exit 0. Se falhar, parar e reportar — o problema não é do plano.
 
 ---
 
-### Task 2: Migration `spot_training_sessions`
+### Task 2: Migration `013_spot_training_sessions`
 
 **Files:**
-- Create: `supabase/migrations/20260528120000_spot_training_sessions.sql`
+- Create: `supabase/migrations/013_spot_training_sessions.sql`
 
-- [ ] **Step 1: Verificar formato dos migrations existentes**
+**Padrão do projeto (confirmado):** Migrations vivem em `supabase/migrations/` com numeração sequencial (`012_health_score.sql` foi a última). Aplicação é MANUAL via Supabase SQL Editor — siga o mesmo header dos migrations existentes ("Aplicar manualmente no Supabase SQL Editor"). Tabela do aluno é `reglife_diagnostic_results` com PK `uuid`. Lockdown anon segue o padrão de `010_lock_down_anon.sql` e `012_health_score.sql`.
 
-Run: `ls supabase/migrations/ 2>/dev/null || ls migrations/ 2>/dev/null || echo "no migrations dir"`
-Expected: lista de arquivos `.sql` com timestamp prefixado, OU "no migrations dir" (criamos do zero).
-
-Se "no migrations dir": criar diretório `supabase/migrations/`. Se já existir um padrão diferente, **siga o padrão existente** (mesmo nome de pasta, mesmo formato de timestamp).
-
-- [ ] **Step 2: Escrever o SQL da migration**
-
-Create `supabase/migrations/20260528120000_spot_training_sessions.sql`:
+- [ ] **Step 1: Criar `supabase/migrations/013_spot_training_sessions.sql`**
 
 ```sql
--- Spot Training Sessions
+-- ============================================================
+-- RegLife — Migration 013: Spot Training Sessions
+-- Aplicar manualmente no Supabase SQL Editor.
+-- ============================================================
+--
 -- Rastreia progresso acumulado por (diagnostic_id, leak_id) no trainer
 -- single-spot, usado pelo gating da trilha de 3 spots em /meu-plano.
+-- Atinge 70% de acerto em >=50 mãos → completed_at é gravado e o
+-- próximo spot da trilha desbloqueia.
 
 create table if not exists public.spot_training_sessions (
   id uuid primary key default gen_random_uuid(),
-  diagnostic_id text not null references public.diagnostics(id) on delete cascade,
+  diagnostic_id uuid not null
+    references public.reglife_diagnostic_results(id) on delete cascade,
   leak_id text not null,
   hands_played int not null default 0,
   hands_correct int not null default 0,
@@ -123,10 +123,11 @@ create table if not exists public.spot_training_sessions (
   unique (diagnostic_id, leak_id)
 );
 
-create index if not exists idx_spot_training_sessions_diagnostic
+-- Index pensado pra query do SpotTrack: "todos os spots do aluno X".
+create index if not exists spot_training_sessions_diagnostic_idx
   on public.spot_training_sessions(diagnostic_id);
 
--- Trigger pra manter updated_at automático
+-- Trigger pra manter updated_at automático em UPSERT
 create or replace function public.touch_spot_training_updated_at()
 returns trigger language plpgsql as $$
 begin
@@ -139,24 +140,37 @@ drop trigger if exists trg_spot_training_touch on public.spot_training_sessions;
 create trigger trg_spot_training_touch
   before update on public.spot_training_sessions
   for each row execute function public.touch_spot_training_updated_at();
+
+-- Lockdown anon — mesma postura de 010_lock_down_anon.sql e 012_health_score.sql.
+-- A rota /api/spot-training usa supabaseAdmin (service_role).
+-- anon/authenticated não deve nunca tocar essa tabela.
+alter table public.spot_training_sessions enable row level security;
+revoke all on public.spot_training_sessions from anon, authenticated;
 ```
 
-- [ ] **Step 3: Aplicar migration**
+- [ ] **Step 2: Aplicar manualmente no Supabase SQL Editor**
 
-Se o projeto usa Supabase CLI: `supabase db push` ou equivalente. Se aplica manualmente: copie o SQL e rode no dashboard do Supabase.
+**ATENÇÃO:** Este projeto aplica migrations **manualmente** via dashboard do Supabase (vide header dos migrations anteriores). O subagente NÃO deve tentar rodar `supabase db push` ou similar — apenas reportar como pendente.
 
-**Verificação:** rode no SQL editor do Supabase:
+Verificação (rode no SQL editor após aplicar):
 ```sql
-select column_name, data_type from information_schema.columns
-where table_name = 'spot_training_sessions';
+select column_name, data_type
+from information_schema.columns
+where table_schema = 'public' and table_name = 'spot_training_sessions'
+order by ordinal_position;
 ```
-Expected: 8 colunas (`id`, `diagnostic_id`, `leak_id`, `hands_played`, `hands_correct`, `completed_at`, `created_at`, `updated_at`).
+Expected: 8 colunas (`id` uuid, `diagnostic_id` uuid, `leak_id` text, `hands_played` integer, `hands_correct` integer, `completed_at` timestamp with time zone, `created_at` timestamp with time zone, `updated_at` timestamp with time zone).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit do arquivo de migration (independente da aplicação)**
 
 ```bash
-git add supabase/migrations/20260528120000_spot_training_sessions.sql
-git commit -m "feat(db): add spot_training_sessions table for spot-track gating"
+git add supabase/migrations/013_spot_training_sessions.sql
+git commit -m "feat(db): add spot_training_sessions table for spot-track gating
+
+Migration 013 — segue padrão do projeto (sequencial, apply manual no
+Supabase SQL Editor, RLS enabled + revoke on anon). Tabela rastreia
+progresso por (diagnostic_id, leak_id) pro gating da trilha de 3 spots.
+"
 ```
 
 ---
@@ -796,13 +810,13 @@ Read: `app/api/admin/health/route.ts` se existir.
 
 Note como ela autentica (provavelmente cookie de admin ou ausência de auth — siga o mesmo padrão na nova rota).
 
-- [ ] **Step 2: Estudar shape de `health_snapshots`**
+- [ ] **Step 2: Estudar shape de `player_health_snapshots`**
 
 Run pelo Supabase SQL editor:
 ```sql
 select column_name, data_type
 from information_schema.columns
-where table_name = 'health_snapshots';
+where table_name = 'player_health_snapshots';
 ```
 
 Anote nomes exatos das colunas (`day`, `health`, `band`, `breakdown` esperados; pode haver `diagnostic_id`).
@@ -852,7 +866,7 @@ export async function GET(
 
   // Last 7 daily snapshots, newest first
   const { data, error } = await supabaseAdmin
-    .from("health_snapshots")
+    .from("player_health_snapshots")
     .select("day, health, band, breakdown")
     .eq("diagnostic_id", diagnosticId)
     .order("day", { ascending: false })
