@@ -32,6 +32,7 @@ interface Snapshot {
 
 interface Props {
   diagnosticId: string | undefined;
+  mode?: "self" | "admin";
 }
 
 const BAND_LABEL: Record<Band, string> = {
@@ -55,8 +56,9 @@ const BAND_TEXT: Record<Band, string> = {
   red:    "text-red-300",
 };
 
-export function HealthScoreBlock({ diagnosticId }: Props) {
+export function HealthScoreBlock({ diagnosticId, mode = "self" }: Props) {
   const [snapshot, setSnapshot] = useState<Snapshot | null | undefined>(undefined);
+  const [history, setHistory] = useState<Snapshot[]>([]);
 
   useEffect(() => {
     if (!diagnosticId) {
@@ -64,15 +66,31 @@ export function HealthScoreBlock({ diagnosticId }: Props) {
       return;
     }
     let mounted = true;
-    fetch(`/api/health/me?diag=${encodeURIComponent(diagnosticId)}`)
+
+    const url =
+      mode === "admin"
+        ? `/api/admin/health/${encodeURIComponent(diagnosticId)}`
+        : `/api/health/me?diag=${encodeURIComponent(diagnosticId)}`;
+
+    fetch(url)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!mounted) return;
-        setSnapshot((data?.snapshot as Snapshot | null) ?? null);
+        if (mode === "admin") {
+          setSnapshot((data?.snapshot as Snapshot | null) ?? null);
+          setHistory((data?.history as Snapshot[]) ?? []);
+        } else {
+          setSnapshot((data?.snapshot as Snapshot | null) ?? null);
+        }
       })
-      .catch(() => { if (mounted) setSnapshot(null); });
-    return () => { mounted = false; };
-  }, [diagnosticId]);
+      .catch(() => {
+        if (mounted) setSnapshot(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [diagnosticId, mode]);
 
   if (snapshot === undefined) {
     return (
@@ -130,6 +148,15 @@ export function HealthScoreBlock({ diagnosticId }: Props) {
           Leaks fechados: <span className="text-neutral-300">{breakdown.leaksClosed ?? 0}/{breakdown.leaksTotal}</span>
         </p>
       )}
+
+      {mode === "admin" && history.length > 1 && (
+        <div className="mt-4">
+          <p className="text-[10px] uppercase tracking-wide text-neutral-500">
+            Últimos {history.length} dias
+          </p>
+          <Sparkline history={history} className="mt-1" />
+        </div>
+      )}
     </div>
   );
 }
@@ -146,5 +173,43 @@ function Pill({ label, value }: { label: string; value: number | null | undefine
         {display}
       </div>
     </div>
+  );
+}
+
+function Sparkline({
+  history,
+  className = "",
+}: {
+  history: Snapshot[];
+  className?: string;
+}) {
+  if (history.length < 2) return null;
+  const w = 220;
+  const h = 36;
+  const values = history.map((s) => s.health);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const points = history.map((s, i) => {
+    const x = (i / (history.length - 1)) * w;
+    const y = h - ((s.health - min) / range) * h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  return (
+    <svg
+      width={w}
+      height={h}
+      className={className}
+      role="img"
+      aria-label={`Health Score dos últimos ${history.length} dias`}
+    >
+      <polyline
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        points={points.join(" ")}
+        className="text-emerald-300"
+      />
+    </svg>
   );
 }
