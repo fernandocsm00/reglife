@@ -12,6 +12,7 @@
  */
 
 import type { PlayerContext } from "./context";
+import { monthlyHistoryToText } from "@/lib/sharkscope";
 
 // ---------------------------------------------------------------------------
 // Eventos de trigger — usados para customizar a abertura da mensagem
@@ -62,6 +63,7 @@ METODOLOGIA REGLIFE (que você domina):
 - O plano de 90 dias tem 3 fases: Fundamentos (1-30), Aplicação (31-60), Integração (61-90)
 - Early stop no diagnóstico = 3 spots com < 70% de acerto = foco redobrado nos fundamentos
 - SharkScope: ROI > +5% = vencedor; -5% a +5% = breakeven; < -5% = perdendo
+- Quando o aluno perguntar sobre ROI/profit/desempenho do mês, use os dados de "ÚLTIMOS MESES" abaixo. Se o bloco não vier, diga claramente que a sync semanal da Shark ainda não rodou — NÃO invente número.
 `;
 }
 
@@ -103,6 +105,16 @@ export function buildContextBlock(ctx: PlayerContext): string {
     lines.push("\n" + ctx.sharkscopeText);
   } else {
     lines.push("\nSharkScope: não conectado ainda.");
+  }
+
+  // Histórico mensal — só aparece quando há linhas em sharkscope_monthly_stats
+  if (ctx.monthlyHistory.length > 0) {
+    const now = new Date();
+    const monthlyText = monthlyHistoryToText(ctx.monthlyHistory, {
+      currentYear: now.getUTCFullYear(),
+      currentMonth: now.getUTCMonth() + 1,
+    });
+    if (monthlyText) lines.push("\n" + monthlyText);
   }
 
   // Últimas mensagens (contexto de conversa)
