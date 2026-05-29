@@ -11,7 +11,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { LeakBucket } from "@/lib/poker/leakAnalysis";
-import { snapshotToText, type PlayerSnapshot } from "@/lib/sharkscope";
+import { snapshotToText, type PlayerSnapshot, type MonthlyStatsRow } from "@/lib/sharkscope";
 import {
   STUDY_TIME_LABELS,
   PROFIT_GOAL_LABELS,
@@ -62,6 +62,9 @@ export interface PlayerContext {
   // SharkScope
   sharkscopeText: string | null;
   lastSnapshot: PlayerSnapshot | null;
+
+  // Histórico mensal SharkScope (até 3, mais recente primeiro)
+  monthlyHistory: MonthlyStatsRow[];
 
   // Histórico de conversa
   recentMessages: RecentMessage[];
@@ -195,6 +198,10 @@ export async function buildPlayerContext(userId: string): Promise<PlayerContext>
 
     sharkscopeText,
     lastSnapshot,
+    // monthlyHistory: o modo com-auth ainda não está mapeado pra
+    // sharkscope_monthly_stats (a tabela usa diagnostic_id; precisamos
+    // resolver via plan → diag_id antes). Fora do escopo desta entrega.
+    monthlyHistory: [],
 
     recentMessages,
   };
@@ -227,6 +234,17 @@ export async function buildPlayerContextFromDiagnostic(args: {
     )
     .eq("id", diagnosticId)
     .single();
+
+  // 3 últimos meses (mais recente primeiro). Inclui mês corrente quando
+  // o cron weekly-sharkscope tiver rodado pelo menos uma vez.
+  const monthlyRes = await supabase
+    .from("sharkscope_monthly_stats")
+    .select("year, month, entries, profit, avg_roi, itm, final_tables")
+    .eq("diagnostic_id", diagnosticId)
+    .order("year", { ascending: false })
+    .order("month", { ascending: false })
+    .limit(3);
+  const monthlyHistory = (monthlyRes.data ?? []) as MonthlyStatsRow[];
 
   // Plano (vem do FE, fonte de verdade nessa fase sem-auth)
   const phases = plan?.phases ?? [];
@@ -288,6 +306,7 @@ export async function buildPlayerContextFromDiagnostic(args: {
     weeklyXp: 0,
     sharkscopeText,
     lastSnapshot,
+    monthlyHistory,
     recentMessages,
   };
 }
