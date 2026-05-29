@@ -388,9 +388,34 @@ function SharkscopeModal({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
+  // Valores que NÃO devem ser submetidos — são exemplos pedagógicos que
+  // historicamente foram copiados como se fossem nick válido. Inclui
+  // variações de caixa pra pegar copy-paste literal do tooltip antigo.
+  const FORBIDDEN_PLACEHOLDERS = new Set([
+    "rafaelbsoave-com",
+    "hero123",
+  ]);
+
+  function isPlaceholderValue(v: string): boolean {
+    return FORBIDDEN_PLACEHOLDERS.has(v.trim().toLowerCase());
+  }
+
   async function sync() {
     setBusy(true);
     setErr("");
+
+    // Guard: bloqueia exemplos copiados literalmente do tooltip
+    const currentValue =
+      mode === "playergroup" ? playergroupId.trim() : username.trim();
+    if (isPlaceholderValue(currentValue)) {
+      setErr(
+        `"${currentValue}" é só um exemplo do tooltip — não é um identificador real. ` +
+          `Cole o nick/group do aluno no SharkScope.`
+      );
+      setBusy(false);
+      return;
+    }
+
     try {
       // Em "player" mode, limpa o group id (manda string vazia pro endpoint).
       // Em "playergroup" mode, mantém o username (pode ser útil pra fallback)
@@ -482,9 +507,14 @@ function SharkscopeModal({
             </div>
             <p className="mt-2 text-[11px] text-neutral-600">
               {mode === "playergroup"
-                ? "Use quando o aluno tem várias contas / multi-skin. O identificador é o nome do Player Group exibido no SharkScope (ex: rafaelbsoave-COM)."
-                : "Padrão: usa o nick público do jogador no site escolhido."}
+                ? "PlayerGroup é um RECURSO ESPECÍFICO do SharkScope — só funciona se o aluno já criou um grupo lá agregando contas multi-skin. NÃO é onde você cola o nick. Se em dúvida, use Player único."
+                : "Padrão: o nick público do jogador no site escolhido. É o que aparece na URL do perfil dele no SharkScope."}
             </p>
+            {mode === "playergroup" && (
+              <p className="mt-2 rounded border border-amber-700/40 bg-amber-900/20 px-2 py-1.5 text-[11px] text-amber-300">
+                ⚠️ Errado mais comum: colar o nick do jogador aqui. Nick vai em <b>Player único</b>.
+              </p>
+            )}
           </div>
 
           {mode === "player" ? (
@@ -496,7 +526,7 @@ function SharkscopeModal({
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Ex: hero123"
+                placeholder="Nick do jogador no SharkScope"
                 className="mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-amber-400/60"
                 autoFocus
               />
@@ -510,14 +540,15 @@ function SharkscopeModal({
                 type="text"
                 value={playergroupId}
                 onChange={(e) => setPlayergroupId(e.target.value)}
-                placeholder="Ex: rafaelbsoave-COM"
+                placeholder="Nome do grupo no SharkScope"
                 className="mt-2 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none transition focus:border-purple-400/60"
                 autoFocus
               />
               <p className="mt-1 text-[11px] text-neutral-600">
-                No SharkScope: dropdown &quot;Grupo de Jogadores&quot; → o nome
-                exato exibido (ex: <code>rafaelbsoave-COM</code>). É o que vai
-                no path da API: <code>/playergroups/&lt;nome&gt;</code>.
+                Vai no path da API <code>/playergroups/&lt;nome&gt;</code>. Se o
+                jogador não tem um Grupo de Jogadores configurado lá no painel
+                do SharkScope, esse modo NÃO vai funcionar — volte pra Player
+                único.
               </p>
             </div>
           )}
