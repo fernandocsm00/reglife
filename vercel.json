@@ -6,6 +6,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/weekly-sharkscope",
+      "schedule": "0 9 * * 1"
+    },
+    {
       "path": "/api/cron/generate-quests",
       "schedule": "0 12 * * 1"
     },
