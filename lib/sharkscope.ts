@@ -521,6 +521,62 @@ function monthRange(year: number, month: number): { startDate: string; endDate: 
 }
 
 // ---------------------------------------------------------------------------
+// Histórico mensal (3 meses) injetado no contexto do EV
+// ---------------------------------------------------------------------------
+
+/**
+ * Forma mínima usada pelo EV. Mapeia 1-pra-1 às colunas de
+ * sharkscope_monthly_stats que o formatador consome. Outras colunas
+ * (avg_stake, total_roi, etc.) existem na tabela mas não entram no
+ * prompt — mantém o contexto curto.
+ */
+export interface MonthlyStatsRow {
+  year: number;
+  month: number;
+  entries: number | null;
+  profit: number | null;
+  avg_roi: number | null;
+  itm: number | null;
+  final_tables: number | null;
+}
+
+const MONTH_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+/**
+ * Renderiza até 3 meses em texto pra injetar no system prompt do EV.
+ * Devolve "" quando `rows.length === 0` — o caller deve filtrar.
+ *
+ * Regras:
+ *  - Ordem preservada (caller envia mais recente → mais antigo)
+ *  - Mês `(currentYear, currentMonth)` ganha sufixo "(em andamento)"
+ *  - entries null/undefined renderiza como "0 torneios"
+ *  - profit/avg_roi/itm usam os formatadores existentes (formatProfit,
+ *    formatROI, formatITM); null/undefined viram "N/A"
+ */
+export function monthlyHistoryToText(
+  rows: MonthlyStatsRow[],
+  opts?: { currentYear: number; currentMonth: number }
+): string {
+  if (rows.length === 0) return "";
+  const lines: string[] = ["=== ÚLTIMOS MESES (SharkScope) ==="];
+  for (const r of rows) {
+    const label = `${MONTH_PT[r.month - 1] ?? String(r.month)}/${r.year}`;
+    const inProgress =
+      opts != null && r.year === opts.currentYear && r.month === opts.currentMonth;
+    const head = inProgress ? `${label} (em andamento)` : label;
+    const entriesStr = `${r.entries ?? 0} torneios`;
+    const profitStr = `profit ${formatProfit(r.profit ?? undefined)}`;
+    const roiStr = `ROI ${formatROI(r.avg_roi ?? undefined)}`;
+    const itmStr = `ITM ${formatITM(r.itm ?? undefined)}`;
+    lines.push(`${head}: ${entriesStr} | ${profitStr} | ${roiStr} | ${itmStr}`);
+  }
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------------------
 // Singleton helper para uso server-side
 // ---------------------------------------------------------------------------
 let _client: SharkscopeClient | null = null;
