@@ -160,13 +160,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const client = getSharkscopeClient();
-    const stats = await client.fetchMonthlyStats(subject, network, year, month);
-    if (!stats) {
-      return NextResponse.json(
-        { error: "SharkScope não retornou dados pra esse mês" },
-        { status: 502 }
-      );
+    const res = await client.fetchMonthlyStats(subject, network, year, month);
+    if (!res.success) {
+      const detail =
+        "blocked" in res
+          ? `Conta bloqueada por privacy no SharkScope (${subject.kind}=${subject.identifier})`
+          : `SharkScope: ${(res as { error: string }).error} (${subject.kind}=${subject.identifier})`;
+      return NextResponse.json({ error: detail }, { status: 502 });
     }
+    const stats = res.stats;
 
     const payload = {
       diagnostic_id: targetDiagId,

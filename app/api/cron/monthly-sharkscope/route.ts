@@ -82,11 +82,18 @@ export async function GET(req: NextRequest) {
       : { kind: "player", identifier: row.sharkscope_username! };
 
     try {
-      const stats = await client.fetchMonthlyStats(subject, network, year, month);
-      if (!stats) {
-        results.push({ id: row.id, ok: false, reason: "no stats returned" });
+      const res = await client.fetchMonthlyStats(subject, network, year, month);
+      if (!res.success) {
+        const reason =
+          "blocked" in res
+            ? `blocked by privacy (${subject.kind}=${subject.identifier})`
+            : `sharkscope error (${subject.kind}=${subject.identifier}): ${
+                (res as { error: string }).error
+              }`;
+        results.push({ id: row.id, ok: false, reason });
         continue;
       }
+      const stats = res.stats;
 
       const payload = {
         diagnostic_id: row.id,

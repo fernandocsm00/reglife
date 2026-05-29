@@ -198,24 +198,24 @@ export class SharkscopeClient {
    * Stats de um mês específico (não cumulativo). Usa o filtro Date: do
    * SharkScope com range inicio~fim do mês. Útil pro histórico mensal.
    *
-   * Retorna null se a API responder erro/blocked.
+   * Devolve o SharkscopeResponse completo pra o caller distinguir entre
+   * sucesso (`success: true`), conta bloqueada por privacy (`blocked: true`)
+   * e erro real (`error: string` — player not found, 5xx, rede, etc).
    */
   async fetchMonthlyStats(
     subject: SharkscopeSubject,
     network: string,
     year: number,
     month: number
-  ): Promise<SharkscopeRawStats | null> {
+  ): Promise<SharkscopeResponse> {
     const { startDate, endDate } = monthRange(year, month);
     const filterQuery = `${BASE_FILTER};Date:${startDate}~${endDate}`;
-    const res = await this.fetchSubjectStats(
+    return this.fetchSubjectStats(
       subject,
       network,
       `Monthly-${year}-${month}`,
       filterQuery
     );
-    if (!res.success) return null;
-    return res.stats;
   }
 
   // ---- Internos compartilhados ---------------------------------------
