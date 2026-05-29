@@ -78,6 +78,8 @@ interface WebhookPayload {
   preferences: {
     notifyChannels: string[];
     whatsappPhone: string | null;
+    /** null = lead legacy sem pergunta explícita; true/false = escolheu no onboarding */
+    whatsappOptIn: boolean | null;
   };
   legacy: {
     profitGoal: string | null;
@@ -175,6 +177,12 @@ export async function POST(req: NextRequest) {
       ? body.notifyCadence
       : "ritmada";
 
+  // Consentimento explícito pra contato via WhatsApp. Form novo manda
+  // sempre boolean; payloads legados (sem o campo) gravam null e ficam
+  // tratados como "tácito" pela camada de notify.
+  const whatsappOptIn: boolean | null =
+    typeof body.whatsappOptIn === "boolean" ? body.whatsappOptIn : null;
+
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .insert([
@@ -192,6 +200,7 @@ export async function POST(req: NextRequest) {
         lead_category: leadCategory,
         stake_grade: stakeGrade,
         notify_cadence: notifyCadence,
+        whatsapp_opt_in: whatsappOptIn,
         // Test ainda não rodou — fica vazio
         stopped_early: false,
         spots_played: 0,
@@ -240,6 +249,7 @@ export async function POST(req: NextRequest) {
     preferences: {
       notifyChannels,
       whatsappPhone,
+      whatsappOptIn,
     },
     legacy: {
       profitGoal: body.profitGoal ?? null,

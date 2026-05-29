@@ -42,13 +42,20 @@ export interface OnboardingData {
   profitGoal: ProfitGoal;
   volumeTargetWeekly: number;
   notifyCadence: "leve" | "ritmada" | "intensa";
+  /**
+   * Consentimento explícito do aluno pra receber contatos via WhatsApp na
+   * Comunidade. Substituiu a pergunta antiga de cadência no passo 8.
+   * - true  → aceitou
+   * - false → recusou
+   */
+  whatsappOptIn: boolean;
 }
 
 interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-const TOTAL_STEPS = 8; // 1 identidade + 6 perguntas + 1 cadência
+const TOTAL_STEPS = 8; // 1 identidade + 6 perguntas + 1 opt-in WhatsApp
 const ADVANCE_DELAY_MS = 220;
 
 function formatPhone(raw: string): string {
@@ -84,7 +91,10 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [abi, setAbi] = useState<AbiAnswer | null>(null);
   const [volume, setVolume] = useState<VolumeAnswer | null>(null);
   const [banca, setBanca] = useState<BancaAnswer | null>(null);
-  const [notifyCadence, setNotifyCadence] = useState<"leve" | "ritmada" | "intensa">("ritmada");
+  // notifyCadence deixou de ser perguntada — fica fixa em "ritmada" (default
+  // da maioria). Quem quiser ajustar depois conversa com o coach.
+  const notifyCadence = "ritmada" as const;
+  const [whatsappOptIn, setWhatsappOptIn] = useState<boolean | null>(null);
 
   const identityValid =
     playerName.trim().length >= 2 &&
@@ -93,6 +103,7 @@ export function OnboardingForm({ onSubmit }: Props) {
 
   const finalSubmit = () => {
     if (!banca) return;
+    if (whatsappOptIn === null) return; // exige consentimento explícito
     const completeQuiz: QuizAnswers = {
       idade: idade!,
       tempo: tempo!,
@@ -120,6 +131,7 @@ export function OnboardingForm({ onSubmit }: Props) {
       profitGoal: objetivoToProfitGoal(objetivo!),
       volumeTargetWeekly: volumeToWeeklyTarget(volume!),
       notifyCadence,
+      whatsappOptIn: whatsappOptIn!,
     });
   };
 
@@ -284,22 +296,35 @@ export function OnboardingForm({ onSubmit }: Props) {
           )}
 
           {step === 8 && (
-            <StepWrapper key="cadencia">
-              <Title>Quanto o EV deve te cobrar?</Title>
-              <Sub>Você escolhe a frequência. Pode mudar depois com o coach.</Sub>
+            <StepWrapper key="whatsapp-opt-in">
+              <Title>
+                Podemos te contatar pelo WhatsApp pra acompanhar sua execução
+                na Comunidade?
+              </Title>
+              <Sub>
+                A gente usa só pra te lembrar de tarefas, mandar review e
+                avisar quando algo importante acontecer. Você pode mudar depois.
+              </Sub>
 
               <div className="mt-8 space-y-2">
                 {[
-                  { value: "leve" as const,    label: "Pouco — só quando importar",   sub: "Sem check-in diário. EV só fala quando há sinal forte." },
-                  { value: "ritmada" as const, label: "Na medida — recomendado",       sub: "Plano da semana + reviews. Default da maioria." },
-                  { value: "intensa" as const, label: "Sem moleza — me cobra todo dia", sub: "Check-in diário, EV em cima do plano." },
+                  {
+                    value: true,
+                    label: "Aceito",
+                    sub: "Quero receber lembretes e acompanhamento no WhatsApp.",
+                  },
+                  {
+                    value: false,
+                    label: "Não aceito",
+                    sub: "Prefiro não receber mensagens no WhatsApp.",
+                  },
                 ].map((o) => {
-                  const selected = notifyCadence === o.value;
+                  const selected = whatsappOptIn === o.value;
                   return (
                     <button
                       type="button"
-                      key={o.value}
-                      onClick={() => setNotifyCadence(o.value)}
+                      key={String(o.value)}
+                      onClick={() => setWhatsappOptIn(o.value)}
                       className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
                         selected
                           ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
@@ -322,7 +347,7 @@ export function OnboardingForm({ onSubmit }: Props) {
 
               <div className="mt-8 flex justify-end">
                 <NextButton
-                  disabled={false}
+                  disabled={whatsappOptIn === null}
                   onClick={() => finalSubmit()}
                   label="Concluir →"
                 />
