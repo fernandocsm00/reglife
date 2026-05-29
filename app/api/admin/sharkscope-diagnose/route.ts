@@ -18,7 +18,13 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const BASE_URL = "https://www.sharkscope.com/api/iduy/networks";
+// `iduy` é o exemplo das docs SharkScope. O path real é `/api/<username>/...`.
+// Build na hora a partir do env pra refletir o usuário configurado.
+function getBaseUrl(): string {
+  const apiUser = process.env.SHARKSCOPE_USERNAME;
+  if (!apiUser) throw new Error("SHARKSCOPE_USERNAME não configurado");
+  return `https://www.sharkscope.com/api/${encodeURIComponent(apiUser)}/networks`;
+}
 
 // Filtros mínimos pra reduzir custo e ainda obrigar a API a resolver o sujeito
 const FILTER_QUERY =
@@ -130,7 +136,7 @@ function buildUrl(
     Password: password,
     filter: FILTER_QUERY,
   });
-  return `${BASE_URL}/${network}/${segment}/${encodeURIComponent(identifier)}/statistics/${STATISTICS}?${params}`;
+  return `${getBaseUrl()}/${network}/${segment}/${encodeURIComponent(identifier)}/statistics/${STATISTICS}?${params}`;
 }
 
 /** Substitui Username/Password da URL pra ficar seguro no body do response. */

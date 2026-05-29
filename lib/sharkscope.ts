@@ -126,11 +126,17 @@ const STATISTICS =
 // ---------------------------------------------------------------------------
 
 export class SharkscopeClient {
-  private readonly baseUrl = "https://www.sharkscope.com/api/iduy/networks";
+  // O path da SharkScope segue `/api/<API_USERNAME>/networks/...`. `iduy` é o
+  // exemplo das docs e NÃO funciona com credenciais de outras contas — quem
+  // copiou o snippet original deixou o placeholder. Construímos a base a
+  // partir do username real.
+  private readonly baseUrl: string;
   private lastRequestAt = 0;
   private readonly minIntervalMs = 600; // 600ms — um pouco mais conservador que o Python
 
-  constructor(private readonly creds: SharkscopeCredentials) {}
+  constructor(private readonly creds: SharkscopeCredentials) {
+    this.baseUrl = `https://www.sharkscope.com/api/${encodeURIComponent(creds.username)}/networks`;
+  }
 
   // ---- Pública -------------------------------------------------------
 
@@ -393,7 +399,24 @@ export class SharkscopeClient {
     subject: SharkscopeSubject = { kind: "player", identifier: player }
   ): SharkscopeResponse {
     try {
-      const responseData = (data as any)?.Response?.PlayerResponse?.PlayerView ?? {};
+      const response = (data as any)?.Response;
+
+      // SharkScope responde HTTP 200 com `@success:"false"` quando o request é
+      // sintaticamente válido mas falha por auth/quota/etc. Sem isso aqui,
+      // erros viram snapshot vazio silencioso (parseStatistics([]) → {}).
+      if (response?.["@success"] === "false") {
+        const err = response.ErrorResponse?.Error;
+        const code = err?.["@id"];
+        const msg = err?.["$"] ?? "@success:false sem detalhes";
+        return {
+          player,
+          network,
+          error: code ? `SharkScope ${code}: ${msg}` : `SharkScope: ${msg}`,
+          success: false,
+        };
+      }
+
+      const responseData = response?.PlayerResponse?.PlayerView ?? {};
 
       // Verifica se está bloqueado (privacidade)
       const icon = responseData?.PlayerGroup?.Icon ?? responseData?.Player?.Icon;
