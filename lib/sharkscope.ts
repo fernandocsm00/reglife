@@ -111,20 +111,27 @@ export interface PlayerSnapshot {
 // Filtros padrão da RegLife (espelho do FilterManager do shark-reader)
 // ---------------------------------------------------------------------------
 
-/** Filtro base: exclui sats/freerolls, só NLHE agendados */
+/** Filtro base: exclui sats/freerolls, só NLHE agendados.
+ *
+ * Nota sobre Date: a API SharkScope rejeita `Date:*` (wildcard) — confirmado
+ * via diagnose. Pra estatísticas lifetime, basta omitir o constraint Date
+ * completamente. Pra range específico (vide fetchMonthlyStats), usa-se
+ * timestamps Unix no formato `Date:<from>~<to>`. Formato YYYY-MM-DD também
+ * é rejeitado.
+ */
 const BASE_FILTER = "TournamentName!:Sat:,Freeroll;Class:SCHEDULED;Type:H,NL";
 
 export const SHARKSCOPE_FILTERS: Record<string, string> = {
-  Overall: `${BASE_FILTER};Date:*`,
-  PKO: `Type:B;${BASE_FILTER};Date:*`,
-  nPKO: `Type!:B;${BASE_FILTER};Date:*`,
-  "BI 0-4.99": `StakePlusRake:USD0~4.99,EUR0~4.99;${BASE_FILTER};Date:*`,
-  "BI 5-12": `StakePlusRake:USD5~12,EUR5~12;${BASE_FILTER};Date:*`,
-  "BI 12-26": `StakePlusRake:USD12~26,EUR12~26;${BASE_FILTER};Date:*`,
-  "BI 26-46": `StakePlusRake:USD26~46,EUR26~46;${BASE_FILTER};Date:*`,
-  "BI 46-70": `StakePlusRake:USD46~70,EUR46~70;${BASE_FILTER};Date:*`,
-  "BI 70-126": `StakePlusRake:USD70~126,EUR70~126;${BASE_FILTER};Date:*`,
-  "BI 126+": `StakePlusRake:USD126~*,EUR126~*;${BASE_FILTER};Date:*`,
+  Overall: BASE_FILTER,
+  PKO: `Type:B;${BASE_FILTER}`,
+  nPKO: `Type!:B;${BASE_FILTER}`,
+  "BI 0-4.99": `StakePlusRake:USD0~4.99,EUR0~4.99;${BASE_FILTER}`,
+  "BI 5-12": `StakePlusRake:USD5~12,EUR5~12;${BASE_FILTER}`,
+  "BI 12-26": `StakePlusRake:USD12~26,EUR12~26;${BASE_FILTER}`,
+  "BI 26-46": `StakePlusRake:USD26~46,EUR26~46;${BASE_FILTER}`,
+  "BI 46-70": `StakePlusRake:USD46~70,EUR46~70;${BASE_FILTER}`,
+  "BI 70-126": `StakePlusRake:USD70~126,EUR70~126;${BASE_FILTER}`,
+  "BI 126+": `StakePlusRake:USD126~*,EUR126~*;${BASE_FILTER}`,
 };
 
 /** Filtros usados no snapshot completo do Manager.IA */
@@ -227,8 +234,8 @@ export class SharkscopeClient {
     year: number,
     month: number
   ): Promise<SharkscopeResponse> {
-    const { startDate, endDate } = monthRange(year, month);
-    const filterQuery = `${BASE_FILTER};Date:${startDate}~${endDate}`;
+    const { startUnix, endUnix } = monthRange(year, month);
+    const filterQuery = `${BASE_FILTER};Date:${startUnix}~${endUnix}`;
     return this.fetchSubjectStats(
       subject,
       network,
@@ -561,13 +568,17 @@ function md5(s: string): string {
 }
 
 /** Retorna o range YYYY-MM-DD ~ YYYY-MM-DD do mês solicitado. */
-function monthRange(year: number, month: number): { startDate: string; endDate: string } {
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate(); // dia 0 do próximo = último do atual
-  return {
-    startDate: `${year}-${pad(month)}-01`,
-    endDate: `${year}-${pad(month)}-${pad(lastDay)}`,
-  };
+/**
+ * Range Unix timestamp do mês solicitado (em segundos).
+ *
+ * Convenção da SharkScope (espelho da uldisn/sharkscope FilterHelper):
+ * início = 00:00:00 UTC do dia 1; fim = 00:00:00 UTC do dia 1 do mês seguinte.
+ * Range half-open `[start, end)`. Formato YYYY-MM-DD não é aceito pela API.
+ */
+function monthRange(year: number, month: number): { startUnix: number; endUnix: number } {
+  const startUnix = Math.floor(Date.UTC(year, month - 1, 1) / 1000);
+  const endUnix = Math.floor(Date.UTC(year, month, 1) / 1000);
+  return { startUnix, endUnix };
 }
 
 // ---------------------------------------------------------------------------
