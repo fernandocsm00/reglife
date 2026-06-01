@@ -1,21 +1,34 @@
 /**
- * SharkScope API client — TypeScript port do shark-reader (Python)
- * Docs: https://www.sharkscope.com/api/iduy/
+ * SharkScope API client — refatorado contra as libs de referência
+ * uldisn/sharkscope (PHP) e JonnyBurger/node-sharkscope.
  *
- * A API trabalha com estatísticas AGREGADAS por filtro.
- * Não retorna hands individuais, mas métricas como ROI, profit, volume, ITM, etc.
+ * A API trabalha com estatísticas AGREGADAS por filtro. Não retorna hands
+ * individuais, mas métricas como ROI, profit, volume, ITM, etc.
  *
- * Auth: username + password como query params (sem OAuth).
+ * Auth (modelo correto descoberto após o bug do iduy):
+ *   - `apiName` vai no path: /api/<apiName>/...
+ *   - `apiKey` é usado SÓ pra computar o hash da senha (nunca enviado direto)
+ *   - `Username` e `Password` (= hash MD5(MD5(password) + apiKey)) vão em
+ *     HEADERS HTTP, NÃO em query string
+ *
+ * PlayerGroup é tratado como uma "network" especial: a string `player group`
+ * (com espaço, URL-encoded) vai no lugar do nome da rede; o segmento continua
+ * sendo `players/<group-name>`.
+ *
  * Rate limit: respeitar 500ms entre requests.
  */
+
+import { createHash } from "node:crypto";
 
 // ---------------------------------------------------------------------------
 // Tipos
 // ---------------------------------------------------------------------------
 
 export interface SharkscopeCredentials {
-  username: string; // SHARKSCOPE_USERNAME (conta da RegLife)
-  password: string; // SHARKSCOPE_PASSWORD
+  apiName: string;   // SHARKSCOPE_API_NAME — vai no path da URL
+  apiKey: string;    // SHARKSCOPE_API_KEY  — usado pra computar o hash
+  username: string;  // SHARKSCOPE_USERNAME — vai no header Username
+  password: string;  // SHARKSCOPE_PASSWORD — texto puro, vira hash antes de sair
 }
 
 /**
@@ -126,16 +139,16 @@ const STATISTICS =
 // ---------------------------------------------------------------------------
 
 export class SharkscopeClient {
-  // O path da SharkScope segue `/api/<API_USERNAME>/networks/...`. `iduy` é o
-  // exemplo das docs e NÃO funciona com credenciais de outras contas — quem
-  // copiou o snippet original deixou o placeholder. Construímos a base a
-  // partir do username real.
   private readonly baseUrl: string;
+  private readonly passwordHash: string;
   private lastRequestAt = 0;
   private readonly minIntervalMs = 600; // 600ms — um pouco mais conservador que o Python
 
   constructor(private readonly creds: SharkscopeCredentials) {
-    this.baseUrl = `https://www.sharkscope.com/api/${encodeURIComponent(creds.username)}/networks`;
+    this.baseUrl = `https://www.sharkscope.com/api/${encodeURIComponent(creds.apiName)}`;
+    // Confirmado no uldisn/sharkscope (PHP) e node-sharkscope: o "Password"
+    // enviado é md5(md5(password) + apiKey). A senha em texto puro nunca sai.
+    this.passwordHash = md5(md5(creds.password) + creds.apiKey);
   }
 
   // ---- Pública -------------------------------------------------------
@@ -321,13 +334,23 @@ export class SharkscopeClient {
     subject: SharkscopeSubject,
     filterQuery: string
   ): string {
-    const params = new URLSearchParams({
+    // Pra Player Group, a "network" vira literalmente `player group` (com
+    // espaço, encoded como `player%20group`) e o segmento continua `/players/`.
+    // Confirmado em uldisn/sharkscope SharcScopeClient.php:249.
+    const effectiveNetwork =
+      subject.kind === "playergroup"
+        ? "player group"
+        : network;
+    const params = new URLSearchParams({ filter: filterQuery });
+    return `${this.baseUrl}/networks/${encodeURIComponent(effectiveNetwork)}/players/${encodeURIComponent(subject.identifier)}/statistics/${STATISTICS}?${params}`;
+  }
+
+  private authHeaders(): Record<string, string> {
+    return {
+      Accept: "application/json",
       Username: this.creds.username,
-      Password: this.creds.password,
-      filter: filterQuery,
-    });
-    const segment = subject.kind === "playergroup" ? "playergroups" : "players";
-    return `${this.baseUrl}/${network}/${segment}/${encodeURIComponent(subject.identifier)}/statistics/${STATISTICS}?${params}`;
+      Password: this.passwordHash,
+    };
   }
 
   private async rateLimit(): Promise<void> {
@@ -351,7 +374,7 @@ export class SharkscopeClient {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         const res = await fetch(url, {
-          headers: { Accept: "application/json" },
+          headers: this.authHeaders(),
           next: { revalidate: 0 }, // Never cache — dados precisam ser frescos
         });
 
@@ -533,6 +556,10 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function md5(s: string): string {
+  return createHash("md5").update(s).digest("hex");
+}
+
 /** Retorna o range YYYY-MM-DD ~ YYYY-MM-DD do mês solicitado. */
 function monthRange(year: number, month: number): { startDate: string; endDate: string } {
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -606,14 +633,29 @@ let _client: SharkscopeClient | null = null;
 
 export function getSharkscopeClient(): SharkscopeClient {
   if (!_client) {
+    const apiName = process.env.SHARKSCOPE_API_NAME;
+    const apiKey = process.env.SHARKSCOPE_API_KEY;
     const username = process.env.SHARKSCOPE_USERNAME;
     const password = process.env.SHARKSCOPE_PASSWORD;
-    if (!username || !password) {
+    const missing = [
+      ["SHARKSCOPE_API_NAME", apiName],
+      ["SHARKSCOPE_API_KEY", apiKey],
+      ["SHARKSCOPE_USERNAME", username],
+      ["SHARKSCOPE_PASSWORD", password],
+    ]
+      .filter(([, v]) => !v)
+      .map(([k]) => k);
+    if (missing.length > 0) {
       throw new Error(
-        "SHARKSCOPE_USERNAME e SHARKSCOPE_PASSWORD devem estar configurados no .env.local"
+        `Faltam envs do SharkScope: ${missing.join(", ")}. Os 4 são obrigatórios — apiKey é usado pra computar o hash da senha.`
       );
     }
-    _client = new SharkscopeClient({ username, password });
+    _client = new SharkscopeClient({
+      apiName: apiName!,
+      apiKey: apiKey!,
+      username: username!,
+      password: password!,
+    });
   }
   return _client;
 }
