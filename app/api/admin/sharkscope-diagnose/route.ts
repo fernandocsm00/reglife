@@ -16,9 +16,17 @@ import { createHash } from "node:crypto";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const FILTER_QUERY =
-  "TournamentName!:Sat:,Freeroll;Class:SCHEDULED;Type:H,NL;Date:*";
+const BASE_FILTER = "TournamentName!:Sat:,Freeroll;Class:SCHEDULED;Type:H,NL";
 const STATISTICS = "Entries,Profit,AvROI,ITM";
+
+// Variações do constraint Date pra descobrir o formato aceito pela API.
+// A PHP lib uldisn/sharkscope usa timestamps Unix; o código atual tentava
+// `Date:*` (wildcard) que devolve 204003.
+const DATE_VARIANTS: Array<{ label: string; clause: string }> = [
+  { label: "no-date", clause: "" },
+  { label: "unix-range", clause: ";Date:0~9999999999" },
+  { label: "iso-range", clause: ";Date:2020-01-01~2030-12-31" },
+];
 
 interface VariantResult {
   variant: string;
@@ -69,20 +77,19 @@ export async function GET(req: NextRequest) {
   const baseUrl = `https://www.sharkscope.com/api/${encodeURIComponent(apiName!)}`;
   const passwordHash = md5(md5(password!) + apiKey!);
 
-  // Variantes a testar:
-  //   - network como veio (player normal)
-  //   - "player group" (forma canônica via PHP lib)
-  //   - "PlayerGroup", "playerGroup" (variações de case que valem testar)
-  const networkVariants = [network, "player group", "PlayerGroup", "playerGroup"];
-  const idVariants = Array.from(
-    new Set<string>([identifier, suffixUpper(identifier), suffixLower(identifier)])
-  );
+  // Estrutura de URL já confirmada — auth funciona. Foco agora é descobrir o
+  // formato aceito do constraint Date. Reduzimos as variantes:
+  //   - 2 networks: a que veio (player normal) + "player group" (caso group)
+  //   - 1 identifier (preserva o case que vc passou)
+  //   - 3 variantes de Date: sem, unix range, ISO range
+  const networkVariants = [network, "player group"];
 
   const variants: Array<{ name: string; url: string }> = [];
   for (const net of networkVariants) {
-    for (const id of idVariants) {
-      const built = `${baseUrl}/networks/${encodeURIComponent(net)}/players/${encodeURIComponent(id)}/statistics/${STATISTICS}?filter=${encodeURIComponent(FILTER_QUERY)}`;
-      variants.push({ name: `${net}/players/${id}`, url: built });
+    for (const dateV of DATE_VARIANTS) {
+      const filter = `${BASE_FILTER}${dateV.clause}`;
+      const built = `${baseUrl}/networks/${encodeURIComponent(net)}/players/${encodeURIComponent(identifier)}/statistics/${STATISTICS}?filter=${encodeURIComponent(filter)}`;
+      variants.push({ name: `${net} | date=${dateV.label}`, url: built });
     }
   }
 
@@ -165,14 +172,6 @@ function parseApiSuccess(text: string): {
 
 function md5(s: string): string {
   return createHash("md5").update(s).digest("hex");
-}
-
-function suffixUpper(id: string): string {
-  return id.replace(/-([a-zA-Z]{2,4})$/, (_, tld) => `-${tld.toUpperCase()}`);
-}
-
-function suffixLower(id: string): string {
-  return id.replace(/-([a-zA-Z]{2,4})$/, (_, tld) => `-${tld.toLowerCase()}`);
 }
 
 function sleep(ms: number): Promise<void> {
