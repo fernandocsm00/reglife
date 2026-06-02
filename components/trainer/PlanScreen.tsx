@@ -123,13 +123,13 @@ export function PlanScreen({ plan }: Props) {
             return (
               <>
                 <p
-                  className="rg-eyebrow print:text-neutral-700"
+                  className="rg-eyebrow"
                   style={{ marginTop: 12 }}
                 >
                   {tierLabel} · Dia {cycleDay} de 90
                 </p>
                 <p
-                  className="rg-body-sm print:text-neutral-600"
+                  className="rg-body-sm"
                   style={{ marginTop: 4 }}
                 >
                   {plan.accuracyPct}% de acerto no nivelamento · {profitShort} · {studyShort}

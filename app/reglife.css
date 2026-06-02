@@ -283,3 +283,13 @@
 @media print {
   .rg-root { background: #fff; color: #000; }
 }
+
+/* ============================================================
+   PRINT — ajusta cores das utilities pra fundo branco
+   (Tailwind print:text-* não vence a cascade porque reglife.css
+   é importado depois de tailwindcss em globals.css.)
+   ============================================================ */
+@media print {
+  .rg-eyebrow  { color: rgb(64 64 64); }   /* ~neutral-700 */
+  .rg-body-sm  { color: rgb(82 82 82); }   /* ~neutral-600 */
+}
