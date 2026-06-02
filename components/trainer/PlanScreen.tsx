@@ -4,6 +4,10 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import Link from "next/link";
 import type { SavedPlan } from "@/lib/poker/planStorage";
+import {
+  STUDY_TIME_LABELS_SHORT,
+  PROFIT_GOAL_LABELS_SHORT,
+} from "@/lib/poker/planBuilder";
 import { Logo } from "@/components/Logo";
 import { EvHud } from "./EvHud";
 import { PulseCard } from "./PulseCard";
@@ -98,6 +102,41 @@ export function PlanScreen({ plan }: Props) {
           >
             Plano de Progressão Individual — {plan.playerName}.
           </h1>
+          {(() => {
+            // cycleDay: dias corridos desde a geração do plano, clamped em [1, 90].
+            // Cap em 90 evita "Dia 137 de 90" pra alunos que ficaram no plano
+            // depois do ciclo terminar. Tratamento de "Ciclo concluído" fica
+            // pra spec futuro.
+            const rawCycleDay =
+              Math.floor((Date.now() - plan.createdAt) / 86_400_000) + 1;
+            const cycleDay = Math.min(90, Math.max(1, rawCycleDay));
+
+            // Fallback explícito: planos antigos podem não ter playerTierLabel.
+            const tierLabel = plan.playerTierLabel ?? "Tier ?";
+
+            // Labels curtos com fallback ao raw caso valor venha fora dos enums.
+            const studyShort =
+              STUDY_TIME_LABELS_SHORT[plan.studyTime] ?? plan.studyTime;
+            const profitShort =
+              PROFIT_GOAL_LABELS_SHORT[plan.profitGoal] ?? `Meta ${plan.profitGoal}`;
+
+            return (
+              <>
+                <p
+                  className="rg-eyebrow print:text-neutral-700"
+                  style={{ marginTop: 12 }}
+                >
+                  {tierLabel} · Dia {cycleDay} de 90
+                </p>
+                <p
+                  className="rg-body-sm print:text-neutral-600"
+                  style={{ marginTop: 4 }}
+                >
+                  {plan.accuracyPct}% de acerto no nivelamento · {profitShort} · {studyShort}
+                </p>
+              </>
+            );
+          })()}
         </motion.div>
 
         {/* EV — Manager de Evolução (chat IA com contexto de Sharkscope) */}
