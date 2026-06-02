@@ -40,6 +40,20 @@ export const PROFIT_GOAL_LABELS: Record<ProfitGoal, string> = {
   usd100k: "U$ 100.000 em 12 meses",
 };
 
+/** Labels enxutos para badges/headers — versões longas em STUDY_TIME_LABELS/PROFIT_GOAL_LABELS */
+export const STUDY_TIME_LABELS_SHORT: Record<StudyTime, string> = {
+  ate15:  "Até 15h/sem",
+  ate40:  "Até 40h/sem",
+  mais40: "+40h/sem",
+};
+
+export const PROFIT_GOAL_LABELS_SHORT: Record<ProfitGoal, string> = {
+  usd1k:   "Meta U$ 1k",
+  usd10k:  "Meta U$ 10k",
+  usd50k:  "Meta U$ 50k",
+  usd100k: "Meta U$ 100k",
+};
+
 /** Texto motivacional curto para usar no plano */
 export const PROFIT_GOAL_ADVICE: Record<ProfitGoal, string> = {
   usd1k:
