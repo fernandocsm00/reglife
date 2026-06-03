@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { HealthScoreBlock } from "@/components/trainer/HealthScoreBlock";
+import { AdminSpotTrack } from "@/components/admin/AdminSpotTrack";
 import type { DiagnosticRow } from "@/lib/supabase";
 
 const STUDY_LABELS: Record<string, string> = {
@@ -92,8 +93,9 @@ export default function ResultDetailPage() {
         )}
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 pt-6">
+      <div className="mx-auto max-w-6xl px-6 pt-6 space-y-6">
         <HealthScoreBlock diagnosticId={row.id} mode="admin" />
+        <AdminSpotTrack diagnosticId={row.id} />
       </div>
 
       <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
