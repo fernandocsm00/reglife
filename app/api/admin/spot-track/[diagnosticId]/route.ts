@@ -26,8 +26,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type EmptyReason = "abandoned" | "no_saved_plan" | "elite_no_track";
-
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ diagnosticId: string }> },
@@ -47,7 +45,9 @@ export async function GET(
   );
 
   // Duas leituras em paralelo: o registro do diagnóstico e as linhas de treino.
-  // Promise.all aceita a falha cedo — o catch global devolve 500.
+  // Empty-state paths não dependem das linhas de treino — então um erro no
+  // training query não falha o request, mas a gente loga pra não perder o
+  // sinal de observabilidade.
   let diagRes, trainingRes;
   try {
     [diagRes, trainingRes] = await Promise.all([
@@ -74,6 +74,13 @@ export async function GET(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  // Loga já um eventual erro no training query — não retorna porque os empty
+  // states abaixo não dependem dessas linhas. A re-checagem na hora do merge
+  // é que retorna 500 se realmente precisamos delas.
+  if (trainingRes.error) {
+    console.warn("[admin/spot-track] training select", trainingRes.error.message);
+  }
+
   const { saved_plan: savedPlan, spots_played: spotsPlayed } = diagRes.data as {
     saved_plan: SavedPlan | null;
     spots_played: number | null;
@@ -81,22 +88,32 @@ export async function GET(
 
   // Precedência dos empty states.
   if ((spotsPlayed ?? 0) === 0) {
-    return NextResponse.json({ hasTrack: false, reason: "abandoned" as EmptyReason });
+    return NextResponse.json({ hasTrack: false, reason: "abandoned" });
   }
   if (!savedPlan) {
-    return NextResponse.json({ hasTrack: false, reason: "no_saved_plan" as EmptyReason });
+    return NextResponse.json({ hasTrack: false, reason: "no_saved_plan" });
   }
 
+  // A partir daqui precisamos das linhas de treino. Se o query falhou,
+  // retorna 500 — não dá pra montar o spots[] corretamente.
   if (trainingRes.error) {
-    console.warn("[admin/spot-track] training select", trainingRes.error.message);
     return NextResponse.json({ error: "db error" }, { status: 500 });
   }
 
+  // Guard defensivo: saved_plan é jsonb sem schema enforcement. Se vier
+  // malformado (ex.: sem 'leaks'), buildSpotTrack dentro de mergeTrackWithTraining
+  // pode jogar. Capturamos pra responder 500 controlado em vez de crash silent.
   const rows = (trainingRes.data ?? []) as TrainingRow[];
-  const spots = mergeTrackWithTraining(savedPlan, rows);
+  let spots;
+  try {
+    spots = mergeTrackWithTraining(savedPlan, rows);
+  } catch (err) {
+    console.warn("[admin/spot-track] merge threw", err);
+    return NextResponse.json({ error: "db error" }, { status: 500 });
+  }
 
   if (spots.length === 0) {
-    return NextResponse.json({ hasTrack: false, reason: "elite_no_track" as EmptyReason });
+    return NextResponse.json({ hasTrack: false, reason: "elite_no_track" });
   }
 
   return NextResponse.json({ hasTrack: true, spots });
