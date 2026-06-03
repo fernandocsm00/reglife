@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { SavedPlan } from "@/lib/poker/planStorage";
-import { buildSpotTrack } from "@/lib/poker/spotTrack";
+import { buildSpotTrack, findActiveSpotIndex } from "@/lib/poker/spotTrack";
 import { computeProgress, type SpotProgress } from "@/lib/poker/spotTraining";
 import { LESSON_CATALOG, type LessonAction } from "@/lib/poker/lessonCatalog";
 import { SpotCard } from "./SpotCard";
@@ -95,16 +95,11 @@ export function SpotTrack({ plan }: Props) {
   }
 
   // First non-completed is the active one. Before = completed; after = locked.
-  let activeIdx = -1;
-  for (let i = 0; i < track.length; i++) {
-    const id = track[i].leakId;
-    const p = id ? progressByLeak[id] : undefined;
-    if (!p || !p.completed) {
-      activeIdx = i;
-      break;
-    }
-  }
-  if (activeIdx === -1) activeIdx = track.length; // todos concluídos
+  // Função compartilhada com adminSpotTrack.ts pra evitar drift da regra.
+  const activeIdx = findActiveSpotIndex(track, (entry) => {
+    const p = entry.leakId ? progressByLeak[entry.leakId] : undefined;
+    return p != null && p.completed === true;
+  });
 
   return (
     <section style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 16 }}>

@@ -85,3 +85,25 @@ export function buildResources(plan: SavedPlan): ResourceEntry[] {
     },
   ];
 }
+
+/**
+ * Finds the index of the first entry in `track` that is NOT completed.
+ *
+ * `isCompleted(entry)` is provided by the caller — different consumers know
+ * "completed" differently (boolean flag on client, completed_at timestamp on
+ * server). Centralizing the loop keeps the gating rule consistent across
+ * admin and student views.
+ *
+ * Returns the first not-completed index, or `track.length` if everything
+ * is completed. Use the return value as `activeIdx` directly — anything
+ * before is `completed`, the index itself is `active`, anything after is `locked`.
+ */
+export function findActiveSpotIndex(
+  track: SpotTrackEntry[],
+  isCompleted: (entry: SpotTrackEntry) => boolean,
+): number {
+  for (let i = 0; i < track.length; i++) {
+    if (!isCompleted(track[i])) return i;
+  }
+  return track.length;
+}

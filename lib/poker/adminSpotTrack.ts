@@ -10,7 +10,11 @@
  */
 
 import type { SavedPlan } from "@/lib/poker/planStorage";
-import { buildSpotTrack, type SpotTrackEntry } from "@/lib/poker/spotTrack";
+import {
+  buildSpotTrack,
+  findActiveSpotIndex,
+  type SpotTrackEntry,
+} from "@/lib/poker/spotTrack";
 
 export interface TrainingRow {
   leak_id: string;
@@ -56,20 +60,17 @@ export function mergeTrackWithTraining(
   if (track.length === 0) return [];
 
   const byLeak = new Map<string, TrainingRow>();
+  // Duplicates impossíveis na prática (FK + UNIQUE diagnostic_id/leak_id no schema),
+  // mas se ocorrerem o último vence. Ordem da query no endpoint não importa.
   for (const row of rows) byLeak.set(row.leak_id, row);
 
-  // Acha o primeiro spot ainda não-completo. Falta de linha conta como não-completo.
-  let activeIdx = -1;
-  for (let i = 0; i < track.length; i++) {
-    const id = track[i].leakId;
-    const row = id ? byLeak.get(id) : undefined;
-    if (!row || row.completed_at == null) {
-      activeIdx = i;
-      break;
-    }
-  }
-  // -1 significa que tudo está completo → "active" não existe.
-  const effectiveActive = activeIdx === -1 ? track.length : activeIdx;
+  // Estado: primeiro spot sem completed_at é "active". Falta de linha
+  // também conta como não-completo. Função compartilhada com SpotTrack.tsx
+  // pra evitar drift silencioso da regra de gating.
+  const effectiveActive = findActiveSpotIndex(track, (entry) => {
+    const row = entry.leakId ? byLeak.get(entry.leakId) : undefined;
+    return row != null && row.completed_at != null;
+  });
 
   return track.map((entry, i) => {
     const row = entry.leakId ? byLeak.get(entry.leakId) : undefined;
