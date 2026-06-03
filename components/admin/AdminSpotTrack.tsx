@@ -9,7 +9,7 @@
  *   - loading / error com retry
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   formatRelative,
   type AdminSpotEntry,
@@ -51,10 +51,10 @@ const STATE_DOT: Record<AdminSpotEntry["state"], string> = {
 
 export function AdminSpotTrack({ diagnosticId }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
+  const [reloadTick, setReloadTick] = useState(0);
 
-  const load = useCallback(() => {
+  useEffect(() => {
     let cancelled = false;
-    setState({ kind: "loading" });
     fetch(`/api/admin/spot-track/${encodeURIComponent(diagnosticId)}`)
       .then(async (r) => {
         if (!r.ok) throw new Error(`http ${r.status}`);
@@ -73,12 +73,7 @@ export function AdminSpotTrack({ diagnosticId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [diagnosticId]);
-
-  useEffect(() => {
-    const cleanup = load();
-    return cleanup;
-  }, [load]);
+  }, [diagnosticId, reloadTick]);
 
   return (
     <section className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 sm:p-5">
@@ -99,7 +94,10 @@ export function AdminSpotTrack({ diagnosticId }: Props) {
           <p className="text-sm text-neutral-400">Não foi possível carregar a trilha.</p>
           <button
             type="button"
-            onClick={() => load()}
+            onClick={() => {
+              setState({ kind: "loading" });
+              setReloadTick((n) => n + 1);
+            }}
             className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:border-emerald-600 hover:text-emerald-400 transition-colors"
           >
             Tentar de novo
