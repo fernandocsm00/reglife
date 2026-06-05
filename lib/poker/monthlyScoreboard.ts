@@ -12,6 +12,7 @@ import {
   mergeTrackWithTraining,
   type TrainingRow,
 } from "@/lib/poker/adminSpotTrack";
+import { THRESHOLD_HANDS } from "@/lib/poker/spotTraining";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -35,7 +36,7 @@ export interface SpotProgressEntry {
   spotLabel: string;
   state: "locked" | "active" | "completed";
   handsPlayed: number;
-  /** Sempre 50 na v1 (constante do sistema). */
+  /** Igual a THRESHOLD_HANDS de lib/poker/spotTraining — source of truth. */
   handsTarget: number;
   /** Math.min(100, round(handsPlayed/handsTarget * 100)). */
   progressPct: number;
@@ -132,25 +133,24 @@ export function buildMonthlyScoreboard(args: {
   // ----- spotProgress (reusa mergeTrackWithTraining) ------------------------
   const merged = mergeTrackWithTraining(plan, trainingRows);
   const spotProgress: SpotProgressEntry[] = merged.map((entry) => {
-    const handsTarget = 50;
-    const progressPct =
-      handsTarget > 0
-        ? Math.min(100, Math.round((entry.handsPlayed / handsTarget) * 100))
-        : 0;
+    const progressPct = Math.min(
+      100,
+      Math.round((entry.handsPlayed / THRESHOLD_HANDS) * 100),
+    );
     return {
       index: entry.index,
       leakId: entry.leakId,
       spotLabel: entry.spotLabel,
       state: entry.state,
       handsPlayed: entry.handsPlayed,
-      handsTarget,
+      handsTarget: THRESHOLD_HANDS,
       progressPct,
       accuracyPct: entry.accuracyPct,
     };
   });
 
   // ----- hands.goal (depende do tamanho da trilha) --------------------------
-  const handsGoal = spotProgress.length * 50;
+  const handsGoal = spotProgress.length * THRESHOLD_HANDS;
 
   return {
     month,
