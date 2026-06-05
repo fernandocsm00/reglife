@@ -69,16 +69,7 @@ export function MonthlyScoreboard({ diagnosticId }: Props) {
       .then((data) => {
         if (cancelled) return;
         if (data.hasScoreboard) {
-          setState({
-            kind: "ready",
-            data: {
-              month: data.month,
-              spots: data.spots,
-              volume: data.volume,
-              hands: data.hands,
-              spotProgress: data.spotProgress,
-            },
-          });
+          setState({ kind: "ready", data });
         } else {
           setState({ kind: "empty", reason: data.reason });
         }
@@ -150,13 +141,19 @@ function ReadyView({ data }: { data: ScoreboardData }) {
           icon="🎯"
           label="Spots"
           value={`${data.spots.completed} / ${data.spots.goal}`}
-          sub={`${Math.min(100, Math.round((data.spots.completed / data.spots.goal) * 100))}%`}
+          sub={
+            data.spots.goal > 0
+              ? `${Math.min(100, Math.round((data.spots.completed / data.spots.goal) * 100))}%`
+              : "—"
+          }
           accent={
-            data.spots.completed >= data.spots.goal
-              ? "emerald"
-              : data.spots.completed > 0
-                ? "amber"
-                : "neutral"
+            data.spots.goal === 0
+              ? "neutral"
+              : data.spots.completed >= data.spots.goal
+                ? "emerald"
+                : data.spots.completed > 0
+                  ? "amber"
+                  : "neutral"
           }
         />
         <VolumeCard volume={data.volume} />
