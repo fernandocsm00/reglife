@@ -9,7 +9,7 @@ import {
   PROFIT_GOAL_LABELS_SHORT,
 } from "@/lib/poker/planBuilder";
 import { Logo } from "@/components/Logo";
-import { EvHud } from "./EvHud";
+import { MonthlyScoreboard } from "./MonthlyScoreboard";
 import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
 import { SpotTrack } from "./SpotTrack";
@@ -174,13 +174,10 @@ export function PlanScreen({ plan }: Props) {
           </Link>
         </motion.div>
 
-        {/* EvHud — Streak / XP / Volume / Quest */}
+        {/* Placar Mensal — metas do mês + mini-resumo da trilha */}
         {plan.diagnosticId && (
           <div style={{ marginBottom: 24 }}>
-            <EvHud
-              diagnosticId={plan.diagnosticId}
-              fallbackVolumeTarget={plan.volumeTargetWeekly ?? null}
-            />
+            <MonthlyScoreboard diagnosticId={plan.diagnosticId} />
           </div>
         )}
 
