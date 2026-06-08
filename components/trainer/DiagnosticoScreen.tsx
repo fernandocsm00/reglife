@@ -312,6 +312,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
               leadCategory: data.leadCategory,
               stakeGrade: data.stakeGrade,
               notifyCadence: data.notifyCadence,
+              whatsappOptIn: data.whatsappOptIn,
+              sharkscopeUsername: data.sharkscopeUsername,
+              sharkscopeNetwork: data.sharkscopeNetwork,
             }),
           })
             .then(async (r) => {
