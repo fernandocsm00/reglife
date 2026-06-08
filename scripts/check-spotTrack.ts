@@ -74,17 +74,10 @@ expect("Tier 3 still appears in track", tier3Track.length === 1);
 expect("Tier 3 has no internal trainer", tier3Track[0].hasInternalTrainer === false);
 expect("Tier 3 has null trainerSlug",   tier3Track[0].trainerSlug === null);
 
-// Resources
+// Resources — grade saiu daqui (A7): agora vive em GradeCard separado.
 const resources = buildResources(planWith3Leaks);
-expect("2 resources",  resources.length === 2);
+expect("1 resource (só career; grade migrou pra GradeCard)", resources.length === 1);
 expect("first is career", resources[0].kind === "career");
-expect("second is grade", resources[1].kind === "grade");
-expect("grade sublabel has ABI",
-  resources[1].sublabel?.includes("ABI") ?? false);
-
-const resourcesNoStake = buildResources(planNoLeaks);
-expect("grade fallback when no stakeGrade",
-  resourcesNoStake[1].sublabel === "Não precisa pensar, é só registrar");
 
 if (failed > 0) {
   console.error(`\n${failed} check(s) failed`);

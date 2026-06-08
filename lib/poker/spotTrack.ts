@@ -66,10 +66,14 @@ export function buildSpotTrack(plan: SavedPlan): SpotTrackEntry[] {
 }
 
 /**
- * Resources card list (career lesson + tournament grade).
- * Always 2 entries. Manager chat is NOT in this list — it has its own
- * dedicated card in PlanScreen.
+ * Resources card list (career lesson only).
+ * A grade tem seu próprio bloco (GradeCard) em PlanScreen — A7 da reforma.
+ * Manager chat também não entra aqui (card dedicado em PlanScreen).
+ *
+ * `plan` é mantido na assinatura por compat com consumidores e porque
+ * outros recursos futuros podem depender dele.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function buildResources(plan: SavedPlan): ResourceEntry[] {
   return [
     {
@@ -77,14 +81,6 @@ export function buildResources(plan: SavedPlan): ResourceEntry[] {
       sublabel: "Como o Yuri começaria hoje",
       url: FIXED_LINKS.careerLesson,
       kind: "career",
-    },
-    {
-      label: "Grade de torneios",
-      sublabel: plan.stakeGrade
-        ? `Sua grade: ABI $${plan.stakeGrade}`
-        : "Não precisa pensar, é só registrar",
-      url: getGradeLink(plan.stakeGrade),
-      kind: "grade",
     },
   ];
 }
