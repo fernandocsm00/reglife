@@ -49,7 +49,7 @@ export function GradeCard({ plan }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22 }}
       className="rg-card border border-neutral-700/40 bg-neutral-900/40"
-      style={{ padding: 28, borderRadius: "var(--rg-r-xl)", marginTop: 16 }}
+      style={{ padding: 28, borderRadius: "var(--rg-r-xl)", marginTop: 32 }}
     >
       <span className="rg-eyebrow">TUA GRADE</span>
       <h3 className="rg-h2" style={{ marginTop: 8, marginBottom: 6 }}>
