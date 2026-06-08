@@ -31,6 +31,8 @@ export interface SpotTrackEntry {
   trainerSlug: string | null;
   /** Has an internal trainer? Mirrors trainerSlug !== null. */
   hasInternalTrainer: boolean;
+  /** Tier do spot (1, 2, ou 3). Propagado de leak.tier. Default 1. */
+  tier: number;
 }
 
 export interface ResourceEntry {
@@ -59,6 +61,7 @@ export function buildSpotTrack(plan: SavedPlan): SpotTrackEntry[] {
     lessonUrl: getLessonUrlForLeak(leak.id),
     trainerSlug: slugForLeak(leak.id),
     hasInternalTrainer: hasInternalTrainer(leak.id),
+    tier: leak.tier ?? 1,
   }));
 }
 
@@ -106,4 +109,17 @@ export function findActiveSpotIndex(
     if (!isCompleted(track[i])) return i;
   }
   return track.length;
+}
+
+/**
+ * URL da grade de torneios para esse plano. Reusa getGradeLink.
+ * Quando aluno não declarou banca (stakeGrade null), cai em
+ * FIXED_LINKS.tournamentGrid (placeholder neutro).
+ *
+ * Encapsula getGradeLink pra que SpotCard (seção "Joga") e GradeCard
+ * usem o mesmo ponto de verdade — evita import direto de spotLinks
+ * em vários consumidores.
+ */
+export function getGradeUrl(plan: SavedPlan): string {
+  return getGradeLink(plan.stakeGrade);
 }

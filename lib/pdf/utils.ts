@@ -14,6 +14,8 @@ export interface LeakHighlight {
   label: string;
   pct: number;
   narrative: string;
+  /** Tier do leak (1, 2, ou 3). Propagado de LeakBucket.tier. Default 1. */
+  tier: number;
 }
 
 const STUDY_TIME_LABELS: Record<string, string> = {
@@ -68,6 +70,7 @@ export function topLeaks(plan: SavedPlan, n: number = 3): LeakHighlight[] {
         label: leak.actionLabel,
         pct: accuracyPct,
         narrative: leak.recommendation,
+        tier: leak.tier ?? 1,
       };
     });
 }
