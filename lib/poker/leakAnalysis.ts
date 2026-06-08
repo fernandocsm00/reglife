@@ -15,6 +15,8 @@ export interface LeakBucket {
   actionLabel: string; // human-readable: "Vs RFI", "C-Bet" …
   position: string;
   stackBand: string; // "10bb", "15bb", "100bb"
+  /** Tier do spot (1, 2, ou 3). Derivado do ResultEntry.tier. Default 1. */
+  tier: number;
   errors: number;
   total: number;
   examples: ResultEntry[];
@@ -334,6 +336,7 @@ export function analyzeResults(results: ResultEntry[]): DiagnosticSummary {
         actionLabel: spotDisplayLabel(r.action, r.position),
         position: r.position, // primeira posição vista (representativo)
         stackBand: stackBand(r.stackSize), // primeira stack vista (representativo)
+        tier: r.tier,
         errors: r.isCorrect ? 0 : 1,
         total: 1,
         examples: r.isCorrect ? [] : [r],
