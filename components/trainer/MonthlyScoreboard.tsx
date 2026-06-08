@@ -136,7 +136,8 @@ function ReadyView({ data }: { data: ScoreboardData }) {
         Metas do mês · {monthLabel}
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ScoreCard score={data.score} />
         <GoalCard
           icon="🎯"
           label="Spots"
@@ -265,6 +266,41 @@ function VolumeCard({
       label="Volume"
       value={`${volume.current} / ${volume.goal}`}
       sub={`${pct}%`}
+      accent={accent}
+    />
+  );
+}
+
+function ScoreCard({
+  score,
+}: {
+  score: { goal: number; current: number | null };
+}) {
+  if (score.current === null) {
+    return (
+      <GoalCard
+        icon="❤️"
+        label="Score"
+        value={`— / ${score.goal}`}
+        sub="calculando"
+        accent="neutral"
+      />
+    );
+  }
+  const accent: "emerald" | "amber" | "neutral" =
+    score.current >= score.goal
+      ? "emerald"
+      : score.current > 0
+        ? "amber"
+        : "neutral";
+  const sub =
+    score.current >= score.goal ? "acima da meta" : "abaixo da meta";
+  return (
+    <GoalCard
+      icon="❤️"
+      label="Score"
+      value={`${score.current} / ${score.goal}`}
+      sub={sub}
       accent={accent}
     />
   );
