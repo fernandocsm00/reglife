@@ -11,7 +11,7 @@ import {
   FIXED_LINKS,
   canonicalSlotForLeak,
   getGradeLink,
-  getSpotLink,
+  getLessonUrlForLeak,
   hasInternalTrainer,
   slugForLeak,
 } from "./spotLinks";
@@ -56,7 +56,7 @@ export function buildSpotTrack(plan: SavedPlan): SpotTrackEntry[] {
     leakId: leak.id,
     label: leak.label,
     pct: leak.pct,
-    lessonUrl: getSpotLink(leak.id),
+    lessonUrl: getLessonUrlForLeak(leak.id),
     trainerSlug: slugForLeak(leak.id),
     hasInternalTrainer: hasInternalTrainer(leak.id),
   }));
