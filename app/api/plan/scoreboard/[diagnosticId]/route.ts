@@ -14,6 +14,9 @@
  *
  * Erro do SharkScope mensal NÃO bloqueia — vira monthlyEntries=null e o
  * UI mostra "Conecte SharkScope" / "sem dados do mês" conforme hasSharkscope.
+ *
+ * Erro do health snapshot também NÃO bloqueia — vira score.current=null e o
+ * UI mostra "calculando".
  */
 
 import { NextResponse, type NextRequest } from "next/server";

@@ -4,7 +4,7 @@
  * MonthlyScoreboard — placar mensal em /meu-plano (substitui EvHud).
  *
  * Fetch único em GET /api/plan/scoreboard/[diagnosticId]. Renderiza:
- *   - 3 cards de meta (spots / volume / mãos) com cores por progresso
+ *   - 4 cards de meta (score / spots / volume / mãos) com cores por progresso
  *   - mini-resumo dos spots com mini-barra de progresso por linha
  *   - 3 empty states + loading + error com retry
  */
