@@ -183,6 +183,20 @@ export async function POST(req: NextRequest) {
   const whatsappOptIn: boolean | null =
     typeof body.whatsappOptIn === "boolean" ? body.whatsappOptIn : null;
 
+  // SharkScope: nick + network informados no onboarding (step 7). Quando o
+  // aluno marca "não tenho conta", chegam como null e ficam vazios na linha
+  // — o cron weekly-sharkscope e o admin modal pulam linhas sem nick.
+  const sharkscopeUsername: string | null =
+    typeof body.sharkscopeUsername === "string" &&
+    body.sharkscopeUsername.trim().length > 0
+      ? body.sharkscopeUsername.trim()
+      : null;
+  const sharkscopeNetwork: string | null =
+    typeof body.sharkscopeNetwork === "string" &&
+    body.sharkscopeNetwork.trim().length > 0
+      ? body.sharkscopeNetwork.trim()
+      : null;
+
   const { data, error } = await supabase
     .from("reglife_diagnostic_results")
     .insert([
@@ -201,6 +215,8 @@ export async function POST(req: NextRequest) {
         stake_grade: stakeGrade,
         notify_cadence: notifyCadence,
         whatsapp_opt_in: whatsappOptIn,
+        sharkscope_username: sharkscopeUsername,
+        sharkscope_network: sharkscopeNetwork,
         // Test ainda não rodou — fica vazio
         stopped_early: false,
         spots_played: 0,
