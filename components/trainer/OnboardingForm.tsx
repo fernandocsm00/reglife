@@ -44,7 +44,7 @@ export interface OnboardingData {
   notifyCadence: "leve" | "ritmada" | "intensa";
   /**
    * Consentimento explícito do aluno pra receber contatos via WhatsApp na
-   * Comunidade. Substituiu a pergunta antiga de cadência no passo 8.
+   * Comunidade. Substituiu a pergunta antiga de cadência no passo 9.
    * - true  → aceitou
    * - false → recusou
    */
