@@ -100,6 +100,7 @@ const SCORE_GOAL = 75;
  *   continua usando o dataset completo para gating.
  * - `monthlyEntries`: passado direto, pode ser null.
  * - `volumeTargetWeekly`: do SavedPlan.volumeTargetWeekly. null ou ≤0 → goal=null.
+ * - `healthScore`: passado direto, pode ser null (snapshot inexistente).
  * - `nowIso`: opcional, determinístico para smoke tests.
  */
 export function buildMonthlyScoreboard(args: {
