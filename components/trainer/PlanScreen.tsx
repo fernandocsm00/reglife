@@ -13,6 +13,7 @@ import { MonthlyScoreboard } from "./MonthlyScoreboard";
 import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
 import { SpotTrack } from "./SpotTrack";
+import { GradeCard } from "./GradeCard";
 import { ResourcesBlock } from "./ResourcesBlock";
 
 interface Props {
@@ -255,6 +256,7 @@ export function PlanScreen({ plan }: Props) {
         )}
 
         <SpotTrack plan={plan} />
+        <GradeCard plan={plan} />
         <ResourcesBlock plan={plan} />
 
         {/* Footer */}

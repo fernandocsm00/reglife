@@ -130,6 +130,7 @@ export function SpotTrack({ plan }: Props) {
             lessonTitle={title}
             lessonBlurb={blurb}
             totalCount={track.length}
+            plan={plan}
           />
         );
       })}
