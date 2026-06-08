@@ -5,6 +5,26 @@ import { motion } from "motion/react";
 import type { SpotTrackEntry } from "@/lib/poker/spotTrack";
 import type { SpotProgress } from "@/lib/poker/spotTraining";
 import { THRESHOLD_HANDS, THRESHOLD_PCT } from "@/lib/poker/spotTraining";
+import type { SavedPlan } from "@/lib/poker/planStorage";
+import { getGradeUrl } from "@/lib/poker/spotTrack";
+
+const TIER_BORDER: Record<number, string> = {
+  1: "border-amber-400/40",
+  2: "border-orange-400/40",
+  3: "border-red-400/40",
+};
+
+const TIER_ACCENT_BG: Record<number, string> = {
+  1: "bg-amber-400/5",
+  2: "bg-orange-400/5",
+  3: "bg-red-400/5",
+};
+
+const TIER_FG: Record<number, string> = {
+  1: "text-amber-300",
+  2: "text-orange-300",
+  3: "text-red-300",
+};
 
 type State = "active" | "locked" | "completed";
 
@@ -19,6 +39,8 @@ interface Props {
   lessonBlurb: string | null;
   /** Total number of spots in the track (for "Spot N / 3"). */
   totalCount: number;
+  /** SavedPlan — usado pra resolver getGradeUrl na seção Joga. */
+  plan: SavedPlan;
 }
 
 export function SpotCard({
@@ -29,6 +51,7 @@ export function SpotCard({
   lessonTitle,
   lessonBlurb,
   totalCount,
+  plan,
 }: Props) {
   if (state === "locked") return <LockedCard entry={entry} totalCount={totalCount} />;
   if (state === "completed") return <CompletedCard entry={entry} progress={progress} totalCount={totalCount} />;
@@ -45,38 +68,36 @@ export function SpotCard({
       ? `/trainer/spot/${encodeURIComponent(entry.leakId)}?diag=${encodeURIComponent(diagnosticId)}`
       : null;
 
+  const tierBorder = TIER_BORDER[entry.tier] ?? TIER_BORDER[1];
+  const tierAccentBg = TIER_ACCENT_BG[entry.tier] ?? TIER_ACCENT_BG[1];
+  const tierFg = TIER_FG[entry.tier] ?? TIER_FG[1];
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22 }}
-      className="rg-card rg-card--accent"
+      transition={{ duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
+      className={`rg-card border ${tierBorder} ${tierAccentBg}`}
       style={{ padding: 28, borderRadius: "var(--rg-r-xl)" }}
     >
       <header className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-        <span className="rg-eyebrow">SPOT {entry.index + 1} / {totalCount}</span>
+        <span className={`rg-eyebrow ${tierFg}`}>
+          SPOT {entry.index + 1} / {totalCount}
+        </span>
         {entry.pct !== null && (
-          <span className="rg-eyebrow rg-eyebrow--pill" style={{ color: "var(--rg-danger)" }}>
-            Diagnóstico: {entry.pct}%
+          <span className={`rg-eyebrow rg-eyebrow--pill ${tierFg}`}>
+            Tier {entry.tier} · {entry.pct}%
           </span>
         )}
       </header>
 
       <h3 className="rg-h2" style={{ marginBottom: 18 }}>{entry.label}</h3>
 
-      {/* Bloco 1 — Diagnóstico */}
-      <section style={{ marginBottom: 20 }}>
-        <p className="rg-eyebrow" style={{ marginBottom: 6 }}>Por que esse spot</p>
-        <p className="rg-body-sm">
-          {entry.pct !== null
-            ? `Você acertou ${entry.pct}% no nivelamento. Esse é um dos seus leaks principais.`
-            : "Recomendação a definir pelo seu Manager."}
+      {/* SEÇÃO 1 — ESTUDA */}
+      <section style={{ marginBottom: 16 }}>
+        <p className={`rg-eyebrow ${tierFg}`} style={{ marginBottom: 6 }}>
+          📺 ESTUDA
         </p>
-      </section>
-
-      {/* Bloco 2 — Aula */}
-      <section style={{ marginBottom: 20 }}>
-        <p className="rg-eyebrow" style={{ marginBottom: 6 }}>O que você vai aprender</p>
         <a
           href={entry.lessonUrl}
           target="_blank"
@@ -84,7 +105,7 @@ export function SpotCard({
           className="rg-row"
           style={{ padding: "12px 14px" }}
         >
-          <span>📺 {lessonTitle ?? "Aula recomendada"}</span>
+          <span>{lessonTitle ?? "Aula recomendada"}</span>
           <span className="rg-row__arrow">→</span>
         </a>
         {lessonBlurb && (
@@ -92,9 +113,11 @@ export function SpotCard({
         )}
       </section>
 
-      {/* Bloco 3 — Treino */}
-      <section style={{ marginBottom: 12 }}>
-        <p className="rg-eyebrow" style={{ marginBottom: 6 }}>Treine este spot</p>
+      {/* SEÇÃO 2 — TREINA */}
+      <section style={{ marginBottom: 16 }}>
+        <p className={`rg-eyebrow ${tierFg}`} style={{ marginBottom: 6 }}>
+          🎯 TREINA
+        </p>
         <p className="rg-caption" style={{ marginBottom: 12 }}>
           Meta: {Math.round(THRESHOLD_PCT * 100)}% de acerto em {THRESHOLD_HANDS} mãos
         </p>
@@ -125,6 +148,23 @@ export function SpotCard({
         )}
       </section>
 
+      {/* SEÇÃO 3 — JOGA */}
+      <section style={{ marginBottom: 12 }}>
+        <p className={`rg-eyebrow ${tierFg}`} style={{ marginBottom: 6 }}>
+          🎲 JOGA
+        </p>
+        <a
+          href={getGradeUrl(plan)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rg-row"
+          style={{ padding: "12px 14px" }}
+        >
+          <span>Sua grade de torneios</span>
+          <span className="rg-row__arrow">→</span>
+        </a>
+      </section>
+
       <p className="rg-caption" style={{ marginTop: 12 }}>
         ✓ Critério: {Math.round(THRESHOLD_PCT * 100)}% em {THRESHOLD_HANDS} mãos → libera o próximo Spot
       </p>
@@ -133,13 +173,14 @@ export function SpotCard({
 }
 
 function LockedCard({ entry, totalCount }: { entry: SpotTrackEntry; totalCount: number }) {
+  const tierFg = TIER_FG[entry.tier] ?? TIER_FG[1];
   return (
     <article
       className="rg-card"
       style={{ padding: 20, borderRadius: "var(--rg-r-lg)", opacity: 0.55 }}
     >
       <div className="flex items-center justify-between">
-        <span className="rg-eyebrow">SPOT {entry.index + 1} / {totalCount}</span>
+        <span className={`rg-eyebrow ${tierFg}`}>SPOT {entry.index + 1} / {totalCount}</span>
         <span className="rg-meta">🔒 Bloqueado</span>
       </div>
       <h3 className="rg-h3" style={{ marginTop: 8 }}>{entry.label}</h3>
@@ -159,6 +200,7 @@ function CompletedCard({
   progress: SpotProgress;
   totalCount: number;
 }) {
+  const tierFg = TIER_FG[entry.tier] ?? TIER_FG[1];
   return (
     <article
       className="rg-card"
@@ -169,7 +211,7 @@ function CompletedCard({
       }}
     >
       <div className="flex items-center justify-between">
-        <span className="rg-eyebrow" style={{ color: "var(--rg-success)" }}>
+        <span className={`rg-eyebrow ${tierFg}`}>
           SPOT {entry.index + 1} / {totalCount} · CONCLUÍDO
         </span>
         <span className="rg-meta" style={{ color: "var(--rg-success)" }}>✓</span>
