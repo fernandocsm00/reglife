@@ -9,6 +9,11 @@
 // Quando precisar de override fino (uma combinação específica que vai pra um
 // URL diferente do default da action), adiciona em SPOT_LINK_OVERRIDES abaixo.
 
+import { LESSON_CATALOG, type LessonAction } from "./lessonCatalog";
+
+/** Home do Curso Educa — fallback quando não há aula específica pra um leak. */
+export const CURSEDUCA_HOME = "https://reglife.curseduca.pro/m";
+
 const PLACEHOLDER = "https://reglife.com.br/aula-em-breve";
 
 /** Links fixos do "Desafio Profissão Poker". */
@@ -275,4 +280,29 @@ export function slugForLeak(leakId: string): string | null {
  */
 export function hasInternalTrainer(leakId: string): boolean {
   return slugForLeak(leakId) !== null;
+}
+
+/**
+ * Devolve a URL Curseduca da primeira aula que cobre a action do leak.
+ *
+ * Procura no LESSON_CATALOG (lib/poker/lessonCatalog.ts) a primeira Lesson
+ * onde tags.action bate com a action extraída do leakId.
+ *
+ * Pareada com lessonMeta() de components/trainer/SpotTrack.tsx — ambos usam
+ * a MESMA aula (a primeira matching action). Título mostrado e link clicado
+ * batem.
+ *
+ * Fallback: CURSEDUCA_HOME (leakId malformado, action vazio, action
+ * desconhecido, ou Tier 3 sem aula no catálogo).
+ */
+export function getLessonUrlForLeak(leakId: string): string {
+  const parts = leakId.split("-");
+  if (parts.length < 1) return CURSEDUCA_HOME;
+  const action = parts[0];
+  if (!action) return CURSEDUCA_HOME;
+
+  const lesson = LESSON_CATALOG.find(
+    (l) => l.tags.action === (action as LessonAction),
+  );
+  return lesson?.url ?? CURSEDUCA_HOME;
 }
