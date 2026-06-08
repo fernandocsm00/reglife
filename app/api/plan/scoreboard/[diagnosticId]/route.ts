@@ -46,9 +46,9 @@ export async function GET(
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1; // 1..12
 
-  let diagRes, trainingRes, sharkRes;
+  let diagRes, trainingRes, sharkRes, healthRes;
   try {
-    [diagRes, trainingRes, sharkRes] = await Promise.all([
+    [diagRes, trainingRes, sharkRes, healthRes] = await Promise.all([
       supabase
         .from("reglife_diagnostic_results")
         .select(
@@ -67,6 +67,13 @@ export async function GET(
         .eq("year", year)
         .eq("month", month)
         .maybeSingle(),
+      supabase
+        .from("player_health_snapshots")
+        .select("health")
+        .eq("diagnostic_id", diagId)
+        .order("day", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
   } catch (err) {
     console.warn("[plan/scoreboard] fetch threw", err);
@@ -84,6 +91,12 @@ export async function GET(
   // SharkScope mensal: erro NÃO bloqueia — apenas loga e segue com null.
   if (sharkRes.error) {
     console.warn("[plan/scoreboard] sharkscope monthly", sharkRes.error.message);
+  }
+
+  // Health snapshot: erro NÃO bloqueia — apenas loga e segue com null.
+  // Aluno sem snapshot (cron diário 06h UTC ainda não rodou) também cai aqui.
+  if (healthRes.error) {
+    console.warn("[plan/scoreboard] health select", healthRes.error.message);
   }
 
   const {
@@ -117,6 +130,8 @@ export async function GET(
   const rows = (trainingRes.data ?? []) as TrainingRow[];
   const monthlyEntries =
     sharkRes.error || !sharkRes.data ? null : (sharkRes.data.entries ?? null);
+  const healthScore =
+    healthRes.error || !healthRes.data ? null : (healthRes.data.health ?? null);
 
   const volumeTargetWeekly =
     typeof savedPlan.volumeTargetWeekly === "number"
@@ -132,6 +147,7 @@ export async function GET(
       volumeTargetWeekly,
       monthlyEntries,
       hasSharkscope,
+      healthScore,
     });
   } catch (err) {
     console.warn("[plan/scoreboard] build threw", err);
