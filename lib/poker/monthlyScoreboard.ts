@@ -49,6 +49,7 @@ export interface ScoreboardData {
   spots: { goal: number; completed: number };
   volume: { goal: number | null; current: number | null; hasSharkscope: boolean };
   hands: { goal: number; current: number | null; pending: boolean };
+  score: { goal: number; current: number | null };
   spotProgress: SpotProgressEntry[];
 }
 
@@ -84,6 +85,9 @@ function startOfNextMonthUTCIso(now: Date): string {
   ).toISOString();
 }
 
+/** Meta hardcoded do Health Score na v1. Vira configurável em spec futuro. */
+const SCORE_GOAL = 75;
+
 // ---------------------------------------------------------------------------
 // Builder principal
 // ---------------------------------------------------------------------------
@@ -104,9 +108,10 @@ export function buildMonthlyScoreboard(args: {
   volumeTargetWeekly: number | null;
   monthlyEntries: number | null;
   hasSharkscope: boolean;
+  healthScore: number | null;
   nowIso?: string;
 }): ScoreboardData {
-  const { plan, trainingRows, volumeTargetWeekly, monthlyEntries, hasSharkscope } = args;
+  const { plan, trainingRows, volumeTargetWeekly, monthlyEntries, hasSharkscope, healthScore } = args;
   const now = args.nowIso ? new Date(args.nowIso) : new Date();
 
   // ----- month --------------------------------------------------------------
@@ -157,6 +162,7 @@ export function buildMonthlyScoreboard(args: {
     spots: { goal: 3, completed: spotsCompletedThisMonth },
     volume: { goal: volumeGoal, current: monthlyEntries, hasSharkscope },
     hands: { goal: handsGoal, current: null, pending: true },
+    score: { goal: SCORE_GOAL, current: healthScore },
     spotProgress,
   };
 }
