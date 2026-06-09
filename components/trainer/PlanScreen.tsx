@@ -14,6 +14,8 @@ import { PulseCard } from "./PulseCard";
 import { RetakeModal } from "./RetakeModal";
 import { SpotTrack } from "./SpotTrack";
 import { GradeCard } from "./GradeCard";
+import { TierBadge } from "./TierBadge";
+import { getTierCopy } from "@/lib/poker/tierCopy";
 import { ResourcesBlock } from "./ResourcesBlock";
 
 interface Props {
@@ -97,6 +99,7 @@ export function PlanScreen({ plan }: Props) {
           style={{ marginTop: 28, marginBottom: 32 }}
         >
           <Logo size="md" />
+          <TierBadge plan={plan} />
           <h1
             className="rg-display"
             style={{ marginTop: 28, color: "var(--rg-fg)" }}
@@ -134,6 +137,12 @@ export function PlanScreen({ plan }: Props) {
                   style={{ marginTop: 4 }}
                 >
                   {plan.accuracyPct}% de acerto no nivelamento · {profitShort} · {studyShort}
+                </p>
+                <p
+                  className="rg-caption"
+                  style={{ marginTop: 8 }}
+                >
+                  {getTierCopy(plan.playerTier).planHeaderBlurb}
                 </p>
               </>
             );
@@ -178,7 +187,10 @@ export function PlanScreen({ plan }: Props) {
         {/* Placar Mensal — metas do mês + mini-resumo da trilha */}
         {plan.diagnosticId && (
           <div style={{ marginBottom: 24 }}>
-            <MonthlyScoreboard diagnosticId={plan.diagnosticId} />
+            <MonthlyScoreboard
+              diagnosticId={plan.diagnosticId}
+              playerTier={plan.playerTier}
+            />
           </div>
         )}
 
