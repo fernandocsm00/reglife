@@ -189,19 +189,23 @@ Acima do título principal do plano:
 <p className="rg-body-sm">{getTierCopy(plan.playerTier).planHeaderBlurb}</p>
 ```
 
-Subtítulo/blurb que hoje aparece abaixo do título vira `planHeaderBlurb` — específico por tier. Se hoje já existe um subtítulo estático em `PlanScreen.tsx`, ele é substituído por essa string. Se não existe, é adicionado como `<p className="rg-body-sm">` logo abaixo do `<h1>`.
+O subtítulo informativo atual (`{accuracyPct}% de acerto no nivelamento · {profitShort} · {studyShort}`, linhas 132-137) **permanece** — carrega info útil. A blurb por tier é **adicionada como linha extra** logo abaixo, em `<p className="rg-caption">` com `marginTop: 8`, dando contexto motivacional sem competir com a info do subtítulo.
 
 ### Wire em `MonthlyScoreboard.tsx`
 
-Adicionar uma linha discreta de contexto perto da meta mensal:
+`MonthlyScoreboard` hoje só recebe `diagnosticId`. Ganha prop opcional `playerTier?: number | null` (opcional pra não quebrar callers que ainda não passam). `PlanScreen.tsx` passa `plan.playerTier`.
+
+Adiciona linha discreta de contexto dentro do `ReadyView`, logo abaixo do título "Metas do mês · {monthLabel}":
 
 ```tsx
-<p className="rg-caption">
-  {getTierCopy(plan.playerTier).scoreboardContext}
-</p>
+{playerTier != null && (
+  <p className="text-xs text-neutral-500" style={{ marginTop: 4 }}>
+    {getTierCopy(playerTier).scoreboardContext}
+  </p>
+)}
 ```
 
-Posição: logo abaixo do título do MonthlyScoreboard ("📊 Placar do mês" ou equivalente), antes dos números da meta. Renderiza como `<p className="rg-caption">`.
+`playerTier` é propagado por prop até `ReadyView`. Quando `null/undefined`, a linha não renderiza (mantém o placar limpo pra casos legados).
 
 ## Data Flow
 
@@ -243,7 +247,8 @@ Cobertos por 3 fallbacks independentes — nenhuma quebra de render.
 - [ ] `components/trainer/TierBadge.tsx` criado.
 - [ ] `PlanScreen.tsx` renderiza `<TierBadge plan={plan} />` antes do título do plano.
 - [ ] Subtítulo do header de `/meu-plano` vem de `getTierCopy(plan.playerTier).planHeaderBlurb`.
-- [ ] `MonthlyScoreboard.tsx` mostra `getTierCopy(plan.playerTier).scoreboardContext`.
+- [ ] `MonthlyScoreboard.tsx` ganha prop `playerTier?: number | null` e mostra `getTierCopy(playerTier).scoreboardContext` quando definido.
+- [ ] `PlanScreen.tsx` propaga `plan.playerTier` pra `<MonthlyScoreboard>`.
 - [ ] Plano antigo (sem `playerTier`) renderiza Tier 1 (amber + copy default) sem erro.
 - [ ] `tsc --noEmit`, lint e build limpos.
 - [ ] Nenhuma mudança em SpotCard (além do refactor de import), SpotTrack, GradeCard, ResourcesBlock.
