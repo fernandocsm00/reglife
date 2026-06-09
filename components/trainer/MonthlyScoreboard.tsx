@@ -149,7 +149,7 @@ function ReadyView({
         Metas do mês · {monthLabel}
       </p>
       {playerTier != null && (
-        <p className="text-xs text-neutral-500" style={{ marginTop: 4 }}>
+        <p className="mt-1 text-xs text-neutral-500">
           {getTierCopy(playerTier).scoreboardContext}
         </p>
       )}
