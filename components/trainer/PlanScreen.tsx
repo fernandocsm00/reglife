@@ -102,7 +102,7 @@ export function PlanScreen({ plan }: Props) {
           <TierBadge plan={plan} />
           <h1
             className="rg-display"
-            style={{ marginTop: 28, color: "var(--rg-fg)" }}
+            style={{ marginTop: 12, color: "var(--rg-fg)" }}
           >
             Plano de Progressão Individual — {plan.playerName}.
           </h1>
