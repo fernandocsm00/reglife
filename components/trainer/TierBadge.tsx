@@ -11,9 +11,14 @@
  * - linha principal: playerTierLabel (ex: "Tier 2 · Intermediário")
  * - linha secundária: "{accuracyPct}% de acerto no diagnóstico"
  *
- * Fallback: planos antigos sem playerTier → Tier 1 (amber).
- * playerTierLabel ausente → "Tier ?".
- * accuracyPct ausente → linha secundária omite a parte do %.
+ * Fallbacks (planos persistidos em localStorage antes do field existir
+ * no SavedPlan — runtime pode ter undefined apesar do tipo TS):
+ * - playerTier ausente → Tier 1 (amber).
+ * - playerTierLabel ausente → "Tier ?".
+ * - accuracyPct ausente → linha secundária omite a parte do %.
+ *
+ * Usa <div> + <p> em vez de heading semântico pra evitar quebrar a ordem
+ * h1 do título do plano (TierBadge renderiza ANTES do <h1>).
  */
 
 import { motion } from "motion/react";
@@ -48,7 +53,7 @@ export function TierBadge({ plan }: Props) {
       style={{ padding: 20, borderRadius: "var(--rg-r-lg)", marginBottom: 16 }}
     >
       <p className={`rg-eyebrow ${fg}`}>{copy.badgeEyebrow}</p>
-      <h2 className="rg-h3" style={{ marginTop: 6 }}>{label}</h2>
+      <p className="rg-h3" style={{ marginTop: 6 }}>{label}</p>
       <p className="rg-caption" style={{ marginTop: 4 }}>
         {accuracy != null
           ? `${accuracy}% de acerto no diagnóstico`
