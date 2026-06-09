@@ -14,6 +14,7 @@ import type {
   ScoreboardData,
   SpotProgressEntry,
 } from "@/lib/poker/monthlyScoreboard";
+import { getTierCopy } from "@/lib/poker/tierCopy";
 
 type EmptyReason = "abandoned" | "no_saved_plan" | "elite_no_track";
 
@@ -29,6 +30,10 @@ type State =
 
 interface Props {
   diagnosticId: string;
+  /** Tier do aluno (1..3) vindo do nivelamento. Opcional pra back-compat
+   *  com callers que ainda não passam — sem prop, scoreboardContext não
+   *  renderiza. */
+  playerTier?: number | null;
 }
 
 const EMPTY_MESSAGE: Record<EmptyReason, string> = {
@@ -55,7 +60,7 @@ const STATE_BAR: Record<SpotProgressEntry["state"], string> = {
   locked:    "bg-neutral-700",
 };
 
-export function MonthlyScoreboard({ diagnosticId }: Props) {
+export function MonthlyScoreboard({ diagnosticId, playerTier }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [reloadTick, setReloadTick] = useState(0);
 
@@ -119,7 +124,9 @@ export function MonthlyScoreboard({ diagnosticId }: Props) {
         </div>
       )}
 
-      {state.kind === "ready" && <ReadyView data={state.data} />}
+      {state.kind === "ready" && (
+        <ReadyView data={state.data} playerTier={playerTier} />
+      )}
     </section>
   );
 }
@@ -128,13 +135,24 @@ export function MonthlyScoreboard({ diagnosticId }: Props) {
 // Subcomponentes do estado ready
 // ---------------------------------------------------------------------------
 
-function ReadyView({ data }: { data: ScoreboardData }) {
+function ReadyView({
+  data,
+  playerTier,
+}: {
+  data: ScoreboardData;
+  playerTier?: number | null;
+}) {
   const monthLabel = data.month.label.toUpperCase();
   return (
     <>
       <p className="text-[11px] uppercase tracking-widest text-neutral-500">
         Metas do mês · {monthLabel}
       </p>
+      {playerTier != null && (
+        <p className="text-xs text-neutral-500" style={{ marginTop: 4 }}>
+          {getTierCopy(playerTier).scoreboardContext}
+        </p>
+      )}
 
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <ScoreCard score={data.score} />
