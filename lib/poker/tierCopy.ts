@@ -42,8 +42,10 @@ export const TIER_COPY: Record<number, TierCopy> = {
 };
 
 /**
- * Resolve copy do tier com fallback Tier 1 quando `tier` é undefined/null
- * (planos antigos) ou fora do range conhecido (1..3).
+ * Resolve copy do tier com fallback Tier 1 em dois cenários:
+ * - tier null/undefined (planos antigos sem `playerTier`) — capturado por `?? 1`.
+ * - tier fora do range conhecido 1..3 (ex.: dado corrompido, futuro tier 4
+ *   na DB antes do código ser atualizado) — capturado pelo `?? TIER_COPY[1]`.
  */
 export function getTierCopy(tier: number | null | undefined): TierCopy {
   return TIER_COPY[tier ?? 1] ?? TIER_COPY[1];
