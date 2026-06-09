@@ -7,24 +7,7 @@ import type { SpotProgress } from "@/lib/poker/spotTraining";
 import { THRESHOLD_HANDS, THRESHOLD_PCT } from "@/lib/poker/spotTraining";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 import { getGradeUrl } from "@/lib/poker/spotTrack";
-
-const TIER_BORDER: Record<number, string> = {
-  1: "border-amber-400/40",
-  2: "border-orange-400/40",
-  3: "border-red-400/40",
-};
-
-const TIER_ACCENT_BG: Record<number, string> = {
-  1: "bg-amber-400/5",
-  2: "bg-orange-400/5",
-  3: "bg-red-400/5",
-};
-
-const TIER_FG: Record<number, string> = {
-  1: "text-amber-300",
-  2: "text-orange-300",
-  3: "text-red-300",
-};
+import { TIER_BORDER, TIER_ACCENT_BG, TIER_FG } from "@/lib/poker/tierTheme";
 
 type State = "active" | "locked" | "completed";
 
