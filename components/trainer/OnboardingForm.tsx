@@ -5,27 +5,18 @@ import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 import {
-  ABI_OPTIONS,
   BANCA_OPTIONS,
-  IDADE_OPTIONS,
   OBJETIVO_OPTIONS,
-  TEMPO_OPTIONS,
-  VOLUME_OPTIONS,
-  computeLeadCategory,
-  computeLeadScore,
+  HOURS_OPTIONS,
+  TABLES_OPTIONS,
+  SHARKSCOPE_SITES,
   computeStakeGrade,
-  defaultStudyTime,
   objetivoToProfitGoal,
-  volumeToWeeklyTarget,
-  type AbiAnswer,
+  weeklyVolumeTarget,
+  studyTimeFromHours,
   type BancaAnswer,
-  type IdadeAnswer,
-  type LeadCategory,
   type ObjetivoAnswer,
   type QuizAnswers,
-  type QuizOption,
-  type TempoAnswer,
-  type VolumeAnswer,
 } from "@/lib/poker/leadScoring";
 
 export interface OnboardingData {
@@ -35,23 +26,22 @@ export interface OnboardingData {
   notifyChannels: string[];
   whatsappPhone: string | null;
   quizAnswers: QuizAnswers;
-  leadScore: number;
-  leadCategory: LeadCategory;
   stakeGrade: number;
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
   volumeTargetWeekly: number;
+  /** Horas/semana declaradas (6-48). */
+  weeklyHours: number;
+  /** Telas simultâneas (1-10). */
+  tables: number;
   notifyCadence: "leve" | "ritmada" | "intensa";
-  /**
-   * Consentimento explícito do aluno pra receber contatos via WhatsApp na
-   * Comunidade. Substituiu a pergunta antiga de cadência no passo 9.
-   * - true  → aceitou
-   * - false → recusou
-   */
+  /** Consentimento explícito de contato via WhatsApp. */
   whatsappOptIn: boolean;
-  /** Nick SharkScope informado no step 7 — null se aluno opt-out. */
+  /** Nicks por site (só preenchidos). Ex.: { ggpoker: "nick" }. */
+  sharkscopeNicks: Record<string, string>;
+  /** Primeiro nick preenchido — back-compat com coluna single. */
   sharkscopeUsername: string | null;
-  /** Network SharkScope informado no step 7 — null se aluno opt-out. */
+  /** Site (label) do primeiro nick — back-compat. */
   sharkscopeNetwork: string | null;
 }
 
@@ -59,17 +49,7 @@ interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-const TOTAL_STEPS = 9; // 1 identidade + 6 perguntas + 1 nick SharkScope + 1 banca + 1 opt-in WhatsApp
-
-const SHARKSCOPE_NETWORKS = [
-  "PokerStars",
-  "GGPoker",
-  "PartyPoker",
-  "888Poker",
-  "WPN",
-  "iPoker",
-] as const;
-type SharkscopeNetwork = (typeof SHARKSCOPE_NETWORKS)[number];
+const TOTAL_STEPS = 6; // identidade + objetivo + tempo + banca + nicks + whatsapp
 const ADVANCE_DELAY_MS = 220;
 
 function formatPhone(raw: string): string {
@@ -99,46 +79,36 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [phone, setPhone] = useState("");
 
   // Quiz
-  const [idade, setIdade] = useState<IdadeAnswer | null>(null);
-  const [tempo, setTempo] = useState<TempoAnswer | null>(null);
   const [objetivo, setObjetivo] = useState<ObjetivoAnswer | null>(null);
-  const [abi, setAbi] = useState<AbiAnswer | null>(null);
-  const [volume, setVolume] = useState<VolumeAnswer | null>(null);
   const [banca, setBanca] = useState<BancaAnswer | null>(null);
-  // notifyCadence deixou de ser perguntada — fica fixa em "ritmada" (default
-  // da maioria). Quem quiser ajustar depois conversa com o coach.
+  const [weeklyHours, setWeeklyHours] = useState<number | null>(null);
+  const [tables, setTables] = useState<number | null>(null);
+  const [nicks, setNicks] = useState<Record<string, string>>({});
+  // notifyCadence deixou de ser perguntada — fica fixa em "ritmada".
   const notifyCadence = "ritmada" as const;
   const [whatsappOptIn, setWhatsappOptIn] = useState<boolean | null>(null);
-
-  // Step 7 — SharkScope
-  const [hasSharkscope, setHasSharkscope] = useState<boolean | null>(null);
-  const [sharkscopeUsername, setSharkscopeUsername] = useState("");
-  const [sharkscopeNetwork, setSharkscopeNetwork] = useState<SharkscopeNetwork>("PokerStars");
 
   const identityValid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone);
 
-  const sharkscopeValid =
-    hasSharkscope === false ||
-    (hasSharkscope === true && sharkscopeUsername.trim().length >= 2);
-
   const finalSubmit = () => {
-    if (!banca) return;
+    if (!objetivo || !banca || weeklyHours === null || tables === null) return;
     if (whatsappOptIn === null) return; // exige consentimento explícito
-    const completeQuiz: QuizAnswers = {
-      idade: idade!,
-      tempo: tempo!,
-      objetivo: objetivo!,
-      abi: abi!,
-      volume: volume!,
-      banca,
-    };
 
-    const leadScore = computeLeadScore(completeQuiz);
-    const leadCategory = computeLeadCategory(leadScore);
-    const stakeGrade = computeStakeGrade(completeQuiz);
+    const completeQuiz: QuizAnswers = { objetivo, banca };
+
+    // Nicks: só os preenchidos entram. Primeiro não-vazio (ordem dos sites)
+    // vira o "primário" pras colunas single (back-compat).
+    const filledNicks: Record<string, string> = {};
+    for (const site of SHARKSCOPE_SITES) {
+      const v = (nicks[site.key] ?? "").trim();
+      if (v) filledNicks[site.key] = v;
+    }
+    const primarySite = SHARKSCOPE_SITES.find((s) => filledNicks[s.key]);
+    const sharkscopeUsername = primarySite ? filledNicks[primarySite.key] : null;
+    const sharkscopeNetwork = primarySite ? primarySite.label : null;
 
     onSubmit({
       playerName: playerName.trim(),
@@ -147,16 +117,17 @@ export function OnboardingForm({ onSubmit }: Props) {
       notifyChannels: ["email"],
       whatsappPhone: null,
       quizAnswers: completeQuiz,
-      leadScore,
-      leadCategory,
-      stakeGrade,
-      studyTime: defaultStudyTime(),
-      profitGoal: objetivoToProfitGoal(objetivo!),
-      volumeTargetWeekly: volumeToWeeklyTarget(volume!),
+      stakeGrade: computeStakeGrade(completeQuiz),
+      studyTime: studyTimeFromHours(weeklyHours),
+      profitGoal: objetivoToProfitGoal(objetivo),
+      volumeTargetWeekly: weeklyVolumeTarget(weeklyHours, tables),
+      weeklyHours,
+      tables,
       notifyCadence,
-      whatsappOptIn: whatsappOptIn!,
-      sharkscopeUsername: hasSharkscope ? sharkscopeUsername.trim() : null,
-      sharkscopeNetwork: hasSharkscope ? sharkscopeNetwork : null,
+      whatsappOptIn,
+      sharkscopeNicks: filledNicks,
+      sharkscopeUsername,
+      sharkscopeNetwork,
     });
   };
 
@@ -239,12 +210,12 @@ export function OnboardingForm({ onSubmit }: Props) {
           )}
 
           {step === 2 && (
-            <StepWrapper key="idade">
-              <Title>Qual é a sua idade?</Title>
+            <StepWrapper key="objetivo">
+              <Title>Qual é o seu objetivo no poker?</Title>
               <QuestionOptions
-                options={IDADE_OPTIONS}
-                value={idade}
-                onChange={autoAdvance(setIdade, 3)}
+                options={OBJETIVO_OPTIONS}
+                value={objetivo}
+                onChange={autoAdvance(setObjetivo, 3)}
               />
               <BackBar onBack={() => setStep(1)} />
             </StepWrapper>
@@ -252,169 +223,97 @@ export function OnboardingForm({ onSubmit }: Props) {
 
           {step === 3 && (
             <StepWrapper key="tempo">
-              <Title>Há quanto tempo você joga poker?</Title>
+              <Title>
+                Aproximadamente, quanto tempo por semana você tem disponível
+                para o poker (incluindo estudar, treinar e jogar)?
+              </Title>
               <QuestionOptions
-                options={TEMPO_OPTIONS}
-                value={tempo}
-                onChange={autoAdvance(setTempo, 4)}
+                options={HOURS_OPTIONS}
+                value={weeklyHours}
+                onChange={(v) => setWeeklyHours(v)}
               />
+
+              {weeklyHours !== null && (
+                <div className="mt-8">
+                  <p className="mb-3 text-center text-sm text-neutral-300">
+                    Durante uma sessão de grind online, quantas telas
+                    simultâneas você joga na maior parte do tempo?
+                  </p>
+                  <QuestionOptions
+                    options={TABLES_OPTIONS}
+                    value={tables}
+                    onChange={(v) => setTables(v)}
+                    grid
+                  />
+                </div>
+              )}
+
+              <div className="mt-8 flex justify-end">
+                <NextButton
+                  disabled={weeklyHours === null || tables === null}
+                  onClick={() => setStep(4)}
+                  label="Continuar →"
+                />
+              </div>
               <BackBar onBack={() => setStep(2)} />
             </StepWrapper>
           )}
 
           {step === 4 && (
-            <StepWrapper key="objetivo">
-              <Title>Qual é o seu objetivo no poker?</Title>
+            <StepWrapper key="banca">
+              <Title>Qual é a sua banca (em dólares) para jogar poker online?</Title>
+              <Sub>
+                Lembre-se: sua banca (bankroll) não é apenas o que você tem nas
+                suas contas de cada site neste exato momento, mas todo o
+                dinheiro que você tem disponível para dar buy-ins de poker
+                online. Caso você possa depositar mais do que tem depositado,
+                some esse valor ao que você já tem nos sites.
+              </Sub>
               <QuestionOptions
-                options={OBJETIVO_OPTIONS}
-                value={objetivo}
-                onChange={autoAdvance(setObjetivo, 5)}
+                options={BANCA_OPTIONS}
+                value={banca}
+                onChange={autoAdvance(setBanca, 5)}
               />
               <BackBar onBack={() => setStep(3)} />
             </StepWrapper>
           )}
 
           {step === 5 && (
-            <StepWrapper key="abi">
-              <Title>Qual é o seu ABI em dólares?</Title>
-              <Sub>Buy-in médio nos últimos 6 meses (SharkScope).</Sub>
-              <QuestionOptions
-                options={ABI_OPTIONS}
-                value={abi}
-                onChange={autoAdvance(setAbi, 6)}
-              />
+            <StepWrapper key="nicks">
+              <Title>Preencha seus nicks nos sites abaixo.</Title>
+              <Sub>
+                Responda apenas os que você já tem conta. Deixe em branco os
+                sites onde você ainda não joga.
+              </Sub>
+
+              <div className="mt-8 space-y-4">
+                {SHARKSCOPE_SITES.map((site) => (
+                  <Field key={site.key} label={site.label}>
+                    <input
+                      type="text"
+                      value={nicks[site.key] ?? ""}
+                      onChange={(e) =>
+                        setNicks((prev) => ({ ...prev, [site.key]: e.target.value }))
+                      }
+                      placeholder={`Seu nick na ${site.label}`}
+                      className={inputClass}
+                    />
+                  </Field>
+                ))}
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <NextButton
+                  disabled={false}
+                  onClick={() => setStep(6)}
+                  label="Continuar →"
+                />
+              </div>
               <BackBar onBack={() => setStep(4)} />
             </StepWrapper>
           )}
 
           {step === 6 && (
-            <StepWrapper key="volume">
-              <Title>Quantos torneios online você joga por mês?</Title>
-              <Sub>
-                Responda com uma média aproximada dos últimos 6 meses segundo
-                o SharkScope.
-              </Sub>
-              <QuestionOptions
-                options={VOLUME_OPTIONS}
-                value={volume}
-                onChange={autoAdvance(setVolume, 7)}
-              />
-              <BackBar onBack={() => setStep(5)} />
-            </StepWrapper>
-          )}
-
-          {step === 7 && (
-            <StepWrapper key="sharkscope-nick">
-              <Title>Você joga em algum site que o SharkScope cobre?</Title>
-              <Sub>
-                Se você joga em PokerStars, GGPoker ou outros sites principais,
-                informe seu nick aqui. Com isso o EV consegue puxar seus
-                resultados automaticamente.
-              </Sub>
-
-              <div className="mt-8 space-y-2">
-                {[
-                  {
-                    value: true,
-                    label: "Sim, tenho conta SharkScope",
-                    sub: "Vou informar meu nick agora.",
-                  },
-                  {
-                    value: false,
-                    label: "Não tenho conta SharkScope",
-                    sub: "Quero pular esse passo por enquanto.",
-                  },
-                ].map((o) => {
-                  const selected = hasSharkscope === o.value;
-                  return (
-                    <button
-                      type="button"
-                      key={String(o.value)}
-                      onClick={() => setHasSharkscope(o.value)}
-                      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
-                        selected
-                          ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
-                          : "border-neutral-800 bg-neutral-900/50 text-neutral-200 hover:border-neutral-700 hover:bg-neutral-900"
-                      }`}
-                    >
-                      <span>
-                        <span className="block font-semibold">{o.label}</span>
-                        <span className="block text-xs text-neutral-400">{o.sub}</span>
-                      </span>
-                      <span
-                        className={`h-4 w-4 shrink-0 rounded-full border-2 ${
-                          selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {hasSharkscope === true && (
-                <div className="mt-6 space-y-4">
-                  <Field label="Em qual site você joga mais?">
-                    <select
-                      value={sharkscopeNetwork}
-                      onChange={(e) =>
-                        setSharkscopeNetwork(e.target.value as SharkscopeNetwork)
-                      }
-                      className={inputClass}
-                    >
-                      {SHARKSCOPE_NETWORKS.map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Qual é o seu nick nesse site?">
-                    <input
-                      type="text"
-                      value={sharkscopeUsername}
-                      onChange={(e) => setSharkscopeUsername(e.target.value)}
-                      placeholder="seu_nick_aqui"
-                      className={inputClass}
-                      autoFocus
-                    />
-                  </Field>
-                  <p className="text-xs text-neutral-500">
-                    ℹ️ Sem isso o EV não vai puxar seus resultados
-                    automaticamente. Você ainda pode informar depois
-                    conversando com o EV.
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-8 flex justify-end">
-                <NextButton
-                  disabled={!sharkscopeValid}
-                  onClick={() => setStep(8)}
-                  label="Continuar →"
-                />
-              </div>
-              <BackBar onBack={() => setStep(6)} />
-            </StepWrapper>
-          )}
-
-          {step === 8 && (
-            <StepWrapper key="banca">
-              <Title>Qual é a sua banca total para poker online (em dólares)?</Title>
-              <Sub>
-                Não é só a soma do que você tem nas salas, é todo o dinheiro
-                que você tem disponível para dar buy-ins, incluindo o que
-                ainda pode depositar.
-              </Sub>
-              <QuestionOptions
-                options={BANCA_OPTIONS}
-                value={banca}
-                onChange={autoAdvance(setBanca, 9)}
-              />
-              <BackBar onBack={() => setStep(7)} />
-            </StepWrapper>
-          )}
-
-          {step === 9 && (
             <StepWrapper key="whatsapp-opt-in">
               <Title>
                 Podemos te contatar pelo WhatsApp pra acompanhar sua execução
@@ -471,7 +370,7 @@ export function OnboardingForm({ onSubmit }: Props) {
                   label="Concluir →"
                 />
               </div>
-              <BackBar onBack={() => setStep(8)} />
+              <BackBar onBack={() => setStep(5)} />
             </StepWrapper>
           )}
         </AnimatePresence>
@@ -560,24 +459,26 @@ function Field({
   );
 }
 
-function QuestionOptions<T extends string>({
+function QuestionOptions<T extends string | number>({
   options,
   value,
   onChange,
+  grid = false,
 }: {
-  options: QuizOption<T>[];
+  options: { value: T; label: string }[];
   value: T | null;
   onChange: (v: T) => void;
+  grid?: boolean;
 }) {
   const opts = useMemo(() => options, [options]);
   return (
-    <div className="mt-8 space-y-2">
+    <div className={grid ? "mt-8 grid grid-cols-2 gap-2" : "mt-8 space-y-2"}>
       {opts.map((o) => {
         const selected = value === o.value;
         return (
           <button
             type="button"
-            key={o.value}
+            key={String(o.value)}
             onClick={() => onChange(o.value)}
             className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
               selected
