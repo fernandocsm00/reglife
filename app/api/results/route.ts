@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
 
   const savedPlan = body.savedPlan as SavedPlan | undefined;
 
-  // Lead scoring (admin-side, lead não vê)
+  // Quiz answers + stake grade (admin-side, lead não vê)
   const quizAnswers =
     body.quizAnswers && typeof body.quizAnswers === "object"
       ? body.quizAnswers

@@ -160,7 +160,9 @@ export async function POST(req: NextRequest) {
       ? Math.round(body.tables)
       : null;
   const sharkscopeNicks =
-    body.sharkscopeNicks && typeof body.sharkscopeNicks === "object"
+    body.sharkscopeNicks &&
+    typeof body.sharkscopeNicks === "object" &&
+    !Array.isArray(body.sharkscopeNicks)
       ? (body.sharkscopeNicks as Record<string, string>)
       : null;
   const stakeGrade =
