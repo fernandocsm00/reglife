@@ -28,17 +28,20 @@ Existem DUAS cópias no disco: `reglife\` (working dir — **a ativa**) e `regli
 | `components/trainer/DiagnosticoScreen.tsx` | modify | Para de ler/enviar leadScore/leadCategory; envia weeklyHours/tables/sharkscopeNicks no POST /api/leads. |
 | `app/api/leads/route.ts` | modify | Persiste colunas novas; webhook novo; enrichQuiz reduzido. |
 | `app/api/results/route.ts` | modify | Para de gravar lead_score/lead_category (null); remove LEAD_CATEGORY_LABELS. |
+| `lib/admin/exportCsv.ts` | modify | Remove colunas das perguntas removidas + lead score; adiciona Horas/Telas/Nicks. (Descoberto na execução — importava símbolos removidos.) |
+| `lib/supabase.ts` | modify | `DiagnosticRow` ganha `weekly_hours?`/`tables?`/`sharkscope_nicks?` (pro exportCsv ler). |
 | `supabase/migrations/015_onboarding_v2.sql` | create | +weekly_hours, +tables, +sharkscope_nicks. |
 
 **Decisão YAGNI:** `weeklyHours`/`tables` vão só pro DB (via `/api/leads`), **não** pro `SavedPlan`/`buildPlan` (nenhum consumidor na Fase 1). O spec mencionou como opcional; pulamos pra reduzir churn. Revisitar na Fase 2 se preciso.
 
 ## Janela de tsc quebrado (esperada e documentada)
 
-A mudança de `leadScoring.ts` (Task 1) quebra os importadores até a Task 4 fechar. Ordem:
+A mudança de `leadScoring.ts` (Task 1) quebra os importadores até as tasks de wire fecharem. Importadores dos símbolos removidos: OnboardingForm, diagnosticoStore, /api/leads, /api/results, **lib/admin/exportCsv.ts** (descoberto na execução da Task 1). Ordem:
 
-- Após **Task 1**: tsc vermelho em OnboardingForm, diagnosticoStore, /api/leads, /api/results.
-- Após **Task 2**: tsc vermelho em diagnosticoStore, /api/leads, /api/results.
-- Após **Task 3**: tsc vermelho em /api/leads, /api/results.
+- Após **Task 1**: tsc vermelho em OnboardingForm, diagnosticoStore, /api/leads, /api/results, exportCsv.
+- Após **Task 2**: vermelho em diagnosticoStore, /api/leads, /api/results, exportCsv.
+- Após **Task 3**: vermelho em /api/leads, /api/results, exportCsv.
+- Após **Task 3b** (exportCsv + DiagnosticRow): vermelho em /api/leads, /api/results.
 - Após **Task 4**: tsc **VERDE**.
 
 Cada task verifica "vermelho só nos arquivos esperados". Igual ao padrão da reforma de spots.
@@ -759,6 +762,141 @@ feat(plan): store + DiagnosticoScreen — drop lead score, envia tempo/nicks
 diagnosticoStore remove leadScore/leadCategory do state e setOnboarding.
 DiagnosticoScreen para de ler/enviar leadScore/leadCategory nos 3 POSTs
 e adiciona weeklyHours/tables/sharkscopeNicks no POST /api/leads.
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+## Task 3b — `exportCsv.ts` + `DiagnosticRow` (importador extra)
+
+**Files:**
+- Modify: `lib/admin/exportCsv.ts`
+- Modify: `lib/supabase.ts` (`DiagnosticRow`)
+
+**Por quê:** Descoberto na Task 1: `exportCsv.ts` importa símbolos removidos (`ABI_OPTIONS`, `IDADE_OPTIONS`, `LEAD_CATEGORY_LABELS`, `TEMPO_OPTIONS`, `VOLUME_OPTIONS`). Remover as colunas das perguntas que sumiram + lead score, e adicionar as colunas novas (Horas/Telas/Nicks).
+
+- [ ] **Step 1: `DiagnosticRow` ganha os campos novos (opcionais)**
+
+Em `lib/supabase.ts`, na interface `DiagnosticRow`, adicionar (perto de `quiz_answers`/`stake_grade`, opcionais pra back-compat com linhas antigas):
+
+```ts
+  weekly_hours: number | null;
+  tables: number | null;
+  sharkscope_nicks: Record<string, string> | null;
+```
+
+- [ ] **Step 2: `exportCsv.ts` — imports**
+
+Trocar o import de `@/lib/poker/leadScoring` (linhas 4-13) por:
+
+```ts
+import {
+  BANCA_OPTIONS,
+  OBJETIVO_OPTIONS,
+  type QuizOption,
+} from "@/lib/poker/leadScoring";
+```
+
+- [ ] **Step 3: `exportCsv.ts` — HEADERS**
+
+Substituir o array `HEADERS` (linhas 66-92) por (remove Categoria Lead, Lead Score, Idade, Tempo Jogando, ABI, Volume/mês; adiciona Horas/sem, Telas, Nicks):
+
+```ts
+const HEADERS: string[] = [
+  "Data",
+  "Nome",
+  "Email",
+  "Telefone",
+  "Stake Grade (USD)",
+  "Objetivo",
+  "Banca",
+  "Horas/sem",
+  "Telas",
+  "Meta de Profit",
+  "Tempo de Estudo",
+  "Volume Target (semana)",
+  "Spots Jogados",
+  "Spots Reprovados",
+  "Média Acerto (%)",
+  "Early Stop",
+  "Sharkscope Nick",
+  "Sharkscope Network",
+  "Nicks (todos)",
+  "Sharkscope Group",
+  "ROI Médio (Sharkscope)",
+  "Diagnostic ID",
+];
+```
+
+- [ ] **Step 4: `exportCsv.ts` — `rowToCells`**
+
+Substituir `rowToCells` (linhas 94-125) por (alinhado 1:1 com os HEADERS acima):
+
+```ts
+function rowToCells(row: DiagnosticRow): string[] {
+  const quiz = (row.quiz_answers ?? {}) as Record<string, string>;
+  const nicks = row.sharkscope_nicks ?? null;
+  const nicksStr = nicks
+    ? Object.entries(nicks)
+        .map(([site, nick]) => `${site}:${nick}`)
+        .join("; ")
+    : "";
+  return [
+    fmtDate(row.created_at),
+    row.player_name ?? "",
+    row.email ?? "",
+    row.phone ?? "",
+    row.stake_grade?.toString() ?? "",
+    labelOf(OBJETIVO_OPTIONS, quiz.objetivo),
+    labelOf(BANCA_OPTIONS, quiz.banca),
+    row.weekly_hours?.toString() ?? "",
+    row.tables?.toString() ?? "",
+    PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "",
+    STUDY_LABELS[row.study_time ?? ""] ?? row.study_time ?? "",
+    row.volume_target_weekly?.toString() ?? "",
+    row.spots_played?.toString() ?? "0",
+    row.spots_failed?.toString() ?? "0",
+    avgAccuracy(row).toString(),
+    row.stopped_early ? "Sim" : "Não",
+    row.sharkscope_username ?? "",
+    row.sharkscope_network ?? "",
+    nicksStr,
+    row.sharkscope_playergroup_id ?? "",
+    row.sharkscope_summary?.avgRoi != null
+      ? `${row.sharkscope_summary.avgRoi.toFixed(1)}%`
+      : "",
+    row.id,
+  ];
+}
+```
+
+- [ ] **Step 5: tsc — confirmar quebra contida nas rotas**
+
+Run:
+```bash
+npx tsc --noEmit 2>&1 | grep -v "leads/route.ts\|results/route.ts"
+```
+Expected: vazio. exportCsv + DiagnosticRow limpos; só rotas faltam.
+
+- [ ] **Step 6: Lint**
+
+Run: `npx eslint lib/admin/exportCsv.ts lib/supabase.ts`
+Expected: exit 0.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/admin/exportCsv.ts lib/supabase.ts
+git commit -m "$(cat <<'EOF'
+feat(plan): exportCsv v2 — drop colunas removidas, add horas/telas/nicks
+
+exportCsv parava de compilar (importava ABI/IDADE/TEMPO/VOLUME_OPTIONS
++ LEAD_CATEGORY_LABELS removidos). Remove colunas Categoria/Score/Idade/
+Tempo/ABI/Volume; adiciona Horas/sem, Telas e Nicks (todos).
+DiagnosticRow ganha weekly_hours/tables/sharkscope_nicks.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 EOF
