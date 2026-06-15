@@ -4,8 +4,15 @@ import type { DiagnosticRow } from "@/lib/supabase";
 import {
   BANCA_OPTIONS,
   OBJETIVO_OPTIONS,
+  SHARKSCOPE_SITES,
   type QuizOption,
 } from "@/lib/poker/leadScoring";
+
+// site key (chave do JSONB) → nome exibido. Pra coluna "Nicks (todos)" sair
+// legível ("GGPoker:nick") em vez da key crua ("ggpoker:nick").
+const SITE_LABELS: Record<string, string> = Object.fromEntries(
+  SHARKSCOPE_SITES.map((s) => [s.key, s.label])
+);
 
 const STUDY_LABELS: Record<string, string> = {
   ate15: "Até 15h/sem",
@@ -88,7 +95,7 @@ function rowToCells(row: DiagnosticRow): string[] {
   const nicks = row.sharkscope_nicks ?? null;
   const nicksStr = nicks
     ? Object.entries(nicks)
-        .map(([site, nick]) => `${site}:${nick}`)
+        .map(([site, nick]) => `${SITE_LABELS[site] ?? site}:${nick}`)
         .join("; ")
     : "";
   return [
