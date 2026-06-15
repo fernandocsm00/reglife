@@ -1,199 +1,143 @@
-// lib/poker/leadScoring.ts — Lead scoring quiz: tipos, pontuação,
-// categorização e mapeamento pros campos legacy do planBuilder.
+// lib/poker/leadScoring.ts — Quiz do onboarding (v2): tipos das respostas e
+// derivações pros campos do plano (profitGoal, stakeGrade, volume, studyTime).
 //
-// O quiz tem 6 perguntas. 5 são pontuadas (idade, tempo, objetivo, abi,
-// volume) e somam até 25 pontos. A 6ª (banca) determina o "stake grade"
-// recomendado em USD mas não entra no score.
+// Onboarding v2: lead score (frio/morno/quente) REMOVIDO. Idade, Experiência,
+// ABI e Volume (perguntas) removidas. Quiz pontuável-de-plano = objetivo + banca.
+// Tempo (horas/telas) é capturado fora do QuizAnswers.
 
 import type { ProfitGoal, StudyTime } from "./planStorage";
 
 // ---------------------------------------------------------------------------
-// Tipos das opções de cada pergunta
+// Tipos das respostas
 // ---------------------------------------------------------------------------
 
-export type IdadeAnswer = "18_24" | "25_34" | "35_44" | "45_54" | "55_plus";
-export type TempoAnswer = "menos_1" | "1_2" | "2_3" | "3_5" | "mais_5";
 export type ObjetivoAnswer =
-  | "diversao"
   | "competitivo"
   | "renda_extra"
   | "profissional"
   | "ja_vive";
-export type AbiAnswer = "nao_sei" | "lt_5" | "5_13" | "13_23" | "23_54" | "gt_54";
-export type VolumeAnswer =
-  | "nao_sei"
-  | "lt_100"
-  | "100_200"
-  | "200_300"
-  | "gt_300";
+
 export type BancaAnswer =
   | "lt_875"
-  | "876_2000"
-  | "2001_3000"
-  | "3001_5000"
-  | "5001_7500"
-  | "7501_10000"
-  | "10001_15000"
-  | "gt_15000";
+  | "875_1499"
+  | "1500_2799"
+  | "2800_4249"
+  | "4250_5849"
+  | "5850_7599"
+  | "7600_9499"
+  | "9500_11999"
+  | "12000_15399"
+  | "15400_20699"
+  | "20700_26999"
+  | "27000_33749"
+  | "gte_33750";
 
 export interface QuizAnswers {
-  idade: IdadeAnswer;
-  tempo: TempoAnswer;
   objetivo: ObjetivoAnswer;
-  abi: AbiAnswer;
-  volume: VolumeAnswer;
   banca: BancaAnswer;
 }
 
-export type LeadCategory = "frio" | "morno" | "quente" | "super_quente";
-
-export const LEAD_CATEGORY_LABELS: Record<LeadCategory, string> = {
-  frio: "Frio",
-  morno: "Morno",
-  quente: "Quente",
-  super_quente: "Super Quente",
-};
-
 // ---------------------------------------------------------------------------
-// Configuração de cada pergunta (label + opções + pontos)
+// Opções (value + label). Sem pontuação — lead score removido.
 // ---------------------------------------------------------------------------
 
 export interface QuizOption<T extends string> {
   value: T;
   label: string;
-  points: number;
 }
 
-export const IDADE_OPTIONS: QuizOption<IdadeAnswer>[] = [
-  { value: "18_24", label: "18 a 24 anos", points: 3 },
-  { value: "25_34", label: "25 a 34 anos", points: 5 },
-  { value: "35_44", label: "35 a 44 anos", points: 4 },
-  { value: "45_54", label: "45 a 54 anos", points: 2 },
-  { value: "55_plus", label: "55 anos ou mais", points: 1 },
-];
-
-export const TEMPO_OPTIONS: QuizOption<TempoAnswer>[] = [
-  { value: "menos_1", label: "Há menos de 1 ano", points: 1 },
-  { value: "1_2", label: "Entre 1 e 2 anos", points: 2 },
-  { value: "2_3", label: "Entre 2 e 3 anos", points: 3 },
-  { value: "3_5", label: "Entre 3 e 5 anos", points: 4 },
-  { value: "mais_5", label: "Há mais de 5 anos", points: 5 },
-];
+export interface NumberOption {
+  value: number;
+  label: string;
+}
 
 export const OBJETIVO_OPTIONS: QuizOption<ObjetivoAnswer>[] = [
-  {
-    value: "diversao",
-    label: "Apenas me divertir, não me preocupo com resultado",
-    points: 0,
-  },
-  {
-    value: "competitivo",
-    label: "Quero ser competitivo, mas não pretendo viver do jogo",
-    points: 2,
-  },
-  {
-    value: "renda_extra",
-    label: "Ter renda extra, poder contar com os ganhos no jogo",
-    points: 4,
-  },
-  {
-    value: "profissional",
-    label: "Ser profissional, ter o jogo como renda principal",
-    points: 5,
-  },
-  {
-    value: "ja_vive",
-    label: "Já vivo do poker e quero escalar os limites",
-    points: 3,
-  },
-];
-
-export const ABI_OPTIONS: QuizOption<AbiAnswer>[] = [
-  { value: "nao_sei", label: "Não sei", points: 0 },
-  { value: "lt_5", label: "Menor que $5", points: 5 },
-  { value: "5_13", label: "Entre $5 e $13", points: 5 },
-  { value: "13_23", label: "Entre $13 e $23", points: 4 },
-  { value: "23_54", label: "Entre $23 e $54", points: 3 },
-  { value: "gt_54", label: "Maior que $54", points: 1 },
-];
-
-export const VOLUME_OPTIONS: QuizOption<VolumeAnswer>[] = [
-  { value: "nao_sei", label: "Não sei", points: 0 },
-  { value: "lt_100", label: "Menos de 100 torneios", points: 2 },
-  { value: "100_200", label: "Entre 100 e 200 torneios", points: 3 },
-  { value: "200_300", label: "Entre 200 e 300 torneios", points: 4 },
-  { value: "gt_300", label: "Mais de 300 torneios", points: 5 },
+  { value: "competitivo", label: "Quero ser competitivo, mas não pretendo viver do jogo" },
+  { value: "renda_extra", label: "Ter renda extra, poder contar com os ganhos no jogo" },
+  { value: "profissional", label: "Ser profissional, ter o jogo como renda principal" },
+  { value: "ja_vive", label: "Já vivo do poker e quero escalar os limites" },
 ];
 
 export const BANCA_OPTIONS: QuizOption<BancaAnswer>[] = [
-  { value: "lt_875", label: "Menor que $875", points: 0 },
-  { value: "876_2000", label: "$876 a $2.000", points: 0 },
-  { value: "2001_3000", label: "$2.001 a $3.000", points: 0 },
-  { value: "3001_5000", label: "$3.001 a $5.000", points: 0 },
-  { value: "5001_7500", label: "$5.001 a $7.500", points: 0 },
-  { value: "7501_10000", label: "$7.501 a $10.000", points: 0 },
-  { value: "10001_15000", label: "$10.001 a $15.000", points: 0 },
-  { value: "gt_15000", label: "Maior que $15.000", points: 0 },
+  { value: "lt_875", label: "Menor que $875" },
+  { value: "875_1499", label: "Entre $875 e $1.499" },
+  { value: "1500_2799", label: "Entre $1.500 e $2.799" },
+  { value: "2800_4249", label: "Entre $2.800 e $4.249" },
+  { value: "4250_5849", label: "Entre $4.250 e $5.849" },
+  { value: "5850_7599", label: "Entre $5.850 e $7.599" },
+  { value: "7600_9499", label: "Entre $7.600 e $9.499" },
+  { value: "9500_11999", label: "Entre $9.500 e $11.999" },
+  { value: "12000_15399", label: "Entre $12.000 e $15.399" },
+  { value: "15400_20699", label: "Entre $15.400 e $20.699" },
+  { value: "20700_26999", label: "Entre $20.700 e $26.999" },
+  { value: "27000_33749", label: "Entre $27.000 e $33.749" },
+  { value: "gte_33750", label: "$33.750 ou mais" },
 ];
 
+// Horas/semana: value = total; label mostra grind (5/6 do total, só display).
+export const HOURS_OPTIONS: NumberOption[] = [
+  { value: 6, label: "6h por semana · 5h de grind" },
+  { value: 12, label: "12h por semana · 10h de grind" },
+  { value: 18, label: "18h por semana · 15h de grind" },
+  { value: 24, label: "24h por semana · 20h de grind" },
+  { value: 30, label: "30h por semana · 25h de grind" },
+  { value: 36, label: "36h por semana · 30h de grind" },
+  { value: 42, label: "42h por semana · 35h de grind" },
+  { value: 48, label: "48h por semana · 40h de grind" },
+];
+
+export const TABLES_OPTIONS: NumberOption[] = Array.from(
+  { length: 10 },
+  (_, i) => ({ value: i + 1, label: i + 1 === 1 ? "1 tela" : `${i + 1} telas` })
+);
+
+// Sites pros nicks (multi-site). `key` = chave no JSONB; `label` = nome exibido.
+export const SHARKSCOPE_SITES = [
+  { key: "pokerstars", label: "PokerStars" },
+  { key: "ggpoker", label: "GGPoker" },
+  { key: "partypoker", label: "PartyPoker" },
+  { key: "p888", label: "888Poker" },
+  { key: "wpn", label: "WPN" },
+  { key: "ipoker", label: "iPoker" },
+] as const;
+export type SharkscopeSiteKey = (typeof SHARKSCOPE_SITES)[number]["key"];
+
+// ---------------------------------------------------------------------------
+// Stake grade (banca → ABI permitido). INTERINO na Fase 1.
+// ---------------------------------------------------------------------------
+
 /**
- * Stake recomendada (grade USD) baseada na banca declarada. Não pontua,
- * só é usado pra orientar o aluno e pro admin saber em que stake o lead joga.
+ * Stake recomendada (ABI USD) baseada na banca. INTERINO (Fase 1): mapeia as
+ * 13 faixas pros valores da escala atual (1..28), monotônico. Fase 2 troca
+ * pela escala real até $54 + teto técnico por tier.
  */
 export const BANCA_GRADE: Record<BancaAnswer, number> = {
   lt_875: 1,
-  "876_2000": 2.5,
-  "2001_3000": 4,
-  "3001_5000": 7,
-  "5001_7500": 10,
-  "7501_10000": 13,
-  "10001_15000": 19,
-  gt_15000: 28,
+  "875_1499": 2.5,
+  "1500_2799": 4,
+  "2800_4249": 7,
+  "4250_5849": 10,
+  "5850_7599": 13,
+  "7600_9499": 13,
+  "9500_11999": 19,
+  "12000_15399": 19,
+  "15400_20699": 28,
+  "20700_26999": 28,
+  "27000_33749": 28,
+  gte_33750: 28,
 };
-
-// ---------------------------------------------------------------------------
-// Scoring
-// ---------------------------------------------------------------------------
-
-function pointsFor<T extends string>(
-  options: QuizOption<T>[],
-  value: T
-): number {
-  return options.find((o) => o.value === value)?.points ?? 0;
-}
-
-export function computeLeadScore(a: QuizAnswers): number {
-  return (
-    pointsFor(IDADE_OPTIONS, a.idade) +
-    pointsFor(TEMPO_OPTIONS, a.tempo) +
-    pointsFor(OBJETIVO_OPTIONS, a.objetivo) +
-    pointsFor(ABI_OPTIONS, a.abi) +
-    pointsFor(VOLUME_OPTIONS, a.volume)
-  );
-}
-
-export function computeLeadCategory(score: number): LeadCategory {
-  if (score >= 21) return "super_quente";
-  if (score >= 13) return "quente";
-  if (score >= 8) return "morno";
-  return "frio";
-}
 
 export function computeStakeGrade(a: QuizAnswers): number {
   return BANCA_GRADE[a.banca];
 }
 
 // ---------------------------------------------------------------------------
-// Mapeamento pros campos legacy do planBuilder
+// Derivações pro plano
 // ---------------------------------------------------------------------------
 
-/**
- * Q3 (objetivo) → profit_goal. O plano antigo usa profit_goal pra escolher
- * a difuldade do plano e o texto motivacional na seção PROFIT_GOAL_ADVICE.
- */
+/** Objetivo → profit_goal (4 casos). */
 export function objetivoToProfitGoal(objetivo: ObjetivoAnswer): ProfitGoal {
   switch (objetivo) {
-    case "diversao":
     case "competitivo":
       return "usd1k";
     case "renda_extra":
@@ -206,27 +150,16 @@ export function objetivoToProfitGoal(objetivo: ObjetivoAnswer): ProfitGoal {
 }
 
 /**
- * Q5 (volume mensal) → volume_target_weekly. Pega o limite superior do bucket
- * e divide por 4 (semanas/mês).
+ * Volume semanal esperado = horas × 0,5 × telas. Usa o TOTAL de horas (o
+ * "grind" do label é só contexto). Mensal = ×4 (consumidores multiplicam).
  */
-export function volumeToWeeklyTarget(volume: VolumeAnswer): number {
-  switch (volume) {
-    case "nao_sei":
-    case "lt_100":
-      return 25; // ~100/mês
-    case "100_200":
-      return 50;
-    case "200_300":
-      return 75;
-    case "gt_300":
-      return 100;
-  }
+export function weeklyVolumeTarget(weeklyHours: number, tables: number): number {
+  return Math.round(weeklyHours * 0.5 * tables);
 }
 
-/**
- * Quiz não pergunta studyTime explicitamente. Default conservador.
- * (Pode ser refinado depois — ex.: derivar de Q5+Q3.)
- */
-export function defaultStudyTime(): StudyTime {
-  return "ate15";
+/** Horas/semana → studyTime (faixa do plano). */
+export function studyTimeFromHours(weeklyHours: number): StudyTime {
+  if (weeklyHours <= 15) return "ate15";
+  if (weeklyHours <= 40) return "ate40";
+  return "mais40";
 }
