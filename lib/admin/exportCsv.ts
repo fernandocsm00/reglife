@@ -2,13 +2,8 @@
 
 import type { DiagnosticRow } from "@/lib/supabase";
 import {
-  ABI_OPTIONS,
   BANCA_OPTIONS,
-  IDADE_OPTIONS,
-  LEAD_CATEGORY_LABELS,
   OBJETIVO_OPTIONS,
-  TEMPO_OPTIONS,
-  VOLUME_OPTIONS,
   type QuizOption,
 } from "@/lib/poker/leadScoring";
 
@@ -68,15 +63,11 @@ const HEADERS: string[] = [
   "Nome",
   "Email",
   "Telefone",
-  "Categoria Lead",
-  "Lead Score",
   "Stake Grade (USD)",
   "Objetivo",
-  "Idade",
-  "Tempo Jogando",
-  "ABI",
-  "Volume/mês",
   "Banca",
+  "Horas/sem",
+  "Telas",
   "Meta de Profit",
   "Tempo de Estudo",
   "Volume Target (semana)",
@@ -86,6 +77,7 @@ const HEADERS: string[] = [
   "Early Stop",
   "Sharkscope Nick",
   "Sharkscope Network",
+  "Nicks (todos)",
   "Sharkscope Group",
   "ROI Médio (Sharkscope)",
   "Diagnostic ID",
@@ -93,20 +85,22 @@ const HEADERS: string[] = [
 
 function rowToCells(row: DiagnosticRow): string[] {
   const quiz = (row.quiz_answers ?? {}) as Record<string, string>;
+  const nicks = row.sharkscope_nicks ?? null;
+  const nicksStr = nicks
+    ? Object.entries(nicks)
+        .map(([site, nick]) => `${site}:${nick}`)
+        .join("; ")
+    : "";
   return [
     fmtDate(row.created_at),
     row.player_name ?? "",
     row.email ?? "",
     row.phone ?? "",
-    row.lead_category ? LEAD_CATEGORY_LABELS[row.lead_category as keyof typeof LEAD_CATEGORY_LABELS] ?? row.lead_category : "",
-    row.lead_score?.toString() ?? "",
     row.stake_grade?.toString() ?? "",
     labelOf(OBJETIVO_OPTIONS, quiz.objetivo),
-    labelOf(IDADE_OPTIONS, quiz.idade),
-    labelOf(TEMPO_OPTIONS, quiz.tempo),
-    labelOf(ABI_OPTIONS, quiz.abi),
-    labelOf(VOLUME_OPTIONS, quiz.volume),
     labelOf(BANCA_OPTIONS, quiz.banca),
+    row.weekly_hours?.toString() ?? "",
+    row.tables?.toString() ?? "",
     PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "",
     STUDY_LABELS[row.study_time ?? ""] ?? row.study_time ?? "",
     row.volume_target_weekly?.toString() ?? "",
@@ -116,6 +110,7 @@ function rowToCells(row: DiagnosticRow): string[] {
     row.stopped_early ? "Sim" : "Não",
     row.sharkscope_username ?? "",
     row.sharkscope_network ?? "",
+    nicksStr,
     row.sharkscope_playergroup_id ?? "",
     row.sharkscope_summary?.avgRoi != null
       ? `${row.sharkscope_summary.avgRoi.toFixed(1)}%`

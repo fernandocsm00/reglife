@@ -84,6 +84,9 @@ export interface DiagnosticRow {
   lead_category: string | null; // 'frio' | 'morno' | 'quente' | 'super_quente'
   quiz_answers: Record<string, string> | null;
   stake_grade: number | null;
+  weekly_hours: number | null;
+  tables: number | null;
+  sharkscope_nicks: Record<string, string> | null;
   /** Aponta pra linha da tentativa anterior do mesmo lead (null = 1ª vez). */
   previous_diagnostic_id: string | null;
 }
