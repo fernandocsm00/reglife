@@ -36,16 +36,6 @@ const PROFIT_LABELS: Record<string, string> = {
   usd100k: "U$100.000",
 };
 
-const LEAD_BADGE: Record<
-  string,
-  { label: string; bg: string; text: string }
-> = {
-  super_quente: { label: "Super Quente", bg: "bg-red-500/20",     text: "text-red-300" },
-  quente:       { label: "Quente",       bg: "bg-amber-500/20",   text: "text-amber-300" },
-  morno:        { label: "Morno",        bg: "bg-yellow-500/15",  text: "text-yellow-300" },
-  frio:         { label: "Frio",         bg: "bg-sky-500/15",     text: "text-sky-300" },
-};
-
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -191,7 +181,7 @@ export default function AdminPage() {
                 <tr>
                   <th className="px-4 py-3 text-left">Jogador</th>
                   <th className="px-4 py-3 text-left">Contato</th>
-                  <th className="px-4 py-3 text-center">Lead</th>
+                  <th className="px-4 py-3 text-center">Stake</th>
                   <th className="px-4 py-3 text-left">Meta / Dedicação</th>
                   <th className="px-4 py-3 text-center">Spots</th>
                   <th className="px-4 py-3 text-center">Média</th>
@@ -217,20 +207,10 @@ export default function AdminPage() {
                       {row.phone && <div className="text-xs text-neutral-600">{row.phone}</div>}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {row.lead_category && LEAD_BADGE[row.lead_category] ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LEAD_BADGE[row.lead_category].bg} ${LEAD_BADGE[row.lead_category].text}`}
-                          >
-                            {LEAD_BADGE[row.lead_category].label}
-                          </span>
-                          {row.lead_score != null && (
-                            <span className="text-[10px] text-neutral-600 tabular-nums">
-                              {row.lead_score}/25
-                              {row.stake_grade != null && ` · $${row.stake_grade}`}
-                            </span>
-                          )}
-                        </div>
+                      {row.stake_grade != null ? (
+                        <span className="text-xs font-semibold text-amber-300 tabular-nums">
+                          ${row.stake_grade}
+                        </span>
                       ) : (
                         <span className="text-xs text-neutral-700">—</span>
                       )}
