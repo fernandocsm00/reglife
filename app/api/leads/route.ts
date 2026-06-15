@@ -19,16 +19,10 @@ import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { setDiagSessionCookie } from "@/lib/session";
 import { clientIp, hit, rateLimitResponse } from "@/lib/rate-limit";
 import {
-  ABI_OPTIONS,
   BANCA_OPTIONS,
-  IDADE_OPTIONS,
-  LEAD_CATEGORY_LABELS,
   OBJETIVO_OPTIONS,
-  TEMPO_OPTIONS,
-  VOLUME_OPTIONS,
   type QuizAnswers,
   type QuizOption,
-  type LeadCategory,
 } from "@/lib/poker/leadScoring";
 
 const DEFAULT_WEBHOOK_URL =
@@ -43,20 +37,16 @@ function labelOf<T extends string>(
 }
 
 /**
- * Enriquece as respostas do quiz com labels human-readable, pro n8n
- * não precisar mapear de "25_34" pra "25 a 34 anos" lá do outro lado.
+ * Enriquece as respostas do quiz com labels human-readable pro n8n.
+ * Onboarding v2: só objetivo + banca.
  */
 function enrichQuiz(answers: QuizAnswers | null) {
   if (!answers) return null;
   return {
-    idade: { value: answers.idade, label: labelOf(IDADE_OPTIONS, answers.idade) },
-    tempo: { value: answers.tempo, label: labelOf(TEMPO_OPTIONS, answers.tempo) },
     objetivo: {
       value: answers.objetivo,
       label: labelOf(OBJETIVO_OPTIONS, answers.objetivo),
     },
-    abi: { value: answers.abi, label: labelOf(ABI_OPTIONS, answers.abi) },
-    volume: { value: answers.volume, label: labelOf(VOLUME_OPTIONS, answers.volume) },
     banca: { value: answers.banca, label: labelOf(BANCA_OPTIONS, answers.banca) },
   };
 }
@@ -70,15 +60,16 @@ interface WebhookPayload {
     email: string | null;
     phone: string | null;
   };
-  leadScore: number | null;
-  leadCategory: LeadCategory | null;
-  leadCategoryLabel: string | null;
   stakeGrade: number | null;
   quiz: ReturnType<typeof enrichQuiz>;
+  time: {
+    weeklyHours: number | null;
+    tables: number | null;
+  };
+  sharkscopeNicks: Record<string, string> | null;
   preferences: {
     notifyChannels: string[];
     whatsappPhone: string | null;
-    /** null = lead legacy sem pergunta explícita; true/false = escolheu no onboarding */
     whatsappOptIn: boolean | null;
   };
   legacy: {
@@ -160,13 +151,17 @@ export async function POST(req: NextRequest) {
     body.quizAnswers && typeof body.quizAnswers === "object"
       ? (body.quizAnswers as QuizAnswers)
       : null;
-  const leadScore =
-    typeof body.leadScore === "number" && Number.isFinite(body.leadScore)
-      ? Math.round(body.leadScore)
+  const weeklyHours =
+    typeof body.weeklyHours === "number" && Number.isFinite(body.weeklyHours)
+      ? Math.round(body.weeklyHours)
       : null;
-  const leadCategory =
-    typeof body.leadCategory === "string"
-      ? (body.leadCategory as LeadCategory)
+  const tables =
+    typeof body.tables === "number" && Number.isFinite(body.tables)
+      ? Math.round(body.tables)
+      : null;
+  const sharkscopeNicks =
+    body.sharkscopeNicks && typeof body.sharkscopeNicks === "object"
+      ? (body.sharkscopeNicks as Record<string, string>)
       : null;
   const stakeGrade =
     typeof body.stakeGrade === "number" && Number.isFinite(body.stakeGrade)
@@ -210,8 +205,11 @@ export async function POST(req: NextRequest) {
         notify_channels: notifyChannels,
         whatsapp_phone: whatsappPhone,
         quiz_answers: quizAnswers,
-        lead_score: leadScore,
-        lead_category: leadCategory,
+        lead_score: null,
+        lead_category: null,
+        weekly_hours: weeklyHours,
+        tables: tables,
+        sharkscope_nicks: sharkscopeNicks,
         stake_grade: stakeGrade,
         notify_cadence: notifyCadence,
         whatsapp_opt_in: whatsappOptIn,
@@ -257,11 +255,10 @@ export async function POST(req: NextRequest) {
       email: body.email ?? null,
       phone: body.phone ?? null,
     },
-    leadScore,
-    leadCategory,
-    leadCategoryLabel: leadCategory ? LEAD_CATEGORY_LABELS[leadCategory] : null,
     stakeGrade,
     quiz: enrichQuiz(quizAnswers),
+    time: { weeklyHours, tables },
+    sharkscopeNicks,
     preferences: {
       notifyChannels,
       whatsappPhone,

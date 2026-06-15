@@ -11,7 +11,6 @@ import {
   requireDiagSession,
   setDiagSessionCookie,
 } from "@/lib/session";
-import { LEAD_CATEGORY_LABELS } from "@/lib/poker/leadScoring";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 
 const DEFAULT_RESULTS_WEBHOOK_URL =
@@ -130,12 +129,6 @@ export async function POST(req: NextRequest) {
     body.quizAnswers && typeof body.quizAnswers === "object"
       ? body.quizAnswers
       : null;
-  const leadScore =
-    typeof body.leadScore === "number" && Number.isFinite(body.leadScore)
-      ? Math.round(body.leadScore)
-      : null;
-  const leadCategory =
-    typeof body.leadCategory === "string" ? body.leadCategory : null;
   const stakeGrade =
     typeof body.stakeGrade === "number" && Number.isFinite(body.stakeGrade)
       ? body.stakeGrade
@@ -213,8 +206,8 @@ export async function POST(req: NextRequest) {
           whatsapp_phone: whatsappPhone,
           saved_plan: savedPlan ?? null,
           quiz_answers: quizAnswers,
-          lead_score: leadScore,
-          lead_category: leadCategory,
+          lead_score: null,
+          lead_category: null,
           stake_grade: stakeGrade,
           previous_diagnostic_id: previousDiagnosticId,
         },
@@ -339,12 +332,9 @@ export async function POST(req: NextRequest) {
         spotSummaries,
       },
       leadScoring: {
-        score: leadScore,
-        category: leadCategory,
-        categoryLabel:
-          leadCategory && leadCategory in LEAD_CATEGORY_LABELS
-            ? LEAD_CATEGORY_LABELS[leadCategory as keyof typeof LEAD_CATEGORY_LABELS]
-            : null,
+        score: null,
+        category: null,
+        categoryLabel: null,
         stakeGrade,
         quiz: quizAnswers as Record<string, string> | null,
       },
