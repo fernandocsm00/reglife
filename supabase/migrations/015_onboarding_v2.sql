@@ -32,5 +32,4 @@ comment on column public.reglife_diagnostic_results.tables is
   'Telas simultâneas declaradas no onboarding (1-10). null=lead legacy.';
 
 comment on column public.reglife_diagnostic_results.sharkscope_nicks is
-  'Nicks por site preenchidos no onboarding (JSONB). ' ||
-  'Ex.: {"ggpoker":"hero123"}. null=lead legacy ou nenhum nick.';
+  'Nicks por site preenchidos no onboarding (JSONB). Ex.: {"ggpoker":"hero123"}. null=lead legacy ou nenhum nick.';
