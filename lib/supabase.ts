@@ -79,11 +79,17 @@ export interface DiagnosticRow {
   sharkscope_last_sync: string | null;
   sharkscope_summary: SharkscopeSummary | null;
   volume_target_weekly: number | null;
-  // Lead scoring (admin-only)
+  // Lead scoring legado (grava null) + quiz (admin-only)
   lead_score: number | null;
   lead_category: string | null; // 'frio' | 'morno' | 'quente' | 'super_quente'
   quiz_answers: Record<string, string> | null;
   stake_grade: number | null;
+  /** Produto pelo questionário (lib/poker/productFit.ts). null = fora do perfil/legacy. */
+  product_profile: string | null;
+  /** Bucket do nivelamento: time | comunidade | comunidade_ou_protocolo. */
+  product_test: string | null;
+  /** min(perfil, teste). */
+  product_final: string | null;
   /** Aponta pra linha da tentativa anterior do mesmo lead (null = 1ª vez). */
   previous_diagnostic_id: string | null;
 }

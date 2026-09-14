@@ -11,7 +11,14 @@ import {
   requireDiagSession,
   setDiagSessionCookie,
 } from "@/lib/session";
-import { LEAD_CATEGORY_LABELS } from "@/lib/poker/leadScoring";
+import {
+  accuracyPct,
+  finalProduct,
+  profileFromRaw,
+  testBucket,
+  type Product,
+  type TestBucket,
+} from "@/lib/poker/productFit";
 import type { SavedPlan } from "@/lib/poker/planStorage";
 
 const DEFAULT_RESULTS_WEBHOOK_URL =
@@ -48,11 +55,14 @@ interface ResultsWebhookPayload {
     spotSummaries: ResultsWebhookSpotSummary[];
   };
   leadScoring: {
-    score: number | null;
-    category: string | null;
-    categoryLabel: string | null;
     stakeGrade: number | null;
     quiz: Record<string, string> | null;
+  };
+  productFit: {
+    profile: Product | null;
+    test: TestBucket | null;
+    final: Product | null;
+    accuracyPct: number;
   };
   pdfUrl: string | null;
 }
@@ -125,17 +135,11 @@ export async function POST(req: NextRequest) {
 
   const savedPlan = body.savedPlan as SavedPlan | undefined;
 
-  // Lead scoring (admin-side, lead não vê)
+  // Quiz + stake grade (admin-side, lead não vê)
   const quizAnswers =
     body.quizAnswers && typeof body.quizAnswers === "object"
       ? body.quizAnswers
       : null;
-  const leadScore =
-    typeof body.leadScore === "number" && Number.isFinite(body.leadScore)
-      ? Math.round(body.leadScore)
-      : null;
-  const leadCategory =
-    typeof body.leadCategory === "string" ? body.leadCategory : null;
   const stakeGrade =
     typeof body.stakeGrade === "number" && Number.isFinite(body.stakeGrade)
       ? body.stakeGrade
@@ -156,6 +160,16 @@ export async function POST(req: NextRequest) {
       ? body.previousDiagnosticId.trim()
       : null;
 
+  // Product fit (admin-only): % sobre as mãos jogadas (com early stop conta
+  // só o que foi jogado). Sem mãos → teste não concluído, fica null.
+  const playedResults: { isCorrect?: boolean }[] = Array.isArray(body.results)
+    ? body.results
+    : [];
+  const testPct = accuracyPct(playedResults);
+  const productTest: TestBucket | null =
+    playedResults.length > 0 ? testBucket(testPct) : null;
+  let productProfile: Product | null = null;
+
   let diagnosticId: string;
 
   if (existingId) {
@@ -163,6 +177,14 @@ export async function POST(req: NextRequest) {
     // Cookie tem que bater com o diagnosticId do body — protege contra IDOR.
     const session = await requireDiagSession(existingId);
     if (!session.ok) return session.response;
+
+    // Perfil vem do quiz gravado pelo /api/leads (fonte de verdade da linha).
+    const { data: leadRow } = await supabase
+      .from("reglife_diagnostic_results")
+      .select("quiz_answers")
+      .eq("id", existingId)
+      .maybeSingle();
+    productProfile = profileFromRaw(leadRow?.quiz_answers ?? quizAnswers);
 
     const { data: updated, error: updErr } = await supabase
       .from("reglife_diagnostic_results")
@@ -178,6 +200,8 @@ export async function POST(req: NextRequest) {
         // Permite refresh dos canais caso lead tenha mudado preferência no quiz
         notify_channels: notifyChannels,
         whatsapp_phone: whatsappPhone,
+        product_test: productTest,
+        product_final: productTest ? finalProduct(productProfile, productTest) : null,
       })
       .eq("id", existingId)
       .select("id")
@@ -192,6 +216,8 @@ export async function POST(req: NextRequest) {
     }
     diagnosticId = updated.id;
   } else {
+    productProfile = profileFromRaw(quizAnswers);
+
     const { data, error } = await supabase
       .from("reglife_diagnostic_results")
       .insert([
@@ -213,9 +239,12 @@ export async function POST(req: NextRequest) {
           whatsapp_phone: whatsappPhone,
           saved_plan: savedPlan ?? null,
           quiz_answers: quizAnswers,
-          lead_score: leadScore,
-          lead_category: leadCategory,
+          lead_score: null,
+          lead_category: null,
           stake_grade: stakeGrade,
+          product_profile: productProfile,
+          product_test: productTest,
+          product_final: productTest ? finalProduct(productProfile, productTest) : null,
           previous_diagnostic_id: previousDiagnosticId,
         },
       ])
@@ -339,14 +368,14 @@ export async function POST(req: NextRequest) {
         spotSummaries,
       },
       leadScoring: {
-        score: leadScore,
-        category: leadCategory,
-        categoryLabel:
-          leadCategory && leadCategory in LEAD_CATEGORY_LABELS
-            ? LEAD_CATEGORY_LABELS[leadCategory as keyof typeof LEAD_CATEGORY_LABELS]
-            : null,
         stakeGrade,
         quiz: quizAnswers as Record<string, string> | null,
+      },
+      productFit: {
+        profile: productProfile,
+        test: productTest,
+        final: productTest ? finalProduct(productProfile, productTest) : null,
+        accuracyPct: testPct,
       },
       // Aluno elite e abandono não têm PDF — null nesses casos.
       pdfUrl: pdfUrl ? `${origin}/r/${diagnosticId}` : null,
