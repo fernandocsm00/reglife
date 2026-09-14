@@ -53,8 +53,6 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   const notifyChannels = useDiagnosticoStore((s) => s.notifyChannels);
   const whatsappPhone = useDiagnosticoStore((s) => s.whatsappPhone);
   const quizAnswers = useDiagnosticoStore((s) => s.quizAnswers);
-  const leadScore = useDiagnosticoStore((s) => s.leadScore);
-  const leadCategory = useDiagnosticoStore((s) => s.leadCategory);
   const stakeGrade = useDiagnosticoStore((s) => s.stakeGrade);
   const leadId = useDiagnosticoStore((s) => s.leadId);
   const previousLeadId = useDiagnosticoStore((s) => s.previousLeadId);
@@ -147,8 +145,6 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
           notifyChannels,
           whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
           quizAnswers,
-          leadScore,
-          leadCategory,
           stakeGrade,
           // Sem savedPlan: aluno não vai pro /meu-plano, vai pro /reg-life-team
           savedPlan: null,
@@ -217,11 +213,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
         volumeTargetWeekly,
         notifyChannels,
         whatsappPhone: notifyChannels.includes("whatsapp") ? whatsappPhone : null,
-        // Lead scoring (admin-side) — só relevante no INSERT, mas mandamos
+        // Quiz (admin-side) — só relevante no INSERT, mas mandamos
         // sempre pro caso do leadId não ter sido gravado por algum motivo
         quizAnswers,
-        leadScore,
-        leadCategory,
         stakeGrade,
         savedPlan: planForServer,
       }),
@@ -256,7 +250,7 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
   }, [completed, results, playerName, email, phone, studyTime, profitGoal,
       stoppedEarly, spotSummaries, failedSpotCount,
       volumeTargetWeekly, notifyChannels, whatsappPhone,
-      quizAnswers, leadScore, leadCategory, stakeGrade, leadId, previousLeadId]);
+      quizAnswers, stakeGrade, leadId, previousLeadId]);
 
   // Quando aluno clica "Quero meu plano" → 5s de loading → redirect
   useEffect(() => {
@@ -308,8 +302,6 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
               notifyChannels: data.notifyChannels,
               whatsappPhone: data.whatsappPhone,
               quizAnswers: data.quizAnswers,
-              leadScore: data.leadScore,
-              leadCategory: data.leadCategory,
               stakeGrade: data.stakeGrade,
             }),
           })

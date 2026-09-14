@@ -12,7 +12,7 @@ import {
 } from "./spotEngine";
 import type { CurrentDrill, PokerAction, SpotConfigFile } from "./types";
 import type { ProfitGoal, StudyTime } from "./planStorage";
-import type { LeadCategory, QuizAnswers } from "./leadScoring";
+import type { QuizAnswers } from "./leadScoring";
 
 export interface ResultEntry {
   spotLabel: string;
@@ -77,10 +77,8 @@ interface DiagnosticoState {
   notifyChannels: string[];
   whatsappPhone: string | null;
 
-  // Lead scoring (computed antes do teste, persistido pra usar no /api/results)
+  // Quiz (computed antes do teste, persistido pra usar no /api/results)
   quizAnswers: QuizAnswers | null;
-  leadScore: number;
-  leadCategory: LeadCategory | null;
   stakeGrade: number;
 
   /**
@@ -127,8 +125,6 @@ interface DiagnosticoState {
     notifyChannels: string[];
     whatsappPhone: string | null;
     quizAnswers: QuizAnswers;
-    leadScore: number;
-    leadCategory: LeadCategory;
     stakeGrade: number;
     studyTime: StudyTime;
     profitGoal: ProfitGoal;
@@ -168,8 +164,6 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
   notifyChannels: ["email"],
   whatsappPhone: null,
   quizAnswers: null,
-  leadScore: 0,
-  leadCategory: null,
   stakeGrade: 0,
   leadId: null,
   previousLeadId: null,
@@ -188,8 +182,6 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
     notifyChannels,
     whatsappPhone,
     quizAnswers,
-    leadScore,
-    leadCategory,
     stakeGrade,
     studyTime,
     profitGoal,
@@ -202,8 +194,6 @@ export const useDiagnosticoStore = create<DiagnosticoState>((set, get) => ({
       notifyChannels,
       whatsappPhone,
       quizAnswers,
-      leadScore,
-      leadCategory,
       stakeGrade,
       studyTime,
       profitGoal,

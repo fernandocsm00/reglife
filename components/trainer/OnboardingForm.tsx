@@ -1,33 +1,21 @@
 "use client";
 
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 import {
-  ABI_OPTIONS,
-  BANCA_OPTIONS,
-  IDADE_OPTIONS,
-  OBJETIVO_OPTIONS,
-  TEMPO_OPTIONS,
-  VOLUME_OPTIONS,
-  computeLeadCategory,
-  computeLeadScore,
+  QUIZ_QUESTIONS,
   computeStakeGrade,
-  defaultStudyTime,
   objetivoToProfitGoal,
-  volumeToWeeklyTarget,
-  type AbiAnswer,
-  type BancaAnswer,
-  type IdadeAnswer,
-  type LeadCategory,
-  type ObjetivoAnswer,
+  parseQuizAnswers,
+  studyTimeFromTorneios,
+  weeklyVolumeTarget,
   type QuizAnswers,
+  type QuizKey,
   type QuizOption,
-  type TempoAnswer,
-  type VolumeAnswer,
 } from "@/lib/poker/leadScoring";
 
 export interface OnboardingData {
@@ -37,8 +25,6 @@ export interface OnboardingData {
   notifyChannels: string[];
   whatsappPhone: string | null;
   quizAnswers: QuizAnswers;
-  leadScore: number;
-  leadCategory: LeadCategory;
   stakeGrade: number;
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
@@ -49,7 +35,7 @@ interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-const TOTAL_STEPS = 7; // 1 identidade + 6 perguntas
+const TOTAL_STEPS = 1 + QUIZ_QUESTIONS.length; // 1 identidade + 6 perguntas
 const ADVANCE_DELAY_MS = 220;
 
 function isValidEmail(email: string): boolean {
@@ -68,32 +54,17 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Quiz
-  const [idade, setIdade] = useState<IdadeAnswer | null>(null);
-  const [tempo, setTempo] = useState<TempoAnswer | null>(null);
-  const [objetivo, setObjetivo] = useState<ObjetivoAnswer | null>(null);
-  const [abi, setAbi] = useState<AbiAnswer | null>(null);
-  const [volume, setVolume] = useState<VolumeAnswer | null>(null);
-  const [banca, setBanca] = useState<BancaAnswer | null>(null);
+  // Quiz (step N ≥ 2 = QUIZ_QUESTIONS[N - 2])
+  const [answers, setAnswers] = useState<Partial<Record<QuizKey, string>>>({});
 
   const identityValid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone);
 
-  const finalSubmit = (bancaValue: BancaAnswer) => {
-    const completeQuiz: QuizAnswers = {
-      idade: idade!,
-      tempo: tempo!,
-      objetivo: objetivo!,
-      abi: abi!,
-      volume: volume!,
-      banca: bancaValue,
-    };
-
-    const leadScore = computeLeadScore(completeQuiz);
-    const leadCategory = computeLeadCategory(leadScore);
-    const stakeGrade = computeStakeGrade(completeQuiz);
+  const finalSubmit = (complete: Partial<Record<QuizKey, string>>) => {
+    const quiz = parseQuizAnswers(complete);
+    if (!quiz) return;
 
     onSubmit({
       playerName: playerName.trim(),
@@ -101,30 +72,25 @@ export function OnboardingForm({ onSubmit }: Props) {
       phone,
       notifyChannels: ["email"],
       whatsappPhone: null,
-      quizAnswers: completeQuiz,
-      leadScore,
-      leadCategory,
-      stakeGrade,
-      studyTime: defaultStudyTime(),
-      profitGoal: objetivoToProfitGoal(objetivo!),
-      volumeTargetWeekly: volumeToWeeklyTarget(volume!),
+      quizAnswers: quiz,
+      stakeGrade: computeStakeGrade(quiz),
+      studyTime: studyTimeFromTorneios(quiz.torneiosMes),
+      profitGoal: objetivoToProfitGoal(quiz.objetivo),
+      volumeTargetWeekly: weeklyVolumeTarget(quiz.torneiosMes),
     });
   };
 
-  /** Cria um onChange que seta o valor e avança pro próximo step
-      (ou chama finalSubmit no último). */
-  function autoAdvance<T extends string>(
-    setter: Dispatch<SetStateAction<T | null>>,
-    next: number | "submit"
-  ) {
-    return (value: T) => {
-      setter(value);
-      setTimeout(() => {
-        if (next === "submit") finalSubmit(value as unknown as BancaAnswer);
-        else setStep(next);
-      }, ADVANCE_DELAY_MS);
-    };
-  }
+  /** Seta a resposta e avança pro próximo step (ou envia, na última). */
+  const answerAndAdvance = (key: QuizKey) => (value: string) => {
+    const next = { ...answers, [key]: value };
+    setAnswers(next);
+    setTimeout(() => {
+      if (step === TOTAL_STEPS) finalSubmit(next);
+      else setStep(step + 1);
+    }, ADVANCE_DELAY_MS);
+  };
+
+  const question = step >= 2 ? (QUIZ_QUESTIONS[step - 2] ?? null) : null;
 
   return (
     <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
@@ -191,85 +157,16 @@ export function OnboardingForm({ onSubmit }: Props) {
             </StepWrapper>
           )}
 
-          {step === 2 && (
-            <StepWrapper key="idade">
-              <Title>Qual é a sua idade?</Title>
+          {question && (
+            <StepWrapper key={question.key}>
+              <Title>{question.title}</Title>
+              {question.sub && <Sub>{question.sub}</Sub>}
               <QuestionOptions
-                options={IDADE_OPTIONS}
-                value={idade}
-                onChange={autoAdvance(setIdade, 3)}
+                options={[...question.options] as QuizOption<string>[]}
+                value={answers[question.key] ?? null}
+                onChange={answerAndAdvance(question.key)}
               />
-              <BackBar onBack={() => setStep(1)} />
-            </StepWrapper>
-          )}
-
-          {step === 3 && (
-            <StepWrapper key="tempo">
-              <Title>Há quanto tempo você joga poker?</Title>
-              <QuestionOptions
-                options={TEMPO_OPTIONS}
-                value={tempo}
-                onChange={autoAdvance(setTempo, 4)}
-              />
-              <BackBar onBack={() => setStep(2)} />
-            </StepWrapper>
-          )}
-
-          {step === 4 && (
-            <StepWrapper key="objetivo">
-              <Title>Qual é o seu objetivo no poker?</Title>
-              <QuestionOptions
-                options={OBJETIVO_OPTIONS}
-                value={objetivo}
-                onChange={autoAdvance(setObjetivo, 5)}
-              />
-              <BackBar onBack={() => setStep(3)} />
-            </StepWrapper>
-          )}
-
-          {step === 5 && (
-            <StepWrapper key="abi">
-              <Title>Qual é o seu ABI em dólares?</Title>
-              <Sub>Buy-in médio nos últimos 6 meses (SharkScope).</Sub>
-              <QuestionOptions
-                options={ABI_OPTIONS}
-                value={abi}
-                onChange={autoAdvance(setAbi, 6)}
-              />
-              <BackBar onBack={() => setStep(4)} />
-            </StepWrapper>
-          )}
-
-          {step === 6 && (
-            <StepWrapper key="volume">
-              <Title>Quantos torneios online você joga por mês?</Title>
-              <Sub>
-                Responda com uma média aproximada dos últimos 6 meses segundo
-                o SharkScope.
-              </Sub>
-              <QuestionOptions
-                options={VOLUME_OPTIONS}
-                value={volume}
-                onChange={autoAdvance(setVolume, 7)}
-              />
-              <BackBar onBack={() => setStep(5)} />
-            </StepWrapper>
-          )}
-
-          {step === 7 && (
-            <StepWrapper key="banca">
-              <Title>Qual é a sua banca total para poker online (em dólares)?</Title>
-              <Sub>
-                Não é só a soma do que você tem nas salas, é todo o dinheiro
-                que você tem disponível para dar buy-ins, incluindo o que
-                ainda pode depositar.
-              </Sub>
-              <QuestionOptions
-                options={BANCA_OPTIONS}
-                value={banca}
-                onChange={autoAdvance(setBanca, "submit")}
-              />
-              <BackBar onBack={() => setStep(6)} />
+              <BackBar onBack={() => setStep(step - 1)} />
             </StepWrapper>
           )}
         </AnimatePresence>

@@ -1,16 +1,7 @@
 // lib/admin/exportCsv.ts — Exporta DiagnosticRow[] como CSV pra download.
 
 import type { DiagnosticRow } from "@/lib/supabase";
-import {
-  ABI_OPTIONS,
-  BANCA_OPTIONS,
-  IDADE_OPTIONS,
-  LEAD_CATEGORY_LABELS,
-  OBJETIVO_OPTIONS,
-  TEMPO_OPTIONS,
-  VOLUME_OPTIONS,
-  type QuizOption,
-} from "@/lib/poker/leadScoring";
+import { QUIZ_QUESTIONS, labelOf, type QuizKey } from "@/lib/poker/leadScoring";
 
 const STUDY_LABELS: Record<string, string> = {
   ate15: "Até 15h/sem",
@@ -25,12 +16,19 @@ const PROFIT_LABELS: Record<string, string> = {
   usd100k: "USD 100.000",
 };
 
-function labelOf<T extends string>(
-  options: QuizOption<T>[],
-  value: string | null | undefined
-): string {
-  if (!value) return "";
-  return options.find((o) => o.value === value)?.label ?? value;
+const QUIZ_HEADERS: Record<QuizKey, string> = {
+  idade: "Idade",
+  tempoJogo: "Tempo de jogo",
+  objetivo: "Objetivo",
+  abi: "ABI",
+  torneiosMes: "Torneios/mês",
+  banca: "Banca",
+};
+
+/** Label do quiz v3; lead do quiz v1 cai no valor cru. */
+function quizCell(quiz: Record<string, string>, key: QuizKey): string {
+  const raw = quiz[key];
+  return labelOf(key, raw) ?? raw ?? "";
 }
 
 function fmtDate(iso: string | null): string {
@@ -68,15 +66,8 @@ const HEADERS: string[] = [
   "Nome",
   "Email",
   "Telefone",
-  "Categoria Lead",
-  "Lead Score",
   "Stake Grade (USD)",
-  "Objetivo",
-  "Idade",
-  "Tempo Jogando",
-  "ABI",
-  "Volume/mês",
-  "Banca",
+  ...QUIZ_QUESTIONS.map((q) => QUIZ_HEADERS[q.key]),
   "Meta de Profit",
   "Tempo de Estudo",
   "Volume Target (semana)",
@@ -98,15 +89,8 @@ function rowToCells(row: DiagnosticRow): string[] {
     row.player_name ?? "",
     row.email ?? "",
     row.phone ?? "",
-    row.lead_category ? LEAD_CATEGORY_LABELS[row.lead_category as keyof typeof LEAD_CATEGORY_LABELS] ?? row.lead_category : "",
-    row.lead_score?.toString() ?? "",
     row.stake_grade?.toString() ?? "",
-    labelOf(OBJETIVO_OPTIONS, quiz.objetivo),
-    labelOf(IDADE_OPTIONS, quiz.idade),
-    labelOf(TEMPO_OPTIONS, quiz.tempo),
-    labelOf(ABI_OPTIONS, quiz.abi),
-    labelOf(VOLUME_OPTIONS, quiz.volume),
-    labelOf(BANCA_OPTIONS, quiz.banca),
+    ...QUIZ_QUESTIONS.map((q) => quizCell(quiz, q.key)),
     PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "",
     STUDY_LABELS[row.study_time ?? ""] ?? row.study_time ?? "",
     row.volume_target_weekly?.toString() ?? "",
