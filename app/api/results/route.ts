@@ -179,11 +179,14 @@ export async function POST(req: NextRequest) {
     if (!session.ok) return session.response;
 
     // Perfil vem do quiz gravado pelo /api/leads (fonte de verdade da linha).
-    const { data: leadRow } = await supabase
+    const { data: leadRow, error: leadRowErr } = await supabase
       .from("reglife_diagnostic_results")
       .select("quiz_answers")
       .eq("id", existingId)
       .maybeSingle();
+    if (leadRowErr) {
+      console.error("[api/results] leadRow select error", leadRowErr);
+    }
     productProfile = profileFromRaw(leadRow?.quiz_answers ?? quizAnswers);
 
     const { data: updated, error: updErr } = await supabase
