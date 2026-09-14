@@ -9,13 +9,13 @@
 - `lib/poker/productFit.ts` concentra as regras puras de produto. As rotas `/api/leads` e `/api/results` recalculam tudo no servidor e gravam em 3 colunas novas (migration 016). Admin e CSV só leem.
 - As mãos ficam como dados tipados em `scripts/nivelamento-light.data.ts`. Um script de sync regrava os JSONs reaproveitando o `spotConfig` das mãos existentes (mesmo cenário), e um script de check valida o resultado.
 
-**Tech Stack:** Next.js 15 (App Router) + React 19 + TypeScript + Zustand + Supabase. Testes são scripts `scripts/check-*.ts` rodados com `npx tsx`.
+**Tech Stack:** Next.js 15 (App Router) + React 19 + TypeScript + Zustand + Supabase. Testes são scripts `scripts/check-*.ts` rodados com `npx tsx` (devDependency já presente).
 
 **Spec:** `docs/superpowers/specs/2026-09-13-nivelamento-light-product-fit-design.md`
 
 ## Global Constraints
 
-- Branch: `nivelamento-light`. Rodar `git branch --show-current` antes de cada commit; nunca commitar em outro branch.
+- Branch: `nivelamento-light`, criado como cópia do **`testecom19`** (quiz v1 com lead score, telefone internacional, sem opt-in de WhatsApp). Rodar `git branch --show-current` antes de cada commit; nunca commitar em outro branch.
 - Commits terminam com a linha `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 - Textos das perguntas e opções: exatamente como no spec (seção 1), em pt-BR.
 - Ordem dos produtos: `bases < protocolo < comunidade < time`. `product_test` aceita também `comunidade_ou_protocolo`.
@@ -32,15 +32,16 @@
 | `lib/poker/leadScoring.ts` | Reescrever | Quiz v3: tipos, opções, `QUIZ_QUESTIONS`, `parseQuizAnswers`, `answerRank`, `labelOf`, derivações |
 | `lib/poker/productFit.ts` | Criar | `profileProduct`, `testBucket`, `finalProduct`, `accuracyPct`, `describeProduct`, labels |
 | `scripts/check-productFit.ts` | Criar | Testes do quiz v3 + product fit |
-| `components/trainer/OnboardingForm.tsx` | Modificar | 8 telas: identidade, 6 perguntas do doc, opt-in WhatsApp |
-| `components/trainer/DiagnosticoScreen.tsx` | Modificar | Payload do `/api/leads` sem horas/telas/nicks |
+| `components/trainer/OnboardingForm.tsx` | Modificar | 7 telas: identidade + 6 perguntas do doc (a última envia) |
+| `lib/poker/diagnosticoStore.ts` | Modificar | Remove `leadScore`/`leadCategory` |
+| `components/trainer/DiagnosticoScreen.tsx` | Modificar | Payloads sem `leadScore`/`leadCategory` |
 | `lib/admin/exportCsv.ts` | Modificar | Colunas do quiz v3 + colunas de produto |
 | `scripts/check-exportCsv.ts` | Criar | Testes do CSV |
 | `supabase/migrations/016_product_fit.sql` | Criar | Colunas `product_profile`, `product_test`, `product_final` |
 | `lib/supabase.ts` | Modificar | `DiagnosticRow` ganha as 3 colunas |
-| `app/api/leads/route.ts` | Modificar | Valida quiz, recalcula derivações e perfil, grava e envia no webhook |
+| `app/api/leads/route.ts` | Modificar | Valida quiz, recalcula derivações e perfil, grava (lead score = null) e envia no webhook |
 | `app/api/results/route.ts` | Modificar | Calcula teste e final, grava e envia no webhook |
-| `app/admin/page.tsx` | Modificar | Coluna "Produto" |
+| `app/admin/page.tsx` | Modificar | Coluna "Produto" substitui "Lead" |
 | `app/admin/resultado/[id]/page.tsx` | Modificar | Card "Produto indicado" |
 | `scripts/nivelamento-light.data.ts` | Criar | As 190 mãos do doc como dados |
 | `scripts/sync-nivelamento-light.ts` | Criar | Regrava os JSONs a partir dos dados |
@@ -48,7 +49,12 @@
 | `public/spots/*.json` (16) | Regenerar | Saída do sync |
 | `app/diagnostico/page.tsx` | Modificar | Comentário com as novas contagens |
 
-**Nota sobre `tsc` entre tarefas:** a Task 1 reescreve `leadScoring.ts` e quebra a compilação de `OnboardingForm.tsx` e `exportCsv.ts`. A Task 2 conserta. Na Task 1, validar só com `npx tsx scripts/check-productFit.ts`; a partir da Task 2, `npx tsc --noEmit` precisa passar.
+**Nota sobre `tsc` entre tarefas:**
+- A Task 1 reescreve `leadScoring.ts` e quebra a compilação de `OnboardingForm.tsx`, `diagnosticoStore.ts`, `DiagnosticoScreen.tsx`, `exportCsv.ts`, `app/api/leads/route.ts` e `app/api/results/route.ts`. Na Task 1, validar só com `npx tsx scripts/check-productFit.ts`.
+- A Task 2 conserta o cliente e o CSV (typecheck filtrado).
+- A Task 3 conserta as rotas. A partir dela, `npx tsc --noEmit` precisa passar inteiro.
+
+**Base sem scripts de check:** o `testecom19` não tem `scripts/check-*.ts`, só `scripts/test-*.mts`. Os `check-*` deste plano são novos.
 
 ---
 
@@ -207,7 +213,7 @@ check("time herda banca de comunidade", profileProduct({ ...TIME_MIN, banca: "lt
 check("ja_vive com tempo lt_1 → bases", profileProduct({ ...TIME_MIN, tempoJogo: "lt_1" }), "bases");
 
 check("profileFromRaw valid", profileFromRaw({ ...TIME_MIN }), "time");
-check("profileFromRaw quiz v2", profileFromRaw({ objetivo: "competitivo", banca: "lt_875" }), null);
+check("profileFromRaw quiz v1", profileFromRaw({ idade: "25_34", tempo: "mais_5", objetivo: "competitivo", abi: "lt_5", volume: "gt_300", banca: "876_2000" }), null);
 
 // ---- Teste e final ---------------------------------------------------------
 check("bucket 100", testBucket(100), "time");
@@ -263,7 +269,7 @@ Conteúdo completo:
 // das opções importa: `answerRank` (posição da opção) é o que as regras de
 // produto em lib/poker/productFit.ts comparam.
 //
-// Substitui o v2 (objetivo + horas/telas + banca 13 faixas + nicks).
+// Substitui o v1 (lead score 0–25 com tempo/volume e banca em 8 faixas).
 
 import type { ProfitGoal, StudyTime } from "./planStorage";
 
@@ -405,7 +411,7 @@ export function answerRank(key: QuizKey, value: string | null | undefined): numb
   return OPTIONS_BY_KEY[key].findIndex((o) => o.value === value);
 }
 
-/** Label human-readable da resposta, ou null se o valor não existe no quiz v3. */
+/** Label human-readable da resposta, ou null se o valor não existe no quiz v3 (ex.: quiz v1). */
 export function labelOf(key: QuizKey, value: string | null | undefined): string | null {
   if (!value) return null;
   return OPTIONS_BY_KEY[key].find((o) => o.value === value)?.label ?? null;
@@ -413,7 +419,7 @@ export function labelOf(key: QuizKey, value: string | null | undefined): string 
 
 /**
  * Valida um payload vindo do cliente/banco. Retorna só as 6 chaves do quiz v3,
- * ou null se faltar alguma ou algum valor for desconhecido (ex.: quiz v2).
+ * ou null se faltar alguma ou algum valor for desconhecido (ex.: quiz v1).
  */
 export function parseQuizAnswers(raw: unknown): QuizAnswers | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -447,7 +453,7 @@ export function computeStakeGrade(a: QuizAnswers): number {
   return BANCA_GRADE[a.banca];
 }
 
-/** Objetivo → profit_goal (mapa herdado do v2; diversao cai em usd1k). */
+/** Objetivo → profit_goal (mesmo mapa do v1; diversao cai em usd1k). */
 export function objetivoToProfitGoal(objetivo: ObjetivoAnswer): ProfitGoal {
   switch (objetivo) {
     case "diversao":
@@ -556,7 +562,7 @@ export function profileProduct(quiz: QuizAnswers): Product | null {
   return best;
 }
 
-/** Perfil a partir de um quiz cru (body/banco). Quiz inválido ou v2 → null. */
+/** Perfil a partir de um quiz cru (body/banco). Quiz inválido ou v1 → null. */
 export function profileFromRaw(raw: unknown): Product | null {
   const quiz = parseQuizAnswers(raw);
   return quiz ? profileProduct(quiz) : null;
@@ -625,17 +631,20 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-### Task 2: Onboarding form v3 + payload do lead + CSV das respostas
+### Task 2: Form v3 + store + payloads do cliente + CSV das respostas
 
 **Files:**
-- Modify: `components/trainer/OnboardingForm.tsx` (topo até o fim de `OnboardingForm`; subcomponentes ficam)
-- Modify: `components/trainer/DiagnosticoScreen.tsx:291-310` (body do `fetch("/api/leads")`)
+- Modify: `components/trainer/OnboardingForm.tsx` (do topo até o `}` que fecha `export function OnboardingForm`; os subcomponentes ficam)
+- Modify: `lib/poker/diagnosticoStore.ts` (campos de lead score)
+- Modify: `components/trainer/DiagnosticoScreen.tsx` (selectors, payloads de `/api/results` e `/api/leads`)
 - Modify: `lib/admin/exportCsv.ts`
 - Test: `scripts/check-exportCsv.ts`
 
 **Interfaces:**
-- Consumes (Task 1): `QUIZ_QUESTIONS`, `QuizAnswers`, `QuizKey`, `parseQuizAnswers`, `labelOf`, `computeStakeGrade`, `objetivoToProfitGoal`, `weeklyVolumeTarget`, `studyTimeFromTorneios`.
-- Produces: `OnboardingData` sem `weeklyHours`, `tables`, `sharkscopeNicks`, `sharkscopeUsername`, `sharkscopeNetwork`. `rowsToCsv(rows: DiagnosticRow[]): string` com as colunas novas do quiz (a Task 4 acrescenta as de produto).
+- Consumes (Task 1): `QUIZ_QUESTIONS`, `QuizAnswers`, `QuizKey`, `QuizOption`, `parseQuizAnswers`, `labelOf`, `computeStakeGrade`, `objetivoToProfitGoal`, `weeklyVolumeTarget`, `studyTimeFromTorneios`.
+- Produces: `OnboardingData` sem `leadScore`/`leadCategory`; store sem `leadScore`/`leadCategory`; o cliente para de enviar `leadScore`/`leadCategory` para `/api/leads` e `/api/results`. `rowsToCsv(rows: DiagnosticRow[]): string` com as colunas do quiz v3 (a Task 4 acrescenta as de produto).
+
+**Estado do `tsc` ao fim desta task:** só `app/api/leads/route.ts` e `app/api/results/route.ts` ainda têm erro, porque importam `TEMPO_OPTIONS`/`VOLUME_OPTIONS`/`LEAD_CATEGORY_LABELS`/`LeadCategory`. A Task 3 conserta.
 
 - [ ] **Step 1: Escrever o teste do CSV que falha**
 
@@ -659,7 +668,7 @@ const baseRow = {
   created_at: "2026-09-13T12:00:00Z",
   player_name: "Léo",
   email: "leo@x.com",
-  phone: "(11) 99999-9999",
+  phone: "+5511999999999",
   study_time: "ate40",
   profit_goal: "usd10k",
   stopped_early: false,
@@ -676,9 +685,9 @@ const baseRow = {
   lead_score: null,
   lead_category: null,
   stake_grade: 2.5,
-  weekly_hours: null,
-  tables: null,
-  sharkscope_nicks: null,
+  product_profile: null,
+  product_test: null,
+  product_final: null,
   previous_diagnostic_id: null,
   quiz_answers: {
     idade: "25_34",
@@ -697,18 +706,23 @@ const cols = header.split(",");
 for (const h of ["Idade", "Tempo de jogo", "Objetivo", "ABI", "Torneios/mês", "Banca"]) {
   expect(`header has ${h}`, cols.includes(h), header);
 }
-for (const h of ["Horas/sem", "Telas", "Nicks (todos)"]) {
+for (const h of ["Categoria Lead", "Lead Score", "Tempo Jogando", "Volume/mês"]) {
   expect(`header dropped ${h}`, !cols.includes(h), header);
 }
 expect("row has idade label", line.includes("25 a 34 anos"), line);
+expect("row has tempo label", line.includes("Há mais de 5 anos"), line);
 expect("row has objetivo label", line.includes("Ser profissional, ter o jogo como renda principal"), line);
 expect("row has banca label", line.includes("$875 a $2.000"), line);
 expect("row has torneios label", line.includes("Entre 100 e 200 torneios"), line);
 
-// Lead v2 (valores antigos) não quebra: cai no valor cru.
-const legacy = { ...baseRow, quiz_answers: { objetivo: "competitivo", banca: "875_1499" } } as DiagnosticRow;
+// Lead do quiz v1 (valores antigos) não quebra: cai no valor cru.
+const legacy = {
+  ...baseRow,
+  quiz_answers: { idade: "55_plus", tempo: "mais_5", objetivo: "competitivo", volume: "gt_300", banca: "876_2000" },
+} as unknown as DiagnosticRow;
 const legacyLine = rowsToCsv([legacy]).split("\n")[1];
 expect("legacy objetivo raw", legacyLine.includes("competitivo"), legacyLine);
+expect("legacy idade raw", legacyLine.includes("55_plus"), legacyLine);
 
 if (failed > 0) {
   console.error(`\n${failed} check(s) failed`);
@@ -720,18 +734,17 @@ console.log("All exportCsv checks passed");
 - [ ] **Step 2: Rodar e confirmar a falha**
 
 Run: `npx tsx scripts/check-exportCsv.ts`
-Expected: FAIL (import de `SHARKSCOPE_SITES` quebrado em `exportCsv.ts`, ou headers ausentes).
+Expected: FAIL. Ou o import de `LEAD_CATEGORY_LABELS`/`TEMPO_OPTIONS` quebra em `exportCsv.ts`, ou os headers novos estão ausentes.
 
 - [ ] **Step 3: Atualizar `lib/admin/exportCsv.ts`**
 
-Trocar o bloco de imports e `SITE_LABELS`:
+Substituir o bloco de imports de `@/lib/poker/leadScoring` por:
 
 ```ts
-import type { DiagnosticRow } from "@/lib/supabase";
 import { QUIZ_QUESTIONS, labelOf, type QuizKey } from "@/lib/poker/leadScoring";
 ```
 
-Remover a função local `labelOf` (e o `QuizOption` import) e o `SITE_LABELS`. Acrescentar, depois de `PROFIT_LABELS`:
+Remover a função local `labelOf`. Depois de `PROFIT_LABELS`, acrescentar:
 
 ```ts
 const QUIZ_HEADERS: Record<QuizKey, string> = {
@@ -743,7 +756,7 @@ const QUIZ_HEADERS: Record<QuizKey, string> = {
   banca: "Banca",
 };
 
-/** Label do quiz v3; lead antigo (v2) cai no valor cru. */
+/** Label do quiz v3; lead do quiz v1 cai no valor cru. */
 function quizCell(quiz: Record<string, string>, key: QuizKey): string {
   const raw = quiz[key];
   return labelOf(key, raw) ?? raw ?? "";
@@ -805,6 +818,8 @@ function rowToCells(row: DiagnosticRow): string[] {
 }
 ```
 
+(Para quem lê o legado: o quiz v1 grava `tempo`/`volume`. As colunas "Tempo de jogo" e "Torneios/mês" ficam vazias para essas linhas, e isso é aceito.)
+
 - [ ] **Step 4: Rodar o teste do CSV**
 
 Run: `npx tsx scripts/check-exportCsv.ts`
@@ -812,13 +827,15 @@ Expected: `All exportCsv checks passed`
 
 - [ ] **Step 5: Reescrever o topo de `OnboardingForm.tsx`**
 
-Substituir tudo desde a primeira linha até o `}` que fecha `export function OnboardingForm` (antes do comentário `// Subcomponentes`). `StepWrapper`, `Title`, `Sub`, `ProgressBar`, `inputClass`, `Field`, `QuestionOptions`, `NextButton` e `BackBar` ficam como estão.
+Substituir tudo desde a primeira linha até o `}` que fecha `export function OnboardingForm` (logo antes do comentário `// Subcomponentes`). `StepWrapper`, `Title`, `Sub`, `ProgressBar`, `inputClass`, `phoneInputClass`, `Field`, `QuestionOptions`, `NextButton` e `BackBar` ficam como estão.
 
 ```tsx
 "use client";
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { Logo } from "@/components/Logo";
 import type { ProfitGoal, StudyTime } from "@/lib/poker/planStorage";
 import {
@@ -830,6 +847,7 @@ import {
   weeklyVolumeTarget,
   type QuizAnswers,
   type QuizKey,
+  type QuizOption,
 } from "@/lib/poker/leadScoring";
 
 export interface OnboardingData {
@@ -843,37 +861,21 @@ export interface OnboardingData {
   studyTime: StudyTime;
   profitGoal: ProfitGoal;
   volumeTargetWeekly: number;
-  notifyCadence: "leve" | "ritmada" | "intensa";
-  /** Consentimento explícito de contato via WhatsApp. */
-  whatsappOptIn: boolean;
 }
 
 interface Props {
   onSubmit: (data: OnboardingData) => void;
 }
 
-// identidade + 6 perguntas do quiz + whatsapp
-const FIRST_QUESTION_STEP = 2;
-const WHATSAPP_STEP = FIRST_QUESTION_STEP + QUIZ_QUESTIONS.length;
-const TOTAL_STEPS = WHATSAPP_STEP;
+const TOTAL_STEPS = 1 + QUIZ_QUESTIONS.length; // 1 identidade + 6 perguntas
 const ADVANCE_DELAY_MS = 220;
-
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 11);
-  if (digits.length === 0) return "";
-  if (digits.length <= 2) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10)
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isValidPhone(phone: string): boolean {
-  return phone.replace(/\D/g, "").length >= 10;
+  return phone.length > 0 && isValidPhoneNumber(phone);
 }
 
 export function OnboardingForm({ onSubmit }: Props) {
@@ -884,21 +886,17 @@ export function OnboardingForm({ onSubmit }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Quiz
+  // Quiz (step N ≥ 2 = QUIZ_QUESTIONS[N - 2])
   const [answers, setAnswers] = useState<Partial<Record<QuizKey, string>>>({});
-  // notifyCadence deixou de ser perguntada — fica fixa em "ritmada".
-  const notifyCadence = "ritmada" as const;
-  const [whatsappOptIn, setWhatsappOptIn] = useState<boolean | null>(null);
 
   const identityValid =
     playerName.trim().length >= 2 &&
     isValidEmail(email) &&
     isValidPhone(phone);
 
-  const finalSubmit = () => {
-    const quiz = parseQuizAnswers(answers);
+  const finalSubmit = (complete: Partial<Record<QuizKey, string>>) => {
+    const quiz = parseQuizAnswers(complete);
     if (!quiz) return;
-    if (whatsappOptIn === null) return; // exige consentimento explícito
 
     onSubmit({
       playerName: playerName.trim(),
@@ -911,22 +909,20 @@ export function OnboardingForm({ onSubmit }: Props) {
       studyTime: studyTimeFromTorneios(quiz.torneiosMes),
       profitGoal: objetivoToProfitGoal(quiz.objetivo),
       volumeTargetWeekly: weeklyVolumeTarget(quiz.torneiosMes),
-      notifyCadence,
-      whatsappOptIn,
     });
   };
 
-  /** Seta a resposta e avança pro próximo step. */
-  const answerAndAdvance = (key: QuizKey, nextStep: number) => (value: string) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
-    setTimeout(() => setStep(nextStep), ADVANCE_DELAY_MS);
+  /** Seta a resposta e avança pro próximo step (ou envia, na última). */
+  const answerAndAdvance = (key: QuizKey) => (value: string) => {
+    const next = { ...answers, [key]: value };
+    setAnswers(next);
+    setTimeout(() => {
+      if (step === TOTAL_STEPS) finalSubmit(next);
+      else setStep(step + 1);
+    }, ADVANCE_DELAY_MS);
   };
 
-  const questionIdx = step - FIRST_QUESTION_STEP;
-  const question =
-    questionIdx >= 0 && questionIdx < QUIZ_QUESTIONS.length
-      ? QUIZ_QUESTIONS[questionIdx]
-      : null;
+  const question = step >= 2 ? (QUIZ_QUESTIONS[step - 2] ?? null) : null;
 
   return (
     <div className="bg-starfield glow-amber-bottom relative min-h-screen overflow-hidden text-neutral-100">
@@ -969,13 +965,15 @@ export function OnboardingForm({ onSubmit }: Props) {
                   />
                 </Field>
                 <Field label="WhatsApp">
-                  <input
-                    type="tel"
+                  <PhoneInput
+                    international
+                    defaultCountry="BR"
+                    countryCallingCodeEditable={false}
                     value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    onChange={(value) => setPhone(value ?? "")}
                     placeholder="(11) 99999-9999"
-                    className={inputClass}
-                    inputMode="tel"
+                    className={phoneInputClass}
+                    numberInputProps={{ className: inputClass }}
                     autoComplete="tel"
                   />
                 </Field>
@@ -984,7 +982,7 @@ export function OnboardingForm({ onSubmit }: Props) {
               <div className="mt-10 flex justify-end">
                 <NextButton
                   disabled={!identityValid}
-                  onClick={() => setStep(FIRST_QUESTION_STEP)}
+                  onClick={() => setStep(2)}
                   label="Continuar →"
                 />
               </div>
@@ -996,72 +994,11 @@ export function OnboardingForm({ onSubmit }: Props) {
               <Title>{question.title}</Title>
               {question.sub && <Sub>{question.sub}</Sub>}
               <QuestionOptions
-                options={[...question.options]}
+                options={[...question.options] as QuizOption<string>[]}
                 value={answers[question.key] ?? null}
-                onChange={answerAndAdvance(question.key, step + 1)}
+                onChange={answerAndAdvance(question.key)}
               />
               <BackBar onBack={() => setStep(step - 1)} />
-            </StepWrapper>
-          )}
-
-          {step === WHATSAPP_STEP && (
-            <StepWrapper key="whatsapp-opt-in">
-              <Title>
-                Podemos te contatar pelo WhatsApp pra acompanhar sua execução
-                na Comunidade?
-              </Title>
-              <Sub>
-                A gente usa só pra te lembrar de tarefas, mandar review e
-                avisar quando algo importante acontecer. Você pode mudar depois.
-              </Sub>
-
-              <div className="mt-8 space-y-2">
-                {[
-                  {
-                    value: true,
-                    label: "Aceito",
-                    sub: "Quero receber lembretes e acompanhamento no WhatsApp.",
-                  },
-                  {
-                    value: false,
-                    label: "Não aceito",
-                    sub: "Prefiro não receber mensagens no WhatsApp.",
-                  },
-                ].map((o) => {
-                  const selected = whatsappOptIn === o.value;
-                  return (
-                    <button
-                      type="button"
-                      key={String(o.value)}
-                      onClick={() => setWhatsappOptIn(o.value)}
-                      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
-                        selected
-                          ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
-                          : "border-neutral-800 bg-neutral-900/50 text-neutral-200 hover:border-neutral-700 hover:bg-neutral-900"
-                      }`}
-                    >
-                      <span>
-                        <span className="block font-semibold">{o.label}</span>
-                        <span className="block text-xs text-neutral-400">{o.sub}</span>
-                      </span>
-                      <span
-                        className={`h-4 w-4 shrink-0 rounded-full border-2 ${
-                          selected ? "border-amber-400 bg-amber-400" : "border-neutral-700"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-8 flex justify-end">
-                <NextButton
-                  disabled={whatsappOptIn === null}
-                  onClick={() => finalSubmit()}
-                  label="Concluir →"
-                />
-              </div>
-              <BackBar onBack={() => setStep(WHATSAPP_STEP - 1)} />
             </StepWrapper>
           )}
         </AnimatePresence>
@@ -1071,43 +1008,71 @@ export function OnboardingForm({ onSubmit }: Props) {
 }
 ```
 
-(`useMemo` continua importado porque `QuestionOptions` usa; `Dispatch`/`SetStateAction` saem.)
+(`useMemo` continua importado porque `QuestionOptions` usa. `Dispatch`/`SetStateAction` e os imports de `*_OPTIONS`/`computeLead*` saem.)
 
-- [ ] **Step 6: Ajustar o payload do `/api/leads` em `DiagnosticoScreen.tsx`**
+- [ ] **Step 6: Remover lead score do store (`lib/poker/diagnosticoStore.ts`)**
 
-No `body: JSON.stringify({...})` do `fetch("/api/leads")`, remover estas 5 linhas:
+6a. Import:
 
 ```ts
-              sharkscopeUsername: data.sharkscopeUsername,
-              sharkscopeNetwork: data.sharkscopeNetwork,
-              weeklyHours: data.weeklyHours,
-              tables: data.tables,
-              sharkscopeNicks: data.sharkscopeNicks,
+import type { LeadCategory, QuizAnswers } from "./leadScoring";
+```
+→
+```ts
+import type { QuizAnswers } from "./leadScoring";
 ```
 
-- [ ] **Step 7: Typecheck e lint**
+6b. Na interface `DiagnosticoState`, trocar:
 
-Run: `npx tsc --noEmit`
+```ts
+  // Lead scoring (computed antes do teste, persistido pra usar no /api/results)
+  quizAnswers: QuizAnswers | null;
+  leadScore: number;
+  leadCategory: LeadCategory | null;
+  stakeGrade: number;
+```
+por:
+```ts
+  // Quiz (computed antes do teste, persistido pra usar no /api/results)
+  quizAnswers: QuizAnswers | null;
+  stakeGrade: number;
+```
+
+6c. No tipo do parâmetro de `setOnboarding`, remover as linhas `leadScore: number;` e `leadCategory: LeadCategory;`.
+
+6d. No estado inicial, remover `leadScore: 0,` e `leadCategory: null,`.
+
+6e. Em `setOnboarding: ({ ... }) => set({ ... })`, remover `leadScore,` e `leadCategory,` da desestruturação e do `set`.
+
+- [ ] **Step 7: Remover lead score do `DiagnosticoScreen.tsx`**
+
+7a. Remover os dois selectors:
+
+```ts
+  const leadScore = useDiagnosticoStore((s) => s.leadScore);
+  const leadCategory = useDiagnosticoStore((s) => s.leadCategory);
+```
+
+7b. No `body` do POST de elite (`allPassed`) e no do POST normal de `/api/results`, remover as linhas `leadScore,` e `leadCategory,`.
+
+7c. No array de dependências do `useEffect` de conclusão, trocar `quizAnswers, leadScore, leadCategory, stakeGrade, leadId, previousLeadId]);` por `quizAnswers, stakeGrade, leadId, previousLeadId]);`.
+
+7d. No `body` do `fetch("/api/leads")`, remover `leadScore: data.leadScore,` e `leadCategory: data.leadCategory,`.
+
+- [ ] **Step 8: Typecheck parcial e lint**
+
+Run: `npx tsc --noEmit 2>&1 | grep "error TS" | grep -v "app/api/leads/route.ts\|app/api/results/route.ts"`
+Expected: saída vazia (os únicos erros restantes são das duas rotas).
+
+Run: `npx eslint components/trainer/OnboardingForm.tsx components/trainer/DiagnosticoScreen.tsx lib/poker/diagnosticoStore.ts lib/admin/exportCsv.ts lib/poker/leadScoring.ts lib/poker/productFit.ts`
 Expected: sem erros.
-
-Run: `npm run lint`
-Expected: sem erros novos nos arquivos tocados.
-
-- [ ] **Step 8: Conferir o form no navegador**
-
-Iniciar o dev server (`npm run dev`, via preview do app) e abrir `/diagnostico`. Conferir:
-- 8 passos ("Passo N de 8");
-- as 6 perguntas na ordem Idade → Tempo de jogo → Objetivo → ABI → Torneios/mês → Banca, com os textos do spec e o texto "Lembre-se…" na Banca;
-- cada opção avança sozinha;
-- "← Voltar" volta um passo e mantém a resposta marcada;
-- "Concluir" leva à tela de introdução do teste.
 
 - [ ] **Step 9: Commit**
 
 ```bash
 git branch --show-current
-git add components/trainer/OnboardingForm.tsx components/trainer/DiagnosticoScreen.tsx lib/admin/exportCsv.ts scripts/check-exportCsv.ts
-git commit -m "feat(onboarding): form v3 com as 6 perguntas do lead scoring + CSV
+git add components/trainer/OnboardingForm.tsx components/trainer/DiagnosticoScreen.tsx lib/poker/diagnosticoStore.ts lib/admin/exportCsv.ts scripts/check-exportCsv.ts
+git commit -m "feat(onboarding): form v3 com as 6 perguntas do doc, sem lead score + CSV
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -1124,9 +1089,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes (Task 1): `parseQuizAnswers`, `QUIZ_QUESTIONS`, `labelOf`, `computeStakeGrade`, `objetivoToProfitGoal`, `studyTimeFromTorneios`, `weeklyVolumeTarget`, `QuizAnswers`; `profileProduct`, `profileFromRaw`, `testBucket`, `finalProduct`, `accuracyPct`, `Product`, `TestBucket`.
-- Produces: colunas `product_profile`, `product_test`, `product_final` em `reglife_diagnostic_results` e em `DiagnosticRow` (`string | null` cada). Webhook `lead.quiz_submitted` ganha `productProfile`; `diagnostic.completed` ganha `productFit: { profile, test, final, accuracyPct }`.
+- Produces:
+  - Colunas `product_profile`, `product_test`, `product_final` em `reglife_diagnostic_results` e em `DiagnosticRow` (`string | null` cada). `lead_score`/`lead_category` passam a gravar `null`.
+  - Webhook `lead.quiz_submitted`: sai `leadScore`/`leadCategory`/`leadCategoryLabel`; entra `productProfile`; `quiz` passa a ter as 6 chaves v3.
+  - Webhook `diagnostic.completed`: `leadScoring` fica só com `{ stakeGrade, quiz }`; entra `productFit: { profile, test, final, accuracyPct }`.
 
 A lógica já foi testada na Task 1. Aqui a verificação é typecheck + chamada real das rotas (Step 6).
+
+Numeração: o `testecom19` só tem migrations até `011`. A nova é **016** de propósito, para não colidir com a 012–015 do `onboarding-ev`, que podem já estar aplicadas em prod.
 
 - [ ] **Step 1: Criar a migration**
 
@@ -1145,6 +1115,9 @@ A lógica já foi testada na Task 1. Aqui a verificação é typecheck + chamada
 --                     (null = teste não concluído)
 --   product_final   → min(perfil, teste): bases | protocolo | comunidade | time
 --
+-- Substitui o lead score (lead_score/lead_category continuam existindo, mas
+-- o código passa a gravar null).
+-- Numerada 016 (e não 012) pra não colidir com 012–015 do branch onboarding-ev.
 -- Sem CHECK constraint: valores validados no código (lib/poker/productFit.ts).
 -- Sem esta migration aplicada, /api/leads e /api/results dão 500
 -- ("column does not exist").
@@ -1166,7 +1139,7 @@ comment on column public.reglife_diagnostic_results.product_final is
 
 - [ ] **Step 2: Atualizar `DiagnosticRow` em `lib/supabase.ts`**
 
-Logo depois de `sharkscope_nicks: Record<string, string> | null;`, acrescentar:
+Logo depois de `stake_grade: number | null;`, acrescentar:
 
 ```ts
   /** Produto pelo questionário (lib/poker/productFit.ts). null = fora do perfil/legacy. */
@@ -1177,9 +1150,11 @@ Logo depois de `sharkscope_nicks: Record<string, string> | null;`, acrescentar:
   product_final: string | null;
 ```
 
+E trocar o comentário `// Lead scoring (admin-only)` por `// Lead scoring legado (grava null) + quiz (admin-only)`.
+
 - [ ] **Step 3: Atualizar `app/api/leads/route.ts`**
 
-3a. Imports: substituir o bloco `import { BANCA_OPTIONS, OBJETIVO_OPTIONS, type QuizAnswers, type QuizOption } from "@/lib/poker/leadScoring";` por:
+3a. Substituir o bloco `import { ABI_OPTIONS, ..., type LeadCategory } from "@/lib/poker/leadScoring";` por:
 
 ```ts
 import {
@@ -1195,10 +1170,13 @@ import {
 import { profileProduct, type Product } from "@/lib/poker/productFit";
 ```
 
-3b. Substituir a função local `labelOf` e `enrichQuiz` (e o doc-comment dela) por:
+3b. Substituir a função local `labelOf` e a `enrichQuiz` (com o doc-comment dela) por:
 
 ```ts
-/** Enriquece as respostas do quiz v3 com labels human-readable pro n8n. */
+/**
+ * Enriquece as respostas do quiz v3 com labels human-readable, pro n8n
+ * não precisar mapear de "25_34" pra "25 a 34 anos" lá do outro lado.
+ */
 function enrichQuiz(answers: QuizAnswers) {
   return Object.fromEntries(
     QUIZ_QUESTIONS.map((q) => [
@@ -1209,14 +1187,21 @@ function enrichQuiz(answers: QuizAnswers) {
 }
 ```
 
-3c. Em `interface WebhookPayload`, remover `time: {...}` e `sharkscopeNicks`, e trocar `stakeGrade: number | null;` por:
+3c. Em `interface WebhookPayload`, trocar:
 
+```ts
+  leadScore: number | null;
+  leadCategory: LeadCategory | null;
+  leadCategoryLabel: string | null;
+  stakeGrade: number | null;
+```
+por:
 ```ts
   stakeGrade: number;
   productProfile: Product | null;
 ```
 
-3d. No `POST`, remover os blocos `const volumeTarget = ...`, `const quizAnswers = ...`, `const weeklyHours = ...`, `const tables = ...`, `const sharkscopeNicks = ...` e `const stakeGrade = ...`. Logo depois de `const body = await req.json();`, inserir:
+3d. No `POST`, remover os blocos `const volumeTarget = ...`, `const quizAnswers = ...`, `const leadScore = ...`, `const leadCategory = ...` e `const stakeGrade = ...`. Logo depois de `const body = await req.json();`, inserir:
 
 ```ts
   // Quiz v3: validado e todas as derivações recalculadas no servidor —
@@ -1232,12 +1217,9 @@ function enrichQuiz(answers: QuizAnswers) {
   const productProfile = profileProduct(quizAnswers);
 ```
 
-3e. No `.insert([{...}])`, trocar/remover campos para ficar:
+3e. No objeto do `.insert([{...}])`, trocar as linhas de `study_time` até `stake_grade` por:
 
 ```ts
-        player_name: body.playerName ?? "Jogador",
-        email: body.email ?? null,
-        phone: body.phone ?? null,
         study_time: studyTime,
         profit_goal: profitGoal,
         volume_target_weekly: volumeTarget,
@@ -1248,21 +1230,9 @@ function enrichQuiz(answers: QuizAnswers) {
         lead_category: null,
         stake_grade: stakeGrade,
         product_profile: productProfile,
-        notify_cadence: notifyCadence,
-        whatsapp_opt_in: whatsappOptIn,
-        sharkscope_username: sharkscopeUsername,
-        sharkscope_network: sharkscopeNetwork,
-        // Test ainda não rodou — fica vazio
-        stopped_early: false,
-        spots_played: 0,
-        spots_failed: 0,
-        spot_summaries: [],
-        results: [],
 ```
 
-(As linhas `weekly_hours`, `tables` e `sharkscope_nicks` saem.)
-
-3f. No `const payload: WebhookPayload = {...}`, trocar o trecho de `stakeGrade` até `legacy` por:
+3f. No `const payload: WebhookPayload = {...}`, trocar o trecho de `leadScore,` até o fim de `legacy: {...},` por:
 
 ```ts
     stakeGrade,
@@ -1271,7 +1241,6 @@ function enrichQuiz(answers: QuizAnswers) {
     preferences: {
       notifyChannels,
       whatsappPhone,
-      whatsappOptIn,
     },
     legacy: {
       profitGoal,
@@ -1280,11 +1249,11 @@ function enrichQuiz(answers: QuizAnswers) {
     },
 ```
 
-3g. Atualizar o doc-comment do topo: trocar "dados de identidade, canais e quiz (lead score)" por "dados de identidade, canais, quiz v3 e produto pelo perfil (product_profile)".
+3g. No doc-comment do topo, trocar "dados de identidade, canais e quiz (lead score)" por "dados de identidade, canais, quiz v3 e produto pelo perfil (product_profile)".
 
 - [ ] **Step 4: Atualizar `app/api/results/route.ts`**
 
-4a. Imports: acrescentar
+4a. Trocar `import { LEAD_CATEGORY_LABELS } from "@/lib/poker/leadScoring";` por:
 
 ```ts
 import {
@@ -1297,9 +1266,13 @@ import {
 } from "@/lib/poker/productFit";
 ```
 
-4b. Em `interface ResultsWebhookPayload`, depois de `leadScoring: {...};`, acrescentar:
+4b. Em `interface ResultsWebhookPayload`, trocar o bloco `leadScoring: {...};` por:
 
 ```ts
+  leadScoring: {
+    stakeGrade: number | null;
+    quiz: Record<string, string> | null;
+  };
   productFit: {
     profile: Product | null;
     test: TestBucket | null;
@@ -1308,7 +1281,9 @@ import {
   };
 ```
 
-4c. Logo depois do bloco `const previousDiagnosticId = ...;` e antes de `let diagnosticId: string;`, inserir:
+4c. Trocar o comentário `// Lead scoring (admin-side, lead não vê)` por `// Quiz + stake grade (admin-side, lead não vê)` e remover os blocos `const leadScore = ...` e `const leadCategory = ...`.
+
+4d. Logo depois do bloco `const previousDiagnosticId = ...;` e antes de `let diagnosticId: string;`, inserir:
 
 ```ts
   // Product fit (admin-only): % sobre as mãos jogadas (com early stop conta
@@ -1322,7 +1297,7 @@ import {
   let productProfile: Product | null = null;
 ```
 
-4d. No ramo `if (existingId)`, logo depois do `if (!session.ok) return session.response;`, inserir:
+4e. No ramo `if (existingId)`, logo depois de `if (!session.ok) return session.response;`, inserir:
 
 ```ts
     // Perfil vem do quiz gravado pelo /api/leads (fonte de verdade da linha).
@@ -1341,23 +1316,36 @@ E no `.update({...})` desse ramo, depois de `whatsapp_phone: whatsappPhone,`, ac
         product_final: productTest ? finalProduct(productProfile, productTest) : null,
 ```
 
-4e. No ramo `else` (INSERT legado), antes do `const { data, error } = await supabase`, inserir:
+4f. No ramo `else` (INSERT legado), antes de `const { data, error } = await supabase`, inserir:
 
 ```ts
     productProfile = profileFromRaw(quizAnswers);
 ```
 
-E no objeto do `.insert([{...}])`, depois de `stake_grade: stakeGrade,`, acrescentar:
+E no objeto do `.insert([{...}])`, trocar:
 
 ```ts
+          lead_score: leadScore,
+          lead_category: leadCategory,
+          stake_grade: stakeGrade,
+```
+por:
+```ts
+          lead_score: null,
+          lead_category: null,
+          stake_grade: stakeGrade,
           product_profile: productProfile,
           product_test: productTest,
           product_final: productTest ? finalProduct(productProfile, productTest) : null,
 ```
 
-4f. No `const webhookPayload: ResultsWebhookPayload = {...}`, depois do bloco `leadScoring: {...},`, acrescentar:
+4g. No `const webhookPayload: ResultsWebhookPayload = {...}`, trocar o bloco `leadScoring: {...},` por:
 
 ```ts
+      leadScoring: {
+        stakeGrade,
+        quiz: quizAnswers as Record<string, string> | null,
+      },
       productFit: {
         profile: productProfile,
         test: productTest,
@@ -1369,7 +1357,7 @@ E no objeto do `.insert([{...}])`, depois de `stake_grade: stakeGrade,`, acresce
 - [ ] **Step 5: Typecheck, lint e testes puros**
 
 Run: `npx tsc --noEmit`
-Expected: sem erros.
+Expected: sem erros (agora o projeto todo compila).
 
 Run: `npm run lint`
 Expected: sem erros novos.
@@ -1377,23 +1365,30 @@ Expected: sem erros novos.
 Run: `npx tsx scripts/check-productFit.ts && npx tsx scripts/check-exportCsv.ts`
 Expected: os dois passam.
 
-- [ ] **Step 6: Verificação das rotas contra o banco de dev**
+- [ ] **Step 6: Verificação no navegador contra o banco de dev**
 
 Pré-requisito: a migration 016 aplicada no Supabase que o `.env.local` aponta. Se não estiver, **parar e pedir ao usuário** para rodar `supabase/migrations/016_product_fit.sql` no SQL Editor desse projeto. Não aplicar por conta própria.
 
-Com o dev server rodando:
-- Completar o quiz em `/diagnostico` com perfil Time: tempo "Há mais de 5 anos", objetivo "Já vivo…", ABI "Entre $23 e $54", torneios "Mais de 300", banca "$875 a $2.000".
-- No painel de rede, `POST /api/leads` → 201.
-- Jogar até o fim (ou até o early stop). `POST /api/results` → 201.
-- Confirmar no `/admin` (após a Task 4) ou via `GET /api/results`, filtrando a linha pelo email usado: `product_profile = "time"`, e `product_test`/`product_final` coerentes com o % de acerto das mãos jogadas.
-- `POST /api/leads` com `quizAnswers: { objetivo: "competitivo" }` (quiz v2) → 400 `quizAnswers inválido`.
+Com o dev server rodando (preview do app, `npm run dev`):
+1. Abrir `/diagnostico`. Conferir:
+   - 7 passos ("Passo N de 7");
+   - as 6 perguntas na ordem Idade → Tempo de jogo → Objetivo → ABI → Torneios/mês → Banca, com os textos do spec e o texto "Lembre-se…" na Banca;
+   - cada opção avança sozinha e "← Voltar" mantém a resposta marcada;
+   - a última (Banca) envia e leva à introdução do teste.
+2. Responder com perfil Time: tempo "Há mais de 5 anos", objetivo "Já vivo…", ABI "Entre $23 e $54", torneios "Mais de 300", banca "$875 a $2.000". No painel de rede, `POST /api/leads` → 201.
+3. Jogar até o fim (ou até o early stop). `POST /api/results` → 201.
+4. Via `GET /api/results`, filtrando a linha pelo email usado, confirmar:
+   - `product_profile = "time"`;
+   - `lead_score = null`;
+   - `product_test`/`product_final` coerentes com o % de acerto das mãos jogadas.
+5. `POST /api/leads` com `quizAnswers: { objetivo: "competitivo" }` (quiz v1) → 400 `quizAnswers inválido`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git branch --show-current
 git add supabase/migrations/016_product_fit.sql lib/supabase.ts app/api/leads/route.ts app/api/results/route.ts
-git commit -m "feat(product-fit): migration 016 + perfil/teste/final em leads e results
+git commit -m "feat(product-fit): migration 016 + perfil/teste/final em leads e results (sai lead score)
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -1403,13 +1398,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 4: Produto no admin (lista, detalhe) e no CSV
 
 **Files:**
-- Modify: `app/admin/page.tsx` (thead ~linha 184, tbody ~linha 209, `colSpan`)
-- Modify: `app/admin/resultado/[id]/page.tsx` (imports + card depois do "Player card")
+- Modify: `app/admin/page.tsx` (const `LEAD_BADGE`, thead "Lead", td do lead)
+- Modify: `app/admin/resultado/[id]/page.tsx` (imports + card antes de `{/* Spot summary grid */}`)
 - Modify: `lib/admin/exportCsv.ts`
 - Test: `scripts/check-exportCsv.ts`
 
 **Interfaces:**
-- Consumes: `describeProduct`, `isProduct`, `isTestBucket`, `PRODUCT_LABELS`, `TEST_BUCKET_LABELS`, `accuracyPct`, `profileFromRaw` (Task 1); colunas de `DiagnosticRow` (Task 3).
+- Consumes: `describeProduct`, `isProduct`, `isTestBucket`, `PRODUCT_LABELS`, `TEST_BUCKET_LABELS`, `accuracyPct` (Task 1); `parseQuizAnswers` (Task 1); colunas de `DiagnosticRow` (Task 3).
 - Produces: UI admin + CSV com "Produto perfil", "Produto teste", "Produto final".
 
 - [ ] **Step 1: Estender o teste do CSV (falha)**
@@ -1424,8 +1419,7 @@ const productRow = {
   product_test: "comunidade",
   product_final: "comunidade",
 } as unknown as DiagnosticRow;
-const pCsv = rowsToCsv([productRow]);
-const [pHeader, pLine] = pCsv.split("\n");
+const [pHeader, pLine] = rowsToCsv([productRow]).split("\n");
 const pCols = pHeader.split(",");
 const pCells = pLine.split(",");
 for (const h of ["Produto perfil", "Produto teste", "Produto final"]) {
@@ -1435,11 +1429,9 @@ expect("cell produto perfil", pCells[pCols.indexOf("Produto perfil")] === "Time"
 expect("cell produto teste", pCells[pCols.indexOf("Produto teste")] === "Comunidade (50–69%)", pLine);
 expect("cell produto final", pCells[pCols.indexOf("Produto final")] === "Comunidade", pLine);
 
-const emptyProduct = rowsToCsv([{ ...baseRow, product_profile: null, product_test: null, product_final: null } as unknown as DiagnosticRow]).split("\n")[1].split(",");
-expect("empty produto final", emptyProduct[pCols.indexOf("Produto final")] === "", emptyProduct.join(","));
+const emptyCells = rowsToCsv([baseRow]).split("\n")[1].split(",");
+expect("empty produto final", emptyCells[pCols.indexOf("Produto final")] === "", emptyCells.join(","));
 ```
-
-Também acrescentar `product_profile: null, product_test: null, product_final: null,` ao objeto `baseRow`.
 
 (Nenhuma célula das linhas de teste tem vírgula antes das colunas de produto, então o `split(",")` simples é seguro aqui.)
 
@@ -1484,43 +1476,50 @@ Em `rowToCells`, logo depois de `...QUIZ_QUESTIONS.map((q) => quizCell(quiz, q.k
 Run: `npx tsx scripts/check-exportCsv.ts`
 Expected: `All exportCsv checks passed`
 
-- [ ] **Step 5: Coluna "Produto" na lista do admin**
+- [ ] **Step 5: Coluna "Produto" substitui "Lead" na lista do admin**
 
 Em `app/admin/page.tsx`:
 
-Import (junto dos outros):
+5a. Import (junto dos outros):
 
 ```ts
 import { describeProduct, isProduct } from "@/lib/poker/productFit";
 ```
 
-No `<thead>`, logo depois de `<th className="px-4 py-3 text-center">Stake</th>`:
+5b. Remover a constante `LEAD_BADGE` inteira (`const LEAD_BADGE: Record<...> = { super_quente: ..., frio: ... };`).
+
+5c. No `<thead>`, trocar `<th className="px-4 py-3 text-center">Lead</th>` por `<th className="px-4 py-3 text-center">Produto</th>`.
+
+5d. No `<tbody>`, substituir o `<td className="px-4 py-3 text-center">` que começa com `{row.lead_category && LEAD_BADGE[row.lead_category] ? (` (até o `</td>` correspondente) por:
 
 ```tsx
-                  <th className="px-4 py-3 text-left">Produto</th>
-```
-
-No `<tbody>`, trocar `colSpan={10}` por `colSpan={11}`. Logo depois do `<td>` do Stake (o que termina com `<span className="text-xs text-neutral-700">—</span>` + `)}` + `</td>`), inserir:
-
-```tsx
-                    <td className="px-4 py-3 text-xs">
-                      <span
-                        className={
-                          isProduct(row.product_final)
-                            ? "font-semibold text-emerald-300"
-                            : "text-neutral-500"
-                        }
-                      >
-                        {describeProduct(row)}
-                      </span>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span
+                          className={`text-xs ${
+                            isProduct(row.product_final)
+                              ? "font-semibold text-emerald-300"
+                              : "text-neutral-500"
+                          }`}
+                        >
+                          {describeProduct(row)}
+                        </span>
+                        {row.stake_grade != null && (
+                          <span className="text-[10px] text-neutral-600 tabular-nums">
+                            ${row.stake_grade}
+                          </span>
+                        )}
+                      </div>
                     </td>
 ```
+
+O `colSpan={10}` continua 10, porque é o mesmo número de colunas.
 
 - [ ] **Step 6: Card "Produto indicado" no detalhe**
 
 Em `app/admin/resultado/[id]/page.tsx`:
 
-Import:
+Imports:
 
 ```ts
 import { parseQuizAnswers } from "@/lib/poker/leadScoring";
@@ -1533,7 +1532,7 @@ import {
 } from "@/lib/poker/productFit";
 ```
 
-Logo antes do comentário `{/* Spot summary grid */}`, inserir:
+Logo antes de `{/* Spot summary grid */}`, inserir:
 
 ```tsx
         {/* Produto indicado (admin-only) */}
@@ -1541,7 +1540,7 @@ Logo antes do comentário `{/* Spot summary grid */}`, inserir:
           <div>
             <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Perfil (questionário)</p>
             <p className="font-semibold">
-              {/* Quiz v3 válido sem perfil = fora do perfil; quiz v2 = "—" */}
+              {/* Quiz v3 válido sem perfil = fora do perfil; quiz v1 = "—" */}
               {isProduct(row.product_profile)
                 ? PRODUCT_LABELS[row.product_profile]
                 : parseQuizAnswers(row.quiz_answers)
@@ -1573,17 +1572,17 @@ Run: `npx tsc --noEmit` → sem erros.
 Run: `npm run lint` → sem erros novos.
 
 No navegador (`/admin`, com as credenciais de admin do `.env.local`):
-- coluna "Produto" mostrando o lead da Task 3;
-- um lead antigo com "—";
+- coluna "Produto" no lugar de "Lead", mostrando o lead da Task 3;
+- um lead antigo (quiz v1) com "—";
 - o detalhe `/admin/resultado/<id>` com o card preenchido;
-- "Exportar CSV" com as 3 colunas de produto.
+- "Exportar CSV" com as colunas do quiz v3 e as 3 de produto.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git branch --show-current
 git add app/admin/page.tsx "app/admin/resultado/[id]/page.tsx" lib/admin/exportCsv.ts scripts/check-exportCsv.ts
-git commit -m "feat(admin): produto indicado na lista, no detalhe e no CSV
+git commit -m "feat(admin): produto indicado substitui lead score na lista, detalhe e CSV
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -2206,8 +2205,8 @@ Substituir o comentário acima de `TRAINER_SEQUENCE` por:
 
 - [ ] **Step 9: Scripts existentes continuam passando**
 
-Run: `npx tsx scripts/check-spotLinks.ts && npx tsx scripts/check-spotTrack.ts && npx tsx scripts/check-spotTraining.ts`
-Expected: os três passam.
+Run: `npx tsx scripts/test-engine.mts && npx tsx scripts/test-rfi.mts && npx tsx scripts/test-cbet-vs-bb.mts`
+Expected: os três terminam com exit 0. Se algum falhar só por assumir o `mode: "sequential"` ou a contagem antiga, ajustar a expectativa do script e citar isso no commit; se falhar por outro motivo, parar e investigar.
 
 - [ ] **Step 10: Commit**
 
@@ -2230,7 +2229,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Run:
 
 ```bash
-npx tsx scripts/check-productFit.ts && npx tsx scripts/check-exportCsv.ts && npx tsx scripts/check-nivelamento-light.ts && npx tsx scripts/check-spotLinks.ts && npx tsx scripts/check-spotTrack.ts && npx tsx scripts/check-spotTraining.ts
+npx tsx scripts/check-productFit.ts && npx tsx scripts/check-exportCsv.ts && npx tsx scripts/check-nivelamento-light.ts && npx tsx scripts/test-engine.mts && npx tsx scripts/test-rfi.mts && npx tsx scripts/test-cbet-vs-bb.mts
 ```
 
 Expected: todos passam.
@@ -2241,10 +2240,10 @@ Run: `npx tsc --noEmit` → sem erros.
 Run: `npm run lint` → sem erros novos.
 Run: `npm run build` → build conclui.
 
-- [ ] **Step 3: Resíduos do quiz v2**
+- [ ] **Step 3: Resíduos do quiz v1 e do lead score**
 
-Buscar com a ferramenta Grep por `HOURS_OPTIONS|TABLES_OPTIONS|SHARKSCOPE_SITES|studyTimeFromHours|weeklyHours|sharkscopeNicks|875_1499` em `app`, `components` e `lib`.
-Expected: nenhum resultado (exceto o campo `weekly_hours`/`sharkscope_nicks` em `DiagnosticRow`, que continua no schema).
+Buscar com a ferramenta Grep por `computeLeadScore|computeLeadCategory|LEAD_CATEGORY_LABELS|LeadCategory|leadScore|leadCategory|LEAD_BADGE|TEMPO_OPTIONS|VOLUME_OPTIONS|volumeToWeeklyTarget|defaultStudyTime` em `app`, `components` e `lib`.
+Expected: nenhum resultado. Os campos `lead_score`/`lead_category` em `DiagnosticRow` e nos inserts com `null` são esperados.
 
 - [ ] **Step 4: Fluxo completo no navegador**
 
@@ -2259,6 +2258,7 @@ Com o dev server e a migration 016 aplicada no banco de dev:
 
 Reportar:
 - a migration `supabase/migrations/016_product_fit.sql` precisa ser aplicada manualmente no SQL Editor de **prod** antes do deploy (sem ela, `/api/leads` dá 500);
-- o webhook do n8n mudou de shape (`quiz` com 6 respostas, `productProfile`, `productFit`; saíram `time` e `sharkscopeNicks`), então as automações precisam ser ajustadas;
+- o webhook do n8n mudou de shape: `quiz` usa as chaves v3 (`tempoJogo`, `torneiosMes`); entram `productProfile` e `productFit`; saem `leadScore`/`leadCategory`/`leadCategoryLabel` e `leadScoring.score/category`. As automações precisam ser ajustadas;
+- o admin e o CSV não mostram mais lead score; o produto substitui;
 - os pontos de revisão do spec (turn 100bb = 93; Ac7c; derivações de volume/stake).
 ```

@@ -1,13 +1,13 @@
 # Nivelamento Light + Product Fit (Bases / Protocolo / Comunidade / Time)
 
-**Branch:** `nivelamento-light` (criado a partir de `onboarding-ev`)
+**Branch:** `nivelamento-light`, cópia do `testecom19` (quiz v1 com lead score, telefone internacional). Spec e plano foram trazidos por cherry-pick.
 **Fontes:** `TST _ pesquisa lead scoring.docx` (questionário + cores) e `_Nivelamento Light _ Direcionamento.docx` (mãos + regra 70/50).
 
 ## Contexto
 
 Reformulação do trainer em duas frentes:
 
-1. **Qualificação do lead.** Um questionário novo substitui 100% o form do Onboarding v2. Cada resposta indica o requisito mínimo para um produto: Bases, Protocolo, Comunidade ou Time. O resultado do teste de nivelamento também aponta um produto. O produto final é o **menor** dos dois.
+1. **Qualificação do lead.** Um questionário novo substitui 100% o form atual (quiz v1 com lead score 0–25). Cada resposta indica o requisito mínimo para um produto: Bases, Protocolo, Comunidade ou Time. O resultado do teste de nivelamento também aponta um produto. O produto final é o **menor** dos dois.
 2. **Sequência de mãos.** Os 16 JSONs de `public/spots/` passam a ter exatamente as mãos do doc Nivelamento Light, na ordem do doc. Isso vale para o teste e para os treinos do plano.
 
 O produto indicado aparece **só no admin, no CSV e nos webhooks do n8n**. A experiência do aluno (tier 1/2/3, leaks, plano) continua como está.
@@ -19,7 +19,8 @@ O produto indicado aparece **só no admin, no CSV e nos webhooks do n8n**. A exp
 | Cores do questionário | Cada cor marca o **requisito mínimo** do produto; os requisitos acumulam |
 | Perfil × teste | `final = min(perfil, técnico)` |
 | % do teste | Acerto sobre as mãos **jogadas**; **mantém o early stop** (3 spots abaixo de 70%) |
-| Form | **Substitui 100%** pelo questionário do doc (saem horas/telas, nicks, banca em 13 faixas) |
+| Form | **Substitui 100%** pelo questionário do doc (opções e textos novos, banca em 5 faixas) |
+| Lead score (frio/morno/quente) | **Substituído pelo produto**: sai do cálculo, do admin, do CSV e dos webhooks; `lead_score`/`lead_category` gravam null |
 | Exibição do produto | Só admin, CSV e webhook |
 | Mãos | Substitui o conteúdo dos 16 JSONs, `mode: "ordered"` |
 | Persistência | Abordagem A: colunas `product_profile`, `product_test`, `product_final` (migration 016) |
@@ -31,14 +32,13 @@ O produto indicado aparece **só no admin, no CSV e nos webhooks do n8n**. A exp
 
 | # | Tela | Tipo |
 |---|---|---|
-| 1 | Identidade: Nome, Email, WhatsApp | inputs (mantém o componente atual) |
+| 1 | Identidade: Nome, Email, WhatsApp | inputs (mantém o componente atual, com telefone internacional) |
 | 2 | Idade | single-select, auto-advance |
 | 3 | Tempo de jogo | single-select, auto-advance |
 | 4 | Objetivo | single-select, auto-advance |
 | 5 | ABI (Sharkscope, 6 meses) | single-select, auto-advance |
 | 6 | Torneios por mês (Sharkscope) | single-select, auto-advance |
-| 7 | Banca (com o texto "Lembre-se…") | single-select, auto-advance |
-| 8 | Opt-in WhatsApp | mantém |
+| 7 | Banca (com o texto "Lembre-se…") | single-select, envia o form |
 
 ### Perguntas e valores
 
@@ -233,16 +233,16 @@ alter table public.reglife_diagnostic_results
   add column if not exists product_final text;
 ```
 
-Mais comments nas colunas. Sem CHECK constraint (valores validados no código), para não quebrar em drift.
+Mais comments nas colunas. Sem CHECK constraint (valores validados no código), para não quebrar em drift. Numerada 016 (o `testecom19` só tem até 011) para não colidir com 012–015 do `onboarding-ev`, que podem já estar em prod.
 
-As respostas do quiz ficam em `quiz_answers` (JSONB) com o novo shape `{ idade, tempoJogo, objetivo, abi, torneiosMes, banca }`. `weekly_hours`, `tables` e `sharkscope_nicks` continuam no schema e deixam de ser gravados (null).
+As respostas do quiz ficam em `quiz_answers` (JSONB) com o novo shape `{ idade, tempoJogo, objetivo, abi, torneiosMes, banca }`. Leads do quiz v1 (chaves `tempo`/`volume`, outras faixas) não passam em `parseQuizAnswers` e aparecem como "—".
 
 ### `POST /api/leads`
 
 - Valida `quizAnswers` contra os enums (valor inválido → 400).
 - Recalcula no servidor `product_profile`, `stakeGrade`, `profitGoal`, `studyTime` e `volumeTargetWeekly` a partir do quiz (não confia no cliente).
 - Grava as colunas acima.
-- Webhook `lead.quiz_submitted`: `quiz` com as 6 respostas (value + label) e `productProfile`. Saem `time` e `sharkscopeNicks`.
+- Webhook `lead.quiz_submitted`: `quiz` com as 6 respostas v3 (value + label) e `productProfile`. Saem `leadScore`, `leadCategory` e `leadCategoryLabel`.
 
 ### `POST /api/results`
 
@@ -251,26 +251,22 @@ As respostas do quiz ficam em `quiz_answers` (JSONB) com o novo shape `{ idade, 
 
 ### Admin e CSV
 
-- `/admin` (lista): coluna **Produto** = `product_final`; se null e `product_profile` preenchido → "Perfil: X · teste pendente"; se perfil null com quiz novo → "Fora do perfil"; lead antigo → "—".
+- `/admin` (lista): coluna **Produto** substitui a coluna Lead (o stake grade continua embaixo) = `product_final`; se null e `product_profile` preenchido → "Perfil: X · teste pendente"; se perfil null com quiz novo → "Fora do perfil"; lead antigo → "—".
 - `/admin/resultado/[id]`: bloco "Produto indicado" com perfil, bucket do teste (com %) e final.
-- `lib/admin/exportCsv.ts`: adiciona Idade, Tempo de jogo, ABI, Torneios/mês, Banca, Produto perfil, Produto teste, Produto final; remove Horas, Telas, Nicks.
+- `lib/admin/exportCsv.ts`: colunas do quiz v3 (Idade, Tempo de jogo, Objetivo, ABI, Torneios/mês, Banca) e Produto perfil, Produto teste, Produto final; remove Categoria Lead, Lead Score, Tempo Jogando, Volume/mês.
 
 ### Onboarding e store
 
 - `components/trainer/OnboardingForm.tsx`: telas da seção 1.
-- `lib/poker/leadScoring.ts`: tipos, opções e derivações novos (substitui v2).
-- `lib/poker/diagnosticoStore.ts`: `QuizAnswers` novo; remove campos de horas/telas/nicks do payload.
-- `components/trainer/DiagnosticoScreen.tsx`: payloads de leads/results ajustados.
-
-### Sharkscope
-
-Leads novos não têm nick. Os crons (`sharkscope-sync`, `weekly-sharkscope`, `monthly-sharkscope`, `generate-quests`) precisam ignorar linhas sem nick e sem `sharkscope_username`. O plano verifica isso e corrige se algum quebrar com null.
+- `lib/poker/leadScoring.ts`: tipos, opções e derivações novos (substitui o v1 com pontuação).
+- `lib/poker/diagnosticoStore.ts`: `QuizAnswers` novo; remove `leadScore`/`leadCategory`.
+- `components/trainer/DiagnosticoScreen.tsx`: payloads de leads/results sem `leadScore`/`leadCategory`.
 
 ## 5. Testes e verificação
 
 - `scripts/check-productFit.ts` (tsx): fronteira de cada requisito por produto, herança acumulativa, diversao → null, buckets 49/50/69/70, `min()` final e todos os mapeamentos de derivação.
 - `scripts/check-nivelamento-light.ts`: seção 3.
-- Scripts existentes (`check-spotLinks`, `check-spotTrack`, `check-spotTraining`) continuam passando.
+- Scripts existentes (`test-engine.mts`, `test-rfi.mts`, `test-cbet-vs-bb.mts`) continuam passando.
 - `npx tsc --noEmit`, `npm run lint`, `npm run build`.
 - Manual no navegador: quiz completo → teste (com early stop e sem) → linha no `/admin` com produto → CSV exportado.
 
@@ -279,7 +275,7 @@ Leads novos não têm nick. Os crons (`sharkscope-sync`, `weekly-sharkscope`, `m
 - Mostrar o produto ao aluno (resultado, plano, PDF).
 - Mudar tier 1/2/3, leaks ou `assessTier`.
 - Regras editáveis por admin.
-- Dropar colunas legadas (`weekly_hours`, `tables`, `sharkscope_nicks`, `lead_score`, `lead_category`).
+- Dropar colunas legadas (`lead_score`, `lead_category`).
 - Aplicar a migration em prod (feito manualmente pelo usuário).
 
 ## Pontos para revisão do usuário
