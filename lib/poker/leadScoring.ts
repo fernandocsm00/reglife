@@ -203,7 +203,11 @@ export function objetivoToProfitGoal(objetivo: ObjetivoAnswer): ProfitGoal {
   }
 }
 
-/** Torneios/semana esperados = meio da faixa mensal ÷ 4. */
+/**
+ * Torneios/semana esperados por faixa (aproximação; não é uma fórmula
+ * exata sobre a faixa mensal — `lt_100` e `nao_sei` são estimativas, não
+ * meio-da-faixa ÷ 4).
+ */
 export const TORNEIOS_VOLUME_WEEKLY: Record<TorneiosMesAnswer, number> = {
   nao_sei: 25,
   lt_100: 20,

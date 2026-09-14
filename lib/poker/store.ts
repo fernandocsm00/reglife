@@ -58,9 +58,14 @@ export const useDrillStore = create<DrillState>((set, get) => ({
     }
     const config = raw as SpotConfigFile;
     const context = initializeDrillContext(config);
-    const isSequential = config.mode === "sequential";
+    // "sequential" shuffles once then presents each answer exactly once;
+    // "ordered" does the same but preserves the JSON order (no shuffle).
+    const isSequential = config.mode === "sequential" || config.mode === "ordered";
+    const indices = context.expectedAnswers.map((_, i) => i);
     const queue = isSequential
-      ? shuffle(context.expectedAnswers.map((_, i) => i))
+      ? config.mode === "ordered"
+        ? indices
+        : shuffle(indices)
       : [];
     const drill = isSequential
       ? createDrill(context, { expectedAnswerIndex: queue[0] })
@@ -132,9 +137,15 @@ export const useDrillStore = create<DrillState>((set, get) => ({
   restart: () => {
     const { context } = get();
     if (!context) return;
-    const isSequential = context.config.mode === "sequential";
+    // "sequential" shuffles once then presents each answer exactly once;
+    // "ordered" does the same but preserves the JSON order (no shuffle).
+    const isSequential =
+      context.config.mode === "sequential" || context.config.mode === "ordered";
+    const indices = context.expectedAnswers.map((_, i) => i);
     const queue = isSequential
-      ? shuffle(context.expectedAnswers.map((_, i) => i))
+      ? context.config.mode === "ordered"
+        ? indices
+        : shuffle(indices)
       : [];
     const drill = isSequential
       ? createDrill(context, { expectedAnswerIndex: queue[0] })

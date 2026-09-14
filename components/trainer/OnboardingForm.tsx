@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -62,9 +62,17 @@ export function OnboardingForm({ onSubmit }: Props) {
     isValidEmail(email) &&
     isValidPhone(phone);
 
+  // Evita disparar onSubmit duas vezes (2 leads + 2 automações no n8n) quando
+  // o aluno clica duas vezes na última pergunta dentro da janela de
+  // ADVANCE_DELAY_MS do auto-advance — cada clique agenda seu próprio
+  // finalSubmit.
+  const submittedRef = useRef(false);
+
   const finalSubmit = (complete: Partial<Record<QuizKey, string>>) => {
     const quiz = parseQuizAnswers(complete);
     if (!quiz) return;
+    if (submittedRef.current) return;
+    submittedRef.current = true;
 
     onSubmit({
       playerName: playerName.trim(),

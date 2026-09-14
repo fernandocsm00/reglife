@@ -14,6 +14,7 @@ import {
 import {
   accuracyPct,
   finalProduct,
+  isProduct,
   profileFromRaw,
   testBucket,
   type Product,
@@ -169,6 +170,7 @@ export async function POST(req: NextRequest) {
   const productTest: TestBucket | null =
     playedResults.length > 0 ? testBucket(testPct) : null;
   let productProfile: Product | null = null;
+  let productFinal: Product | null = null;
 
   let diagnosticId: string;
 
@@ -178,16 +180,21 @@ export async function POST(req: NextRequest) {
     const session = await requireDiagSession(existingId);
     if (!session.ok) return session.response;
 
-    // Perfil vem do quiz gravado pelo /api/leads (fonte de verdade da linha).
+    // Perfil: prefere o product_profile já gravado pelo /api/leads (fonte de
+    // verdade da linha); recalcula do quiz só se a coluna ainda não tiver
+    // um valor válido (linha legada/antes desta migration).
     const { data: leadRow, error: leadRowErr } = await supabase
       .from("reglife_diagnostic_results")
-      .select("quiz_answers")
+      .select("product_profile, quiz_answers")
       .eq("id", existingId)
       .maybeSingle();
     if (leadRowErr) {
       console.error("[api/results] leadRow select error", leadRowErr);
     }
-    productProfile = profileFromRaw(leadRow?.quiz_answers ?? quizAnswers);
+    productProfile = isProduct(leadRow?.product_profile)
+      ? leadRow.product_profile
+      : profileFromRaw(leadRow?.quiz_answers ?? quizAnswers);
+    productFinal = productTest ? finalProduct(productProfile, productTest) : null;
 
     const { data: updated, error: updErr } = await supabase
       .from("reglife_diagnostic_results")
@@ -204,7 +211,7 @@ export async function POST(req: NextRequest) {
         notify_channels: notifyChannels,
         whatsapp_phone: whatsappPhone,
         product_test: productTest,
-        product_final: productTest ? finalProduct(productProfile, productTest) : null,
+        product_final: productFinal,
       })
       .eq("id", existingId)
       .select("id")
@@ -220,6 +227,7 @@ export async function POST(req: NextRequest) {
     diagnosticId = updated.id;
   } else {
     productProfile = profileFromRaw(quizAnswers);
+    productFinal = productTest ? finalProduct(productProfile, productTest) : null;
 
     const { data, error } = await supabase
       .from("reglife_diagnostic_results")
@@ -247,7 +255,7 @@ export async function POST(req: NextRequest) {
           stake_grade: stakeGrade,
           product_profile: productProfile,
           product_test: productTest,
-          product_final: productTest ? finalProduct(productProfile, productTest) : null,
+          product_final: productFinal,
           previous_diagnostic_id: previousDiagnosticId,
         },
       ])
@@ -377,7 +385,7 @@ export async function POST(req: NextRequest) {
       productFit: {
         profile: productProfile,
         test: productTest,
-        final: productTest ? finalProduct(productProfile, productTest) : null,
+        final: productFinal,
         accuracyPct: testPct,
       },
       // Aluno elite e abandono não têm PDF — null nesses casos.

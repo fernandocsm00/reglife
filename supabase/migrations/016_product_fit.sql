@@ -30,3 +30,8 @@ comment on column public.reglife_diagnostic_results.product_test is
 
 comment on column public.reglife_diagnostic_results.product_final is
   'Produto final = min(perfil, teste). null = teste pendente ou fora do perfil.';
+
+-- Força o PostgREST a recarregar o schema cache agora, senão /api/leads e
+-- /api/results continuam vendo o schema antigo (500 "column does not
+-- exist") até o próximo reload automático.
+notify pgrst, 'reload schema';

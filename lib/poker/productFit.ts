@@ -44,7 +44,10 @@ export function isProduct(v: unknown): v is Product {
 }
 
 export function isTestBucket(v: unknown): v is TestBucket {
-  return typeof v === "string" && v in TEST_BUCKET_LABELS;
+  return (
+    typeof v === "string" &&
+    Object.prototype.hasOwnProperty.call(TEST_BUCKET_LABELS, v)
+  );
 }
 
 export function profileProduct(quiz: QuizAnswers): Product | null {

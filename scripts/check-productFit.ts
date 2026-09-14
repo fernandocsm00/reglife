@@ -16,6 +16,7 @@ import {
   accuracyPct,
   describeProduct,
   finalProduct,
+  isTestBucket,
   profileFromRaw,
   profileProduct,
   testBucket,
@@ -144,6 +145,7 @@ check("bucket 69", testBucket(69), "comunidade");
 check("bucket 50", testBucket(50), "comunidade");
 check("bucket 49", testBucket(49), "comunidade_ou_protocolo");
 check("bucket 0", testBucket(0), "comunidade_ou_protocolo");
+check("isTestBucket rejects prototype chain prop", isTestBucket("toString"), false);
 
 check("final null profile", finalProduct(null, "time"), null);
 check("final time/time", finalProduct("time", "time"), "time");
