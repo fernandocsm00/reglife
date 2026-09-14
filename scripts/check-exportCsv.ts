@@ -10,6 +10,44 @@ function expect(name: string, cond: boolean, detail = "") {
   }
 }
 
+/**
+ * Parser RFC 4180 mínimo pra uma linha de CSV (sem suporte a campo
+ * multilinha): respeita campos entre aspas duplas e o escape `""`. Usado só
+ * nas asserções que dependem de posição de coluna — campos como a Data
+ * (vírgula do `Intl.DateTimeFormat` pt-BR) e o Objetivo (vírgula no label)
+ * ficam entre aspas no CSV, então um `split(",")` ingênuo quebra o
+ * alinhamento das colunas seguintes.
+ */
+function parseCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cur += c;
+      }
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ",") {
+      cells.push(cur);
+      cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
 const baseRow = {
   id: "abc",
   created_at: "2026-09-13T12:00:00Z",
@@ -70,6 +108,26 @@ const legacy = {
 const legacyLine = rowsToCsv([legacy]).split("\n")[1];
 expect("legacy objetivo raw", legacyLine.includes("competitivo"), legacyLine);
 expect("legacy idade raw", legacyLine.includes("55_plus"), legacyLine);
+
+// ---- Produto -----------------------------------------------------------------
+const productRow = {
+  ...baseRow,
+  product_profile: "time",
+  product_test: "comunidade",
+  product_final: "comunidade",
+} as unknown as DiagnosticRow;
+const [pHeader, pLine] = rowsToCsv([productRow]).split("\n");
+const pCols = parseCsvLine(pHeader);
+const pCells = parseCsvLine(pLine);
+for (const h of ["Produto perfil", "Produto teste", "Produto final"]) {
+  expect(`header has ${h}`, pCols.includes(h), pHeader);
+}
+expect("cell produto perfil", pCells[pCols.indexOf("Produto perfil")] === "Time", pLine);
+expect("cell produto teste", pCells[pCols.indexOf("Produto teste")] === "Comunidade (50–69%)", pLine);
+expect("cell produto final", pCells[pCols.indexOf("Produto final")] === "Comunidade", pLine);
+
+const emptyCells = parseCsvLine(rowsToCsv([baseRow]).split("\n")[1]);
+expect("empty produto final", emptyCells[pCols.indexOf("Produto final")] === "", emptyCells.join(","));
 
 if (failed > 0) {
   console.error(`\n${failed} check(s) failed`);

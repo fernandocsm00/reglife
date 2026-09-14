@@ -2,6 +2,12 @@
 
 import type { DiagnosticRow } from "@/lib/supabase";
 import { QUIZ_QUESTIONS, labelOf, type QuizKey } from "@/lib/poker/leadScoring";
+import {
+  PRODUCT_LABELS,
+  TEST_BUCKET_LABELS,
+  isProduct,
+  isTestBucket,
+} from "@/lib/poker/productFit";
 
 const STUDY_LABELS: Record<string, string> = {
   ate15: "Até 15h/sem",
@@ -68,6 +74,9 @@ const HEADERS: string[] = [
   "Telefone",
   "Stake Grade (USD)",
   ...QUIZ_QUESTIONS.map((q) => QUIZ_HEADERS[q.key]),
+  "Produto perfil",
+  "Produto teste",
+  "Produto final",
   "Meta de Profit",
   "Tempo de Estudo",
   "Volume Target (semana)",
@@ -91,6 +100,9 @@ function rowToCells(row: DiagnosticRow): string[] {
     row.phone ?? "",
     row.stake_grade?.toString() ?? "",
     ...QUIZ_QUESTIONS.map((q) => quizCell(quiz, q.key)),
+    isProduct(row.product_profile) ? PRODUCT_LABELS[row.product_profile] : "",
+    isTestBucket(row.product_test) ? TEST_BUCKET_LABELS[row.product_test] : "",
+    isProduct(row.product_final) ? PRODUCT_LABELS[row.product_final] : "",
     PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "",
     STUDY_LABELS[row.study_time ?? ""] ?? row.study_time ?? "",
     row.volume_target_weekly?.toString() ?? "",

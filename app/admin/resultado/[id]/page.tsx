@@ -5,6 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
+import { parseQuizAnswers } from "@/lib/poker/leadScoring";
+import {
+  PRODUCT_LABELS,
+  TEST_BUCKET_LABELS,
+  accuracyPct,
+  isProduct,
+  isTestBucket,
+} from "@/lib/poker/productFit";
 
 const STUDY_LABELS: Record<string, string> = {
   ate15:  "Até 15h/sem",
@@ -133,6 +141,36 @@ export default function ResultDetailPage() {
               </span>
             )}
             <p className="text-xs text-neutral-500 mt-1">{formatDate(row.created_at)}</p>
+          </div>
+        </div>
+
+        {/* Produto indicado (admin-only) */}
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Perfil (questionário)</p>
+            <p className="font-semibold">
+              {/* Quiz v3 válido sem perfil = fora do perfil; quiz v1 = "—" */}
+              {isProduct(row.product_profile)
+                ? PRODUCT_LABELS[row.product_profile]
+                : parseQuizAnswers(row.quiz_answers)
+                  ? "Fora do perfil"
+                  : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Nivelamento</p>
+            <p className="font-semibold">
+              {isTestBucket(row.product_test) ? TEST_BUCKET_LABELS[row.product_test] : "Pendente"}
+            </p>
+            {row.results.length > 0 && (
+              <p className="text-xs text-neutral-500">{accuracyPct(row.results)}% de acerto nas mãos jogadas</p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Produto final</p>
+            <p className="text-2xl font-black text-emerald-300">
+              {isProduct(row.product_final) ? PRODUCT_LABELS[row.product_final] : "—"}
+            </p>
           </div>
         </div>
 
