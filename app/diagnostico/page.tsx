@@ -2,16 +2,17 @@ import { notFound } from "next/navigation";
 import { DiagnosticoScreen } from "@/components/trainer/DiagnosticoScreen";
 import { loadSpotConfig } from "@/lib/poker/listSpots";
 
-// Ordem do percurso. Com early stop (3 spots reprovados) a maioria
-// termina muito antes do final.
+// Ordem do percurso = Nivelamento Light (190 mãos). Com early stop
+// (3 spots reprovados) a maioria termina muito antes do final.
+// Mãos: scripts/nivelamento-light.data.ts (sync + check em scripts/).
 //
-// Tier 1 (sequência Cbet segue Flop → Turn+River):
-//   RFI(19) → Cbet Flop vs BB(11) → Cbet Turn+River vs BB(22)
-//   → Vs RFI(27) → Defesa de BB(14) → BW SB GAP(7) → BW SB vs ISO(6)
-//   → BW BB vs Limp(15) → BW BB vs Raise(9) → Vs Cbet Flop BB(15)
-// Tier 2:
-//   Multiway(22) → Vs 3bet EP(15) → Vs 3bet BTN(10)
-//   → Cbet vs BTN(15) → Vs Cbet Flop BTN(12) → Bet vs Missed BTN(6)
+// Tier 1 (115):
+//   RFI(15) → Cbet Flop vs BB(10) → Cbet Turn+River vs BB(20)
+//   → Vs RFI(20) → Defesa de BB(10) → BW SB GAP(7) → BW SB vs ISO(5)
+//   → BW BB vs Limp(8) → BW BB vs Raise(5) → Vs Cbet Flop BB(15)
+// Tier 2 (75):
+//   Multiway(20) → Vs 3bet EP(15) → Vs 3bet BTN(10)
+//   → Cbet vs BTN(15) → Vs Cbet Flop BTN(10) → Bet vs Missed BTN(5)
 const TRAINER_SEQUENCE = [
   // Tier 1
   "reglife-rfi-prioridades",

@@ -1,7 +1,7 @@
 {
   "name": "Blind War Pré Flop",
   "action": "blindWar",
-  "mode": "sequential",
+  "mode": "ordered",
   "tier": 1,
   "sessionSize": 7,
   "defaultRaiseSize": "RAISE 3",
@@ -13,41 +13,55 @@
   "villainBetSize": 0,
   "heroBetSize": 0.5,
   "actionButtons": [
-    { "text": "FOLD",      "color": "#114EAB" },
-    { "text": "LIMP",      "color": "#0E6326" },
+    { "text": "FOLD", "color": "#114EAB" },
+    { "text": "LIMP", "color": "#0E6326" },
     { "text": "RAISE 2.5", "color": "#C72222" },
-    { "text": "RAISE 3",   "color": "#B01E1E" },
+    { "text": "RAISE 3", "color": "#B01E1E" },
     { "text": "RAISE 3.5", "color": "#991A1A" },
-    { "text": "ALL-IN",    "color": "#6C0A0A" }
+    { "text": "ALL-IN", "color": "#6C0A0A" }
   ],
   "expectedAnswers": [
     {
-      "position": "SB", "stackSize": 50, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["52o"], "answer": ["FOLD"] }]
+      "position": "SB",
+      "stackSize": 50,
+      "expectedAnswers": [{ "combos": ["52o"], "answer": ["FOLD"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 15, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["72s"], "answer": ["LIMP"] }]
+      "position": "SB",
+      "stackSize": 15,
+      "expectedAnswers": [{ "combos": ["72s"], "answer": ["LIMP"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 15, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["A8o"], "answer": ["ALL-IN"] }]
+      "position": "SB",
+      "stackSize": 15,
+      "expectedAnswers": [{ "combos": ["A8o"], "answer": ["ALL-IN"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 60, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["75o"], "answer": ["LIMP"] }]
+      "position": "SB",
+      "stackSize": 60,
+      "expectedAnswers": [{ "combos": ["75o"], "answer": ["LIMP"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 30, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["RAISE 3"] }]
+      "position": "SB",
+      "stackSize": 30,
+      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["RAISE 3"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 30, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["J4o"], "answer": ["LIMP"] }]
+      "position": "SB",
+      "stackSize": 30,
+      "expectedAnswers": [{ "combos": ["J4o"], "answer": ["LIMP"] }],
+      "villainPosition": "BB"
     },
     {
-      "position": "SB", "stackSize": 15, "villainPosition": "BB",
-      "expectedAnswers": [{ "combos": ["QJs"], "answer": ["LIMP"] }]
+      "position": "SB",
+      "stackSize": 15,
+      "expectedAnswers": [{ "combos": ["QJs"], "answer": ["LIMP"] }],
+      "villainPosition": "BB"
     }
   ]
 }

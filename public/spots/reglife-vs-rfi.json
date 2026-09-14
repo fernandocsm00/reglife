@@ -1,9 +1,9 @@
 {
   "name": "Vs RFI",
   "action": "vsOpen",
-  "mode": "sequential",
+  "mode": "ordered",
   "tier": 1,
-  "sessionSize": 27,
+  "sessionSize": 20,
   "defaultRaiseSize": "RAISE 6",
   "potSize": 4.5,
   "currentPotSize": 4.5,
@@ -11,94 +11,193 @@
   "villainBetSize": 2,
   "heroBetSize": 0,
   "actionButtons": [
-    { "text": "FOLD",    "color": "#114EAB" },
-    { "text": "CALL",    "color": "#0E6326" },
+    { "text": "FOLD", "color": "#114EAB" },
+    { "text": "CALL", "color": "#0E6326" },
     { "text": "RAISE 5", "color": "#D32121" },
     { "text": "RAISE 6", "color": "#C72222" },
     { "text": "RAISE 7", "color": "#B01E1E" },
-    { "text": "ALL-IN",  "color": "#6C0A0A" }
+    { "text": "ALL-IN", "color": "#6C0A0A" }
   ],
   "expectedAnswers": [
-    { "position": "UTG1", "stackSize": 100, "villainPosition": "UTG",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["ATo"], "answer": ["FOLD"] }] },
-    { "position": "UTG1", "stackSize": 25, "villainPosition": "UTG",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["AJo"], "answer": ["RAISE 5", "FOLD"] }] },
-    { "position": "UTG1", "stackSize": 50, "villainPosition": "UTG",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["Q9s"], "answer": ["FOLD"] }] },
-    { "position": "UTG1", "stackSize": 50, "villainPosition": "UTG",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"UTG","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["KQo"], "answer": ["RAISE 5", "FOLD"] }] },
-    { "position": "HJ", "stackSize": 15, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["KQs"], "answer": ["ALL-IN"] }] },
-    { "position": "HJ", "stackSize": 15, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["KJo"], "answer": ["FOLD"] }] },
-    { "position": "HJ", "stackSize": 15, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["99"], "answer": ["ALL-IN"] }] },
-    { "position": "HJ", "stackSize": 100, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["QJo"], "answer": ["FOLD"] }] },
-    { "position": "HJ", "stackSize": 25, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["33"], "answer": ["FOLD"] }] },
-    { "position": "HJ", "stackSize": 25, "villainPosition": "LJ",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"LJ","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["T8s"], "answer": ["FOLD"] }] },
-    { "position": "BTN", "stackSize": 25, "villainPosition": "CO",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["CALL"] }] },
-    { "position": "BTN", "stackSize": 25, "villainPosition": "CO",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["KTs"], "answer": ["ALL-IN"] }] },
-    { "position": "BTN", "stackSize": 25, "villainPosition": "CO",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["88"], "answer": ["ALL-IN"] }] },
-    { "position": "BTN", "stackSize": 50, "villainPosition": "CO",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["A7o"], "answer": ["FOLD"] }] },
-    { "position": "BTN", "stackSize": 50, "villainPosition": "CO",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"CO","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["K5s"], "answer": ["CALL", "RAISE 6"] }] },
-    { "position": "SB", "stackSize": 25, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["55"], "answer": ["ALL-IN"] }] },
-    { "position": "SB", "stackSize": 25, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["K8o"], "answer": ["FOLD"] }] },
-    { "position": "SB", "stackSize": 25, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["QTs"], "answer": ["ALL-IN"] }] },
-    { "position": "SB", "stackSize": 15, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["75s"], "answer": ["FOLD"] }] },
-    { "position": "SB", "stackSize": 15, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["KJo"], "answer": ["ALL-IN"] }] },
-    { "position": "SB", "stackSize": 15, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["22"], "answer": ["ALL-IN"] }] },
-    { "position": "SB", "stackSize": 15, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["A4o"], "answer": ["ALL-IN"] }] },
-    { "position": "SB", "stackSize": 50, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["J8s"], "answer": ["CALL"] }] },
-    { "position": "SB", "stackSize": 50, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["A6o"], "answer": ["FOLD"] }] },
-    { "position": "SB", "stackSize": 50, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["AJs"], "answer": ["RAISE 7"] }] },
-    { "position": "SB", "stackSize": 50, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["A5s"], "answer": ["RAISE 7"] }] },
-    { "position": "SB", "stackSize": 50, "villainPosition": "BTN",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"BTN","action":"Raise 2"}]}] },
-      "expectedAnswers": [{ "combos": ["33"], "answer": ["CALL"] }] }
+    {
+      "position": "UTG1",
+      "stackSize": 100,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "UTG", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["ATo"], "answer": ["FOLD"] }],
+      "villainPosition": "UTG"
+    },
+    {
+      "position": "UTG1",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "UTG", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["AJo"], "answer": ["RAISE 5", "FOLD"] }],
+      "villainPosition": "UTG"
+    },
+    {
+      "position": "UTG1",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "UTG", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["Q9s"], "answer": ["FOLD"] }],
+      "villainPosition": "UTG"
+    },
+    {
+      "position": "HJ",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "LJ", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["KJo"], "answer": ["FOLD"] }],
+      "villainPosition": "LJ"
+    },
+    {
+      "position": "HJ",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "LJ", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["99"], "answer": ["ALL-IN"] }],
+      "villainPosition": "LJ"
+    },
+    {
+      "position": "HJ",
+      "stackSize": 100,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "LJ", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["QJo"], "answer": ["FOLD"] }],
+      "villainPosition": "LJ"
+    },
+    {
+      "position": "HJ",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "LJ", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["33"], "answer": ["FOLD"] }],
+      "villainPosition": "LJ"
+    },
+    {
+      "position": "BTN",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "CO", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["CALL"] }],
+      "villainPosition": "CO"
+    },
+    {
+      "position": "BTN",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "CO", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["KTs"], "answer": ["ALL-IN"] }],
+      "villainPosition": "CO"
+    },
+    {
+      "position": "BTN",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "CO", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["88"], "answer": ["ALL-IN"] }],
+      "villainPosition": "CO"
+    },
+    {
+      "position": "BTN",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "CO", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["A7o"], "answer": ["FOLD"] }],
+      "villainPosition": "CO"
+    },
+    {
+      "position": "BTN",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "CO", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["K5s"], "answer": ["CALL", "RAISE 6"] }],
+      "villainPosition": "CO"
+    },
+    {
+      "position": "SB",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["55"], "answer": ["ALL-IN"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 25,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["QTs"], "answer": ["ALL-IN"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["75s"], "answer": ["FOLD"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["KJo"], "answer": ["ALL-IN"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["22"], "answer": ["ALL-IN"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["J8s"], "answer": ["CALL"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["A6o"], "answer": ["FOLD"] }],
+      "villainPosition": "BTN"
+    },
+    {
+      "position": "SB",
+      "stackSize": 50,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "BTN", "action": "Raise 2" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["AJs"], "answer": ["RAISE 7"] }],
+      "villainPosition": "BTN"
+    }
   ]
 }

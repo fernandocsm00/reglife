@@ -1,9 +1,9 @@
 {
   "name": "Blind War Pré Flop",
   "action": "blindWar",
-  "mode": "sequential",
+  "mode": "ordered",
   "tier": 1,
-  "sessionSize": 9,
+  "sessionSize": 5,
   "defaultRaiseSize": "RAISE 7.5",
   "potSize": 5,
   "currentPotSize": 5,
@@ -13,57 +13,57 @@
   "villainBetSize": 3,
   "heroBetSize": 1,
   "actionButtons": [
-    { "text": "FOLD",       "color": "#114EAB" },
-    { "text": "CALL",       "color": "#0E6326" },
-    { "text": "RAISE 7.5",  "color": "#D32121" },
+    { "text": "FOLD", "color": "#114EAB" },
+    { "text": "CALL", "color": "#0E6326" },
+    { "text": "RAISE 7.5", "color": "#D32121" },
     { "text": "RAISE 10.5", "color": "#B01E1E" },
-    { "text": "ALL-IN",     "color": "#6C0A0A" }
+    { "text": "ALL-IN", "color": "#6C0A0A" }
   ],
   "expectedAnswers": [
     {
-      "position": "BB", "stackSize": 15, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["74o"], "answer": ["FOLD"] }]
+      "position": "BB",
+      "stackSize": 15,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "SB", "action": "Raise 3" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["A2o"], "answer": ["ALL-IN"] }],
+      "villainPosition": "SB"
     },
     {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["Q4o"], "answer": ["CALL", "RAISE 7.5"] }]
+      "position": "BB",
+      "stackSize": 30,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "SB", "action": "Raise 3" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["KJs"], "answer": ["CALL"] }],
+      "villainPosition": "SB"
     },
     {
-      "position": "BB", "stackSize": 15, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["A2o"], "answer": ["ALL-IN"] }]
+      "position": "BB",
+      "stackSize": 30,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "SB", "action": "Raise 3" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["CALL"] }],
+      "villainPosition": "SB"
     },
     {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["JTs"], "answer": ["CALL"] }]
+      "position": "BB",
+      "stackSize": 30,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "SB", "action": "Raise 3" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["JJ"], "answer": ["RAISE 7.5"] }],
+      "villainPosition": "SB"
     },
     {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["KJs"], "answer": ["CALL"] }]
-    },
-    {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["ATs"], "answer": ["CALL"] }]
-    },
-    {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["JJ"], "answer": ["RAISE 7.5"] }]
-    },
-    {
-      "position": "BB", "stackSize": 30, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["92s"], "answer": ["CALL"] }]
-    },
-    {
-      "position": "BB", "stackSize": 50, "villainPosition": "SB",
-      "spotConfig": { "actionHistory": [{"street":"PRÉ-FLOP","actions":[{"position":"SB","action":"Raise 3"}]}] },
-      "expectedAnswers": [{ "combos": ["AQs"], "answer": ["RAISE 10.5"] }]
+      "position": "BB",
+      "stackSize": 30,
+      "spotConfig": {
+        "actionHistory": [{ "street": "PRÉ-FLOP", "actions": [{ "position": "SB", "action": "Raise 3" }] }]
+      },
+      "expectedAnswers": [{ "combos": ["94s"], "answer": ["CALL"] }],
+      "villainPosition": "SB"
     }
   ]
 }
