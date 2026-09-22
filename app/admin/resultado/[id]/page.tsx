@@ -13,6 +13,7 @@ import {
   isProduct,
   isTestBucket,
 } from "@/lib/poker/productFit";
+import { LEAD_ENTRY_LABELS, isLeadEntry, utmSummary } from "@/lib/leadSource";
 
 const STUDY_LABELS: Record<string, string> = {
   ate15:  "Até 15h/sem",
@@ -145,7 +146,7 @@ export default function ResultDetailPage() {
         </div>
 
         {/* Produto indicado (admin-only) */}
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 grid grid-cols-1 sm:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Perfil (questionário)</p>
             <p className="font-semibold">
@@ -171,6 +172,15 @@ export default function ResultDetailPage() {
             <p className="text-2xl font-black text-emerald-300">
               {isProduct(row.product_final) ? PRODUCT_LABELS[row.product_final] : "—"}
             </p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Origem</p>
+            <p className="font-semibold">
+              {isLeadEntry(row.lead_entry) ? LEAD_ENTRY_LABELS[row.lead_entry] : "—"}
+            </p>
+            {utmSummary(row.lead_utm) && (
+              <p className="text-xs text-neutral-500">{utmSummary(row.lead_utm)}</p>
+            )}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import {
   isProduct,
   isTestBucket,
 } from "@/lib/poker/productFit";
+import { LEAD_ENTRY_LABELS, isLeadEntry } from "@/lib/leadSource";
 
 const STUDY_LABELS: Record<string, string> = {
   ate15: "Até 15h/sem",
@@ -72,6 +73,10 @@ const HEADERS: string[] = [
   "Nome",
   "Email",
   "Telefone",
+  "Origem",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
   "Stake Grade (USD)",
   ...QUIZ_QUESTIONS.map((q) => QUIZ_HEADERS[q.key]),
   "Produto perfil",
@@ -98,6 +103,10 @@ function rowToCells(row: DiagnosticRow): string[] {
     row.player_name ?? "",
     row.email ?? "",
     row.phone ?? "",
+    isLeadEntry(row.lead_entry) ? LEAD_ENTRY_LABELS[row.lead_entry] : "",
+    row.lead_utm?.utm_source ?? "",
+    row.lead_utm?.utm_medium ?? "",
+    row.lead_utm?.utm_campaign ?? "",
     row.stake_grade?.toString() ?? "",
     ...QUIZ_QUESTIONS.map((q) => quizCell(quiz, q.key)),
     isProduct(row.product_profile) ? PRODUCT_LABELS[row.product_profile] : "",

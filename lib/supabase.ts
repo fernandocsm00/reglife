@@ -90,6 +90,10 @@ export interface DiagnosticRow {
   product_test: string | null;
   /** min(perfil, teste). */
   product_final: string | null;
+  /** Porta de entrada: teste | plano | direto (lib/leadSource.ts). null = lead legacy. */
+  lead_entry: string | null;
+  /** UTMs da URL de entrada. null = sem UTM. */
+  lead_utm: Record<string, string> | null;
   /** Aponta pra linha da tentativa anterior do mesmo lead (null = 1ª vez). */
   previous_diagnostic_id: string | null;
 }

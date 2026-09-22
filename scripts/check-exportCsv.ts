@@ -73,6 +73,8 @@ const baseRow = {
   product_profile: null,
   product_test: null,
   product_final: null,
+  lead_entry: null,
+  lead_utm: null,
   previous_diagnostic_id: null,
   quiz_answers: {
     idade: "25_34",
@@ -128,6 +130,28 @@ expect("cell produto final", pCells[pCols.indexOf("Produto final")] === "Comunid
 
 const emptyCells = parseCsvLine(rowsToCsv([baseRow]).split("\n")[1]);
 expect("empty produto final", emptyCells[pCols.indexOf("Produto final")] === "", emptyCells.join(","));
+
+// ---- Origem do lead ----------------------------------------------------------
+const sourceRow = {
+  ...baseRow,
+  lead_entry: "plano",
+  lead_utm: { utm_source: "meta", utm_medium: "cpc", utm_campaign: "plano-set" },
+} as unknown as DiagnosticRow;
+const [sHeader, sLine] = rowsToCsv([sourceRow]).split("\n");
+const sCols = parseCsvLine(sHeader);
+const sCells = parseCsvLine(sLine);
+for (const h of ["Origem", "utm_source", "utm_medium", "utm_campaign"]) {
+  expect(`header has ${h}`, sCols.includes(h), sHeader);
+}
+expect("cell origem", sCells[sCols.indexOf("Origem")] === "Plano individual", sLine);
+expect("cell utm_source", sCells[sCols.indexOf("utm_source")] === "meta", sLine);
+expect("cell utm_medium", sCells[sCols.indexOf("utm_medium")] === "cpc", sLine);
+expect("cell utm_campaign", sCells[sCols.indexOf("utm_campaign")] === "plano-set", sLine);
+
+// Lead anterior à migration 017: origem e UTMs vazias, sem quebrar a linha.
+const legacySource = parseCsvLine(rowsToCsv([baseRow]).split("\n")[1]);
+expect("legacy origem vazia", legacySource[sCols.indexOf("Origem")] === "", legacySource.join(","));
+expect("legacy utm vazio", legacySource[sCols.indexOf("utm_campaign")] === "", legacySource.join(","));
 
 if (failed > 0) {
   console.error(`\n${failed} check(s) failed`);

@@ -29,6 +29,7 @@ import {
   type QuizAnswers,
 } from "@/lib/poker/leadScoring";
 import { profileProduct, type Product } from "@/lib/poker/productFit";
+import { parseLeadSource, type LeadEntry, type LeadUtm } from "@/lib/leadSource";
 
 const DEFAULT_WEBHOOK_URL =
   "https://webhook-n8n.reglife.com.br/webhook/c877387c-88da-44a5-960f-a9f52ee9af69";
@@ -57,6 +58,10 @@ interface WebhookPayload {
   };
   stakeGrade: number;
   productProfile: Product | null;
+  source: {
+    entry: LeadEntry;
+    utm: LeadUtm | null;
+  };
   quiz: ReturnType<typeof enrichQuiz>;
   preferences: {
     notifyChannels: string[];
@@ -125,6 +130,10 @@ export async function POST(req: NextRequest) {
   const volumeTarget = weeklyVolumeTarget(quizAnswers.torneiosMes);
   const productProfile = profileProduct(quizAnswers);
 
+  // Origem: porta de entrada (/ ou /plano) + UTMs capturadas na landing.
+  // Revalidado aqui — o cliente manda o que estava no sessionStorage.
+  const leadSource = parseLeadSource(body.leadSource);
+
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
@@ -161,6 +170,8 @@ export async function POST(req: NextRequest) {
         lead_category: null,
         stake_grade: stakeGrade,
         product_profile: productProfile,
+        lead_entry: leadSource.entry,
+        lead_utm: leadSource.utm,
         // Test ainda não rodou — fica vazio
         stopped_early: false,
         spots_played: 0,
@@ -203,6 +214,7 @@ export async function POST(req: NextRequest) {
     },
     stakeGrade,
     productProfile,
+    source: leadSource,
     quiz: enrichQuiz(quizAnswers),
     preferences: {
       notifyChannels,

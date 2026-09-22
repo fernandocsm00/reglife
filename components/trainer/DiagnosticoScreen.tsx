@@ -16,6 +16,7 @@ import { sounds } from "@/lib/audio/sounds";
 import { analyzeResults } from "@/lib/poker/leakAnalysis";
 import { buildPlan } from "@/lib/poker/planBuilder";
 import { getStoredPlan, savePlan, type SavedPlan } from "@/lib/poker/planStorage";
+import { readLeadSource } from "@/lib/leadSource";
 
 interface Props {
   initialConfigs: unknown[];
@@ -303,6 +304,9 @@ export function DiagnosticoScreen({ initialConfigs }: Props) {
               whatsappPhone: data.whatsappPhone,
               quizAnswers: data.quizAnswers,
               stakeGrade: data.stakeGrade,
+              // Porta de entrada (/ ou /plano) + UTMs guardadas na landing.
+              // Quem entrou direto no /diagnostico vira "direto".
+              leadSource: readLeadSource(),
             }),
           })
             .then(async (r) => {

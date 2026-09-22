@@ -6,6 +6,7 @@ import { Logo } from "@/components/Logo";
 import type { DiagnosticRow } from "@/lib/supabase";
 import { downloadLeadsCsv } from "@/lib/admin/exportCsv";
 import { describeProduct, isProduct } from "@/lib/poker/productFit";
+import { LEAD_ENTRY_LABELS, isLeadEntry, utmSummary } from "@/lib/leadSource";
 
 const SS_NETWORKS = [
   "PokerStars",
@@ -161,6 +162,7 @@ export default function AdminPage() {
                   <th className="px-4 py-3 text-left">Jogador</th>
                   <th className="px-4 py-3 text-left">Contato</th>
                   <th className="px-4 py-3 text-center">Produto</th>
+                  <th className="px-4 py-3 text-left">Origem</th>
                   <th className="px-4 py-3 text-left">Meta / Dedicação</th>
                   <th className="px-4 py-3 text-center">Spots</th>
                   <th className="px-4 py-3 text-center">Média</th>
@@ -173,7 +175,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-neutral-800/60">
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-10 text-center text-neutral-600">
+                    <td colSpan={11} className="px-4 py-10 text-center text-neutral-600">
                       Nenhum resultado encontrado
                     </td>
                   </tr>
@@ -202,6 +204,14 @@ export default function AdminPage() {
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td className="px-4 py-3 text-neutral-400 text-xs">
+                      <div>
+                        {isLeadEntry(row.lead_entry) ? LEAD_ENTRY_LABELS[row.lead_entry] : "—"}
+                      </div>
+                      {utmSummary(row.lead_utm) && (
+                        <div className="text-neutral-600">{utmSummary(row.lead_utm)}</div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-neutral-400 text-xs">
                       <div>{PROFIT_LABELS[row.profit_goal ?? ""] ?? row.profit_goal ?? "—"}</div>
